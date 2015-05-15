@@ -83,23 +83,23 @@ func main() {
 	}
 	vargs.Repo = fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag)
 
-	// Build the container
-	cmd := exec.Command("docker", "build", "--pull=true", "--rm=true", "-t", vargs.Repo, vargs.File)
+	// Login to Docker
+	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, "index.docker.io")
 	cmd.Dir = clone.Dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	trace(cmd)
 	err := cmd.Run()
 	if err != nil {
 		stop()
 		os.Exit(1)
 	}
 
-	// Login to Docker
-	cmd = exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, "index.docker.io")
+	// Build the container
+	cmd = exec.Command("docker", "build", "--pull=true", "--rm=true", "-t", vargs.Repo, vargs.File)
 	cmd.Dir = clone.Dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	trace(cmd)
 	err = cmd.Run()
 	if err != nil {
 		stop()
