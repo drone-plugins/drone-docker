@@ -35,7 +35,7 @@ func main() {
 
 	// Set the storage driver
 	if len(vargs.Storage) == 0 {
-		vargs.Storage = "devicemapper"
+		vargs.Storage = "aufs"
 	}
 
 	stop := func() {
