@@ -27,7 +27,7 @@ docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
 		"password": "pa$$word", 
 		"email": "foo@bar.com", 
 		"repo": "foo/bar",
-		"storage_driver": "brtfs"
+		"storage_driver": "aufs"
 	}
 }
 EOF

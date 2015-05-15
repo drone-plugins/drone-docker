@@ -17,4 +17,5 @@ RUN apt-get update -qq                               \
 ADD drone-docker /go/bin/
 ADD wrapdocker /bin/
 
+VOLUME /var/lib/docker
 ENTRYPOINT ["/go/bin/drone-docker"]
