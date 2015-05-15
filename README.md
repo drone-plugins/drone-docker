@@ -23,10 +23,11 @@ docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
 		"branch": "master"
 	},
 	"vargs": {
-		"username": "foo",
-		"password": "bar", 
+		"username": "kevinbacon",
+		"password": "pa$$word", 
 		"email": "foo@bar.com", 
-		"repo": "foo/bar"
+		"repo": "foo/bar",
+		"storage_driver": "brtfs"
 	}
 }
 EOF

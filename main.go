@@ -12,6 +12,7 @@ import (
 )
 
 type Docker struct {
+	Storage  string `json:"storage_driver"`
 	Registry string `json:"registry"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -32,6 +33,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Set the storage driver
+	if len(vargs.Storage) == 0 {
+		vargs.Storage = "devicemapper"
+	}
+
 	stop := func() {
 		cmd := exec.Command("start-stop-daemon", "--stop", "--pidfile", "/var/run/docker.pid")
 		cmd.Stdout = os.Stdout
@@ -48,7 +54,7 @@ func main() {
 		cmd.Stderr = ioutil.Discard
 		cmd.Run()
 
-		cmd = exec.Command("docker", "-d", "-s", "overlay")
+		cmd = exec.Command("docker", "-d", "-s", vargs.Storage)
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 		trace(cmd)
