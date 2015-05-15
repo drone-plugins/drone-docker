@@ -32,12 +32,26 @@ func main() {
 		os.Exit(1)
 	}
 
+	stop := func() {
+		cmd := exec.Command("start-stop-daemon", "--stop", "--pidfile", "/var/run/docker.pid")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		trace(cmd)
+		cmd.Run()
+	}
+	defer stop()
+
 	// Starts the Docker daemon
 	go func() {
-		cmd := exec.Command("docker", "-d")
-		cmd.Dir = clone.Dir
+		cmd := exec.Command("/bin/bash", "/bin/wrapdocker")
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
+		cmd.Run()
+
+		cmd = exec.Command("docker", "-d", "-s", "overlay")
+		cmd.Stdout = ioutil.Discard
+		cmd.Stderr = ioutil.Discard
+		trace(cmd)
 		cmd.Run()
 	}()
 
@@ -71,6 +85,7 @@ func main() {
 	trace(cmd)
 	err := cmd.Run()
 	if err != nil {
+		stop()
 		os.Exit(1)
 	}
 
@@ -81,6 +96,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
+		stop()
 		os.Exit(1)
 	}
 
@@ -92,6 +108,7 @@ func main() {
 	trace(cmd)
 	err = cmd.Run()
 	if err != nil {
+		stop()
 		os.Exit(1)
 	}
 }

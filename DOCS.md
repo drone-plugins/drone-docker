@@ -1,6 +1,7 @@
 Use the Docker plugin to build and push Docker images to a registry.
 The following parameters are used to configuration this plugin:
 
+* **registry** - authenticates to this registry
 * **username** - authenticates with this username
 * **password** - authenticates with this password
 * **email** - authenticates with this email
