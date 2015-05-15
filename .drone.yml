@@ -1,0 +1,18 @@
+build
+  image: go
+  commands:
+    - go test
+    - go build
+    - go test
+
+plugin:
+  name: Docker
+  desc: Build and Publish images to a Docker registry.
+  type: publish
+  image: plugins/drone-docker
+  labels:
+    - docker
+    - image
+    - container
+
+  
