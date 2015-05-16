@@ -17,6 +17,7 @@ type Docker struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
+	Auth     string `json:"auth"`
 	Repo     string `json:"repo"`
 	Tag      string `json:"tag"`
 	File     string `json:"file"`
@@ -84,7 +85,7 @@ func main() {
 	vargs.Repo = fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag)
 
 	// Login to Docker
-	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, "index.docker.io")
+	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
 	cmd.Dir = clone.Dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -93,6 +94,18 @@ func main() {
 		stop()
 		os.Exit(1)
 	}
+
+	// Docker environment info
+	cmd = exec.Command("docker", "version")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	trace(cmd)
+	cmd.Run()
+	cmd = exec.Command("docker", "info")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	trace(cmd)
+	cmd.Run()
 
 	// Build the container
 	cmd = exec.Command("docker", "build", "--pull=true", "--rm=true", "-t", vargs.Repo, vargs.File)
@@ -124,3 +137,20 @@ func main() {
 func trace(cmd *exec.Cmd) {
 	fmt.Println("$", strings.Join(cmd.Args, " "))
 }
+
+// authorize is a helper function that authorizes the Docker client
+// by manually creating the Docker authentication file.
+func authorize(d *Docker) error {
+	var path = "/root/.dockercfg" // TODO should probably use user.Home() for good measure
+	var data = fmt.Sprintf(dockerconf, d.Registry, d.Auth, d.Email)
+	return ioutil.WriteFile(path, []byte(data), 0644)
+}
+
+var dockerconf = `
+{
+	"%s": {
+		"auth": "%s",
+		"email": "%s"
+	}
+}
+`
