@@ -55,7 +55,7 @@ func main() {
 		cmd.Stderr = ioutil.Discard
 		cmd.Run()
 
-		cmd = exec.Command("docker", "-d", "-s", vargs.Storage)
+		cmd = exec.Command("/etc/init.d/docker", "start")
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 		trace(cmd)
@@ -85,18 +85,20 @@ func main() {
 	vargs.Repo = fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag)
 
 	// Login to Docker
-	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
-	cmd.Dir = clone.Dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		stop()
-		os.Exit(1)
+	if len(vargs.Username) > 0 {
+		cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
+		cmd.Dir = clone.Dir
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			stop()
+			os.Exit(1)
+		}
 	}
 
 	// Docker environment info
-	cmd = exec.Command("docker", "version")
+	cmd := exec.Command("docker", "version")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
@@ -113,7 +115,7 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		stop()
 		os.Exit(1)
