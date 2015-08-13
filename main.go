@@ -55,7 +55,7 @@ func main() {
 		cmd.Stderr = ioutil.Discard
 		cmd.Run()
 
-		cmd = exec.Command("docker", "-d", "-s", vargs.Storage)
+		cmd = exec.Command("/etc/init.d/docker", "start")
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 		trace(cmd)
