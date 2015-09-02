@@ -24,15 +24,14 @@ type Docker struct {
 }
 
 func main() {
-	clone := plugin.Clone{}
+	workspace := plugin.Workspace{}
+	build := plugin.Build{}
 	vargs := Docker{}
 
-	plugin.Param("clone", &clone)
+	plugin.Param("workspace", &workspace)
+	plugin.Param("build", &build)
 	plugin.Param("vargs", &vargs)
-	if err := plugin.Parse(); err != nil {
-		println(err.Error())
-		os.Exit(1)
-	}
+	plugin.MustParse()
 
 	// Set the storage driver
 	if len(vargs.Storage) == 0 {
@@ -76,9 +75,9 @@ func main() {
 	// Set the Tag value
 	switch vargs.Tag {
 	case "$DRONE_BRANCH":
-		vargs.Tag = clone.Branch
+		vargs.Tag = build.Commit.Branch
 	case "$DRONE_COMMIT":
-		vargs.Tag = clone.Sha
+		vargs.Tag = build.Commit.Sha
 	case "":
 		vargs.Tag = "latest"
 	}
@@ -86,7 +85,7 @@ func main() {
 
 	// Login to Docker
 	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
-	cmd.Dir = clone.Dir
+	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -109,7 +108,7 @@ func main() {
 
 	// Build the container
 	cmd = exec.Command("docker", "build", "--pull=true", "--rm=true", "-t", vargs.Repo, vargs.File)
-	cmd.Dir = clone.Dir
+	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
@@ -121,7 +120,7 @@ func main() {
 
 	// Push the container
 	cmd = exec.Command("docker", "push", vargs.Repo)
-	cmd.Dir = clone.Dir
+	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
