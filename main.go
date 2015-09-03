@@ -14,6 +14,7 @@ import (
 type Docker struct {
 	Storage  string `json:"storage_driver"`
 	Registry string `json:"registry"`
+	Insecure bool   `json:"insecure"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
@@ -54,7 +55,13 @@ func main() {
 		cmd.Stderr = ioutil.Discard
 		cmd.Run()
 
-		cmd = exec.Command("docker", "-d", "-s", vargs.Storage)
+		args := []string{"-d", "-s", vargs.Storage}
+
+		if vargs.Insecure && len(vargs.Registry) != 0 {
+			args = append(args, "--insecure-registry", vargs.Registry)
+		}
+
+		cmd = exec.Command("docker", args...)
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 		trace(cmd)
@@ -73,29 +80,28 @@ func main() {
 		vargs.File = "."
 	}
 	// Set the Tag value
-	switch vargs.Tag {
-	case "$DRONE_BRANCH":
-		vargs.Tag = build.Commit.Branch
-	case "$DRONE_COMMIT":
-		vargs.Tag = build.Commit.Sha
-	case "":
+	if len(vargs.Tag) == 0 {
 		vargs.Tag = "latest"
 	}
 	vargs.Repo = fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag)
 
 	// Login to Docker
-	cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
-	cmd.Dir = workspace.Path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		stop()
-		os.Exit(1)
+	if len(vargs.Username) != 0 {
+		cmd := exec.Command("docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
+		cmd.Dir = workspace.Path
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			stop()
+			os.Exit(1)
+		}
+	} else {
+		fmt.Printf("A username was not specified. Assuming anoynmous publishing.\n")
 	}
 
 	// Docker environment info
-	cmd = exec.Command("docker", "version")
+	cmd := exec.Command("docker", "version")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
@@ -112,7 +118,7 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		stop()
 		os.Exit(1)
