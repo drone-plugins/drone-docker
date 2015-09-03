@@ -15,12 +15,16 @@ Build and Publish a Docker container
 ```sh
 docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
 {
-	"clone": {
-		"dir": "/drone/src"
+	"workspace": {
+		"path": "/drone/src"
 	},
-	"commit" : {
-		"sha": "9f2849d5",
-		"branch": "master"
+	"build" : {
+		"number": 1,
+		"head_commit": {
+			"sha": "9f2849d5",
+			"branch": "master",
+			"ref": "refs/heads/master"
+		}
 	},
 	"vargs": {
 		"username": "kevinbacon",
