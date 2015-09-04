@@ -64,7 +64,6 @@ func main() {
 
 		cmd := exec.Command("/usr/bin/dockerlaunch", args...)
 		if os.Getenv("DOCKER_LAUNCH_DEBUG") == "true" {
-			cmd.Env = os.Environ()
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 		} else {
@@ -77,7 +76,7 @@ func main() {
 	}()
 
 	// Sleep for a few seconds
-	time.Sleep(35 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	// Set the Registry value
 	if len(vargs.Registry) == 0 {
