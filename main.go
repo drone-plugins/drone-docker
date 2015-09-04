@@ -12,16 +12,17 @@ import (
 )
 
 type Docker struct {
-	Storage  string `json:"storage_driver"`
-	Registry string `json:"registry"`
-	Insecure bool   `json:"insecure"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-	Auth     string `json:"auth"`
-	Repo     string `json:"repo"`
-	Tag      string `json:"tag"`
-	File     string `json:"file"`
+	Storage  string   `json:"storage_driver"`
+	Registry string   `json:"registry"`
+	Insecure bool     `json:"insecure"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Email    string   `json:"email"`
+	Auth     string   `json:"auth"`
+	Repo     string   `json:"repo"`
+	Tag      string   `json:"tag"`
+	File     string   `json:"file"`
+	Dns      []string `json:"dns"`
 }
 
 func main() {
@@ -55,10 +56,14 @@ func main() {
 		cmd.Stderr = ioutil.Discard
 		cmd.Run()
 
-		args := []string{"-d", "-s", vargs.Storage}
+		args := []string{"daemon", "-s", vargs.Storage}
 
 		if vargs.Insecure && len(vargs.Registry) != 0 {
 			args = append(args, "--insecure-registry", vargs.Registry)
+		}
+
+		for _, value := range vargs.Dns {
+			args = append(args, "--dns", value)
 		}
 
 		cmd = exec.Command("docker", args...)
@@ -74,6 +79,8 @@ func main() {
 	// Set the Registry value
 	if len(vargs.Registry) == 0 {
 		vargs.Registry = "https://index.docker.io/v1/"
+	} else {
+		vargs.Repo = fmt.Sprintf("%s/%s", vargs.Registry, vargs.Repo)
 	}
 	// Set the Dockerfile path
 	if len(vargs.File) == 0 {
