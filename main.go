@@ -51,12 +51,8 @@ func main() {
 
 	// Starts the Docker daemon
 	go func() {
-		cmd := exec.Command("/bin/bash", "/bin/wrapdocker")
-		cmd.Stdout = ioutil.Discard
-		cmd.Stderr = ioutil.Discard
-		cmd.Run()
 
-		args := []string{"daemon", "-s", vargs.Storage}
+		args := []string{"/usr/bin/docker", "-d", "-s", vargs.Storage}
 
 		if vargs.Insecure && len(vargs.Registry) != 0 {
 			args = append(args, "--insecure-registry", vargs.Registry)
@@ -66,15 +62,22 @@ func main() {
 			args = append(args, "--dns", value)
 		}
 
-		cmd = exec.Command("docker", args...)
-		cmd.Stdout = ioutil.Discard
-		cmd.Stderr = ioutil.Discard
+		cmd := exec.Command("/usr/bin/dockerlaunch", args...)
+		if os.Getenv("DOCKER_LAUNCH_DEBUG") == "true" {
+			cmd.Env = os.Environ()
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		} else {
+			cmd.Stdout = ioutil.Discard
+			cmd.Stderr = ioutil.Discard
+		}
+
 		trace(cmd)
 		cmd.Run()
 	}()
 
 	// Sleep for a few seconds
-	time.Sleep(5 * time.Second)
+	time.Sleep(35 * time.Second)
 
 	// Set the Registry value
 	if len(vargs.Registry) == 0 {
