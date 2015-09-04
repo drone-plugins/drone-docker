@@ -35,6 +35,13 @@ func main() {
 	plugin.Param("vargs", &vargs)
 	plugin.MustParse()
 
+	// in case someone uses the shorthand repository name
+	// with a custom registry, we should concatinate so that
+	// we have the fully qualified image name.
+	if strings.Count(vargs.Repo, "/") == 1 && len(vargs.Registry) != 0 {
+		vargs.Repo = fmt.Sprintf("%s/%s", vargs.Registry, vargs.Repo)
+	}
+
 	// Set the Registry value
 	if len(vargs.Registry) == 0 {
 		vargs.Registry = "https://index.docker.io/v1/"
@@ -95,6 +102,7 @@ func main() {
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
+			fmt.Println("Login failed.")
 			os.Exit(1)
 		}
 	} else {
@@ -122,10 +130,6 @@ func main() {
 	err := cmd.Run()
 	if err != nil {
 		os.Exit(1)
-	}
-
-	if true {
-		return
 	}
 
 	// Push the container
