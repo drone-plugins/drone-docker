@@ -52,10 +52,9 @@ func main() {
 	go func() {
 		args := []string{"-d"}
 
-		// STORAGE DRIVER DISALBED FOR NOW
-		// if len(vargs.Storage) != 0 {
-		// 	args = append(args, "-s", vargs.Storage)
-		// }
+		if len(vargs.Storage) != 0 {
+			args = append(args, "-s", vargs.Storage)
+		}
 		if vargs.Insecure && len(vargs.Registry) != 0 {
 			args = append(args, "--insecure-registry", vargs.Registry)
 		}
