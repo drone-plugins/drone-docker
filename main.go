@@ -22,7 +22,9 @@ type Docker struct {
 	Repo     string   `json:"repo"`
 	Tag      string   `json:"tag"`
 	File     string   `json:"file"`
-	Dns      []string `json:"dns"`
+	// see more here https://docs.docker.com/reference/commandline/build/
+	Context	 string    `json:"context"`
+	Dns      []string  `json:"dns"`
 }
 
 func main() {
@@ -47,8 +49,8 @@ func main() {
 		vargs.Registry = "https://index.docker.io/v1/"
 	}
 	// Set the Dockerfile path
-	if len(vargs.File) == 0 {
-		vargs.File = "."
+	if len(vargs.Context) == 0 {
+		vargs.Context = "."
 	}
 	// Set the Tag value
 	if len(vargs.Tag) == 0 {
@@ -121,8 +123,14 @@ func main() {
 	trace(cmd)
 	cmd.Run()
 
+	strCmd := []string{"/usr/bin/docker", "build", "--pull=true","--rm=true", "-t", vargs.Repo, vargs.Context}
+	// Add file flag to cmd
+	if len(vargs.File) != 0 {
+		strCmd = append(append(strCmd[0:3],"-f="+vargs.File),strCmd[4:]...)
+	}
+	
 	// Build the container
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-t", vargs.Repo, vargs.File)
+	cmd = exec.Command(strCmd[0],strCmd[1:]...)
 	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
