@@ -13,7 +13,7 @@ The following parameters are used to configure this plugin:
 The following is a sample Docker configuration in your .drone.yml file:
 
 ```yaml
-pubish:
+publish:
   docker:
     username: kevinbacon
     password: $$DOCKER_PASSWORD
@@ -27,7 +27,7 @@ pubish:
 You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `$$BUILD_NUMBER` variables to tag your image with the branch, commit sha or build number:
 
 ```yaml
-pubish:
+publish:
   docker:
     username: kevinbacon
     password: $$DOCKER_PASSWORD
