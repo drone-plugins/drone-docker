@@ -12,19 +12,19 @@ import (
 )
 
 type Docker struct {
-	Storage  string   `json:"storage_driver"`
-	Registry string   `json:"registry"`
-	Insecure bool     `json:"insecure"`
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Email    string   `json:"email"`
-	Auth     string   `json:"auth"`
-	Repo     string   `json:"repo"`
-	Tag      string   `json:"tag"`
-	File     string   `json:"file"`
+	Storage  string `json:"storage_driver"`
+	Registry string `json:"registry"`
+	Insecure bool   `json:"insecure"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+	Auth     string `json:"auth"`
+	Repo     string `json:"repo"`
+	Tag      string `json:"tag"`
+	File     string `json:"file"`
 	// see more here https://docs.docker.com/reference/commandline/build/
-	Context	 string    `json:"context"`
-	Dns      []string  `json:"dns"`
+	Context string   `json:"context"`
+	Dns     []string `json:"dns"`
 }
 
 func main() {
@@ -48,7 +48,11 @@ func main() {
 	if len(vargs.Registry) == 0 {
 		vargs.Registry = "https://index.docker.io/v1/"
 	}
-	// Set the Dockerfile path
+	// Set the Dockerfile name
+	if len(vargs.File) == 0 {
+		vars.File = "Dockerfile"
+	}
+	// Set the Context value
 	if len(vargs.Context) == 0 {
 		vargs.Context = "."
 	}
@@ -123,14 +127,8 @@ func main() {
 	trace(cmd)
 	cmd.Run()
 
-	strCmd := []string{"/usr/bin/docker", "build", "--pull=true","--rm=true", "-t", vargs.Repo, vargs.Context}
-	// Add file flag to cmd
-	if len(vargs.File) != 0 {
-		strCmd = append(append(strCmd[0:3],"-f="+vargs.File),strCmd[4:]...)
-	}
-	
 	// Build the container
-	cmd = exec.Command(strCmd[0],strCmd[1:]...)
+	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vars.File, "-t", vargs.Repo, vargs.Context)
 	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
