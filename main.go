@@ -50,7 +50,7 @@ func main() {
 	}
 	// Set the Dockerfile name
 	if len(vargs.File) == 0 {
-		vars.File = "Dockerfile"
+		vargs.File = "Dockerfile"
 	}
 	// Set the Context value
 	if len(vargs.Context) == 0 {
@@ -128,7 +128,7 @@ func main() {
 	cmd.Run()
 
 	// Build the container
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vars.File, "-t", vargs.Repo, vargs.Context)
+	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", vargs.Repo, vargs.Context)
 	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
