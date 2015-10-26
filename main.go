@@ -40,7 +40,7 @@ func main() {
 	// in case someone uses the shorthand repository name
 	// with a custom registry, we should concatinate so that
 	// we have the fully qualified image name.
-	if strings.Count(vargs.Repo, "/") == 1 && len(vargs.Registry) != 0 {
+	if strings.Count(vargs.Repo, "/") <= 1 && len(vargs.Registry) != 0 && !strings.HasPrefix(vargs.Repo, vargs.Registry) {
 		vargs.Repo = fmt.Sprintf("%s/%s", vargs.Registry, vargs.Repo)
 	}
 
