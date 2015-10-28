@@ -12,19 +12,18 @@ import (
 )
 
 type Docker struct {
-	Storage  string `json:"storage_driver"`
-	Registry string `json:"registry"`
-	Insecure bool   `json:"insecure"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-	Auth     string `json:"auth"`
-	Repo     string `json:"repo"`
-	Tag      string `json:"tag"`
-	File     string `json:"file"`
-	// see more here https://docs.docker.com/reference/commandline/build/
-	Context string   `json:"context"`
-	Dns     []string `json:"dns"`
+	Storage  string   `json:"storage_driver"`
+	Registry string   `json:"registry"`
+	Insecure bool     `json:"insecure"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Email    string   `json:"email"`
+	Auth     string   `json:"auth"`
+	Repo     string   `json:"repo"`
+	Tag      StrSlice `json:"tag"`
+	File     string   `json:"file"`
+	Context  string   `json:"context"`
+	Dns      []string `json:"dns"`
 }
 
 func main() {
@@ -57,10 +56,9 @@ func main() {
 		vargs.Context = "."
 	}
 	// Set the Tag value
-	if len(vargs.Tag) == 0 {
-		vargs.Tag = "latest"
+	if vargs.Tag.Len() == 0 {
+		vargs.Tag = StrSlice{[]string{"latest"}}
 	}
-	vargs.Repo = fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag)
 
 	go func() {
 		args := []string{"-d"}
@@ -128,7 +126,8 @@ func main() {
 	cmd.Run()
 
 	// Build the container
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", vargs.Repo, vargs.Context)
+	name := fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag.Slice()[0])
+	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name, vargs.Context)
 	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -138,16 +137,34 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Push the container
-	cmd = exec.Command("/usr/bin/docker", "push", vargs.Repo)
-	cmd.Dir = workspace.Path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	trace(cmd)
-	err = cmd.Run()
-	if err != nil {
-		os.Exit(1)
+	// Creates image tags
+	for _, tag := range vargs.Tag.Slice()[1:] {
+		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
+		cmd = exec.Command("/usr/bin/docker", "tag", name, name_)
+		cmd.Dir = workspace.Path
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		trace(cmd)
+		err = cmd.Run()
+		if err != nil {
+			os.Exit(1)
+		}
 	}
+
+	// Push the image and tags to the registry
+	for _, tag := range vargs.Tag.Slice() {
+		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
+		cmd = exec.Command("/usr/bin/docker", "push", name_)
+		cmd.Dir = workspace.Path
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		trace(cmd)
+		err = cmd.Run()
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+
 }
 
 // Trace writes each command to standard error (preceded by a ‘$ ’) before it
