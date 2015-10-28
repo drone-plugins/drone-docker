@@ -36,6 +36,23 @@ publish:
     tag: $$BRANCH
 ```
 
+Or you may prefer to build an image with multiple tags:
+
+```
+publish:
+  docker:
+    username: kevinbacon
+    password: $$DOCKER_PASSWORD
+    email: kevin.bacon@mail.com
+    repo: foo/bar
+    tag:
+      - latest
+      - "1.0.1"
+      - "1.0"
+```
+
+Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
+
 ## Troubleshooting
 
 For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable in your plugin configuration. This starts Docker with verbose logging enabled.
