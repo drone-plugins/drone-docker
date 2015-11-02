@@ -82,7 +82,7 @@ Please ensure kernel is new enough and has overlay support loaded."
 level=fatal msg="Error starting daemon: error initializing graphdriver: driver not supported"
 ```
 
-This error occurs when Docker attempts to fallback to the `devicemapper` storage driver:
+This error occurs when using CentOS or RedHat which default to the `devicemapper` storage driver:
 
 ```
 level=error msg="There are no more loopback devices available." 
