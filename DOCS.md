@@ -9,6 +9,9 @@ The following parameters are used to configure this plugin:
 * `tag` - repository tag for the image
 * `insecure` - enable insecure communication to this registry
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
+* `archive` - save and restore image layers to/from a tarred archive
+    * `file` - absolute or relative path to archive file
+    * `tag` - limit archiving to these tag(s) (optional)
 
 The following is a sample Docker configuration in your .drone.yml file:
 
@@ -52,6 +55,27 @@ publish:
 ```
 
 Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
+
+You may want to cache Docker image layers between builds to speed up the build process:
+
+```
+publish:
+  docker:
+    username: kevinbacon
+    password: $$DOCKER_PASSWORD
+    email: kevin.bacon@mail.com
+    repo: foo/bar
+    tag:
+      - latest
+      - "1.0.1"
+    archive:
+      file: docker/image.tar
+      tag: latest
+
+cache:
+  mount:
+    - docker/image.tar
+```
 
 ## Troubleshooting
 

@@ -5,11 +5,17 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/drone/drone-plugin-go/plugin"
 )
+
+type Archive struct {
+	File     string   `json:"file"`
+	Tag      StrSlice `json:"tag"`
+}
 
 type Docker struct {
 	Storage  string   `json:"storage_driver"`
@@ -24,6 +30,7 @@ type Docker struct {
 	File     string   `json:"file"`
 	Context  string   `json:"context"`
 	Dns      []string `json:"dns"`
+	Archive  Archive  `json:"archive"`
 }
 
 func main() {
@@ -58,6 +65,12 @@ func main() {
 	// Set the Tag value
 	if vargs.Tag.Len() == 0 {
 		vargs.Tag = StrSlice{[]string{"latest"}}
+	}
+	// Archive file can be both a relative or absolute path
+	if len(vargs.Archive.File) != 0 {
+		if ! filepath.IsAbs(vargs.Archive.File) {
+			vargs.Archive.File = filepath.Join(workspace.Path, vargs.Archive.File)
+		}
 	}
 
 	go func() {
@@ -125,6 +138,23 @@ func main() {
 	trace(cmd)
 	cmd.Run()
 
+	// Load archived image if exists
+	if len(vargs.Archive.File) != 0 {
+		if _, err := os.Stat(vargs.Archive.File); err != nil {
+			fmt.Printf("Archive %s does not exist. Building from scratch.\n", vargs.Archive.File)
+		} else {
+			cmd := exec.Command("/usr/bin/docker", "load", "-i", vargs.Archive.File)
+			cmd.Dir = workspace.Path
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			trace(cmd)
+			err := cmd.Run()
+			if err != nil {
+				os.Exit(1)
+			}
+		}
+	}
+
 	// Build the container
 	name := fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag.Slice()[0])
 	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name, vargs.Context)
@@ -165,6 +195,33 @@ func main() {
 		}
 	}
 
+	// Save the image to the archive
+	if len(vargs.Archive.File) != 0 {
+		// if the path's directory does not exist, create it
+		dir := filepath.Dir(vargs.Archive.File)
+		os.MkdirAll(dir, 0755)
+
+		cmd = exec.Command("/usr/bin/docker", "save", "-o", vargs.Archive.File)
+
+		// Limit save command to the given tag(s)
+		if vargs.Archive.Tag.Len() != 0 {
+			for _, tag := range vargs.Archive.Tag.Slice() {
+				name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
+				cmd.Args = append(cmd.Args, name_)
+			}
+		} else {
+			cmd.Args = append(cmd.Args, vargs.Repo)
+		}
+
+		cmd.Dir = workspace.Path
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		trace(cmd)
+		err := cmd.Run()
+		if err != nil {
+			os.Exit(1)
+		}
+	}
 }
 
 // Trace writes each command to standard error (preceded by a ‘$ ’) before it
