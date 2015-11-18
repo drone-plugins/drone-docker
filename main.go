@@ -20,6 +20,7 @@ type Archive struct {
 type Docker struct {
 	Storage  string   `json:"storage_driver"`
 	Registry string   `json:"registry"`
+	Mirror   string   `json:"mirror"`
 	Insecure bool     `json:"insecure"`
 	Username string   `json:"username"`
 	Password string   `json:"password"`
@@ -81,6 +82,9 @@ func main() {
 		}
 		if vargs.Insecure && len(vargs.Registry) != 0 {
 			args = append(args, "--insecure-registry", vargs.Registry)
+		}
+		if len(vargs.Mirror) != 0 {
+			args = append(args, "--registry-mirror", vargs.Mirror)
 		}
 
 		for _, value := range vargs.Dns {
