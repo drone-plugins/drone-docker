@@ -56,8 +56,10 @@ publish:
 ```
 
 Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
+ 
+## Layer Caching
 
-You may want to cache Docker image layers between builds to speed up the build process:
+The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
 
 ```
 publish:
@@ -78,6 +80,8 @@ cache:
   mount:
     - docker/image.tar
 ```
+
+In some cases caching will greatly improve build performance, however, the tradeoff is that caching Docker image layers may consume very large amounts of disk space.
 
 ## Troubleshooting
 
