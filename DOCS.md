@@ -9,9 +9,10 @@ The following parameters are used to configure this plugin:
 * `tag` - repository tag for the image
 * `insecure` - enable insecure communication to this registry
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
-* `archive` - save and restore image layers to/from a tarred archive
-    * `file` - absolute or relative path to archive file
-    * `tag` - limit archiving to these tag(s) (optional)
+* `save` - save image layers to the specified tar file (see [docker save](https://docs.docker.com/engine/reference/commandline/save/))
+    * `file` - absolute / relative destination path
+    * `tags` - cherry-pick tags to save (optional)
+* `load` - restore image layers from the specified tar file
 
 The following is a sample Docker configuration in your .drone.yml file:
 
@@ -68,9 +69,10 @@ publish:
     tag:
       - latest
       - "1.0.1"
-    archive:
+    load: docker/image.tar
+    save:
       file: docker/image.tar
-      tag: latest
+      tags: latest
 
 cache:
   mount:
