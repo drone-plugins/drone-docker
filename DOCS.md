@@ -43,7 +43,7 @@ publish:
 
 Or you may prefer to build an image with multiple tags:
 
-```
+```yaml
 publish:
   docker:
     username: kevinbacon
@@ -62,7 +62,7 @@ Note that in the above example we quote the version numbers. If the yaml parser 
 
 The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
 
-```
+```yaml
 publish:
   docker:
     username: kevinbacon
@@ -74,12 +74,18 @@ publish:
       - "1.0.1"
     load: docker/image.tar
     save:
-      file: docker/image.tar
-      tags: latest
+      destination: docker/image.tar
+      tag: latest
 
 cache:
   mount:
     - docker/image.tar
+```
+
+You might also want to create a `.dockerignore` file in your repo to exclude `image.tar` from Docker build context:
+
+```
+docker/*
 ```
 
 In some cases caching will greatly improve build performance, however, the tradeoff is that caching Docker image layers may consume very large amounts of disk space.
@@ -88,7 +94,7 @@ In some cases caching will greatly improve build performance, however, the trade
 
 For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable in your plugin configuration. This starts Docker with verbose logging enabled.
 
-```
+```yaml
 publish:
   docker:
     environment:
