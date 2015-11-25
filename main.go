@@ -29,6 +29,7 @@ type Docker struct {
 	Email    string   `json:"email"`
 	Auth     string   `json:"auth"`
 	Repo     string   `json:"repo"`
+	ForceTag bool     `json:"force_tag"`
 	Tag      StrSlice `json:"tag"`
 	File     string   `json:"file"`
 	Context  string   `json:"context"`
@@ -183,7 +184,11 @@ func main() {
 	// Creates image tags
 	for _, tag := range vargs.Tag.Slice()[1:] {
 		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-		cmd = exec.Command("/usr/bin/docker", "tag", name, name_)
+		cmd = exec.Command("/usr/bin/docker", "tag")
+		if vargs.ForceTag {
+			cmd.Args = append(cmd.Args, "--force=true")
+		}
+		cmd.Args = append(cmd.Args, name, name_)
 		cmd.Dir = workspace.Path
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
