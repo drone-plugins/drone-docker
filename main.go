@@ -14,9 +14,9 @@ import (
 
 type Save struct {
 	// Absolute or relative path
-	File string   `json:"destination"`
+	File string `json:"destination"`
 	// Only save specified tags (optional)
-	Tags  StrSlice `json:"tag"`
+	Tags StrSlice `json:"tag"`
 }
 
 type Docker struct {
@@ -32,6 +32,7 @@ type Docker struct {
 	Tag      StrSlice `json:"tag"`
 	File     string   `json:"file"`
 	Context  string   `json:"context"`
+	Bip      string   `json:"bip"`
 	Dns      []string `json:"dns"`
 	Load     string   `json:"load"`
 	Save     Save     `json:"save"`
@@ -72,13 +73,13 @@ func main() {
 	}
 	// Get absolute path for 'save' file
 	if len(vargs.Save.File) != 0 {
-		if ! filepath.IsAbs(vargs.Save.File) {
+		if !filepath.IsAbs(vargs.Save.File) {
 			vargs.Save.File = filepath.Join(workspace.Path, vargs.Save.File)
 		}
 	}
 	// Get absolute path for 'load' file
 	if len(vargs.Load) != 0 {
-		if ! filepath.IsAbs(vargs.Load) {
+		if !filepath.IsAbs(vargs.Load) {
 			vargs.Load = filepath.Join(workspace.Path, vargs.Load)
 		}
 	}
@@ -94,6 +95,9 @@ func main() {
 		}
 		if len(vargs.Mirror) != 0 {
 			args = append(args, "--registry-mirror", vargs.Mirror)
+		}
+		if len(vargs.Bip) != 0 {
+			args = append(args, "--bip", vargs.Bip)
 		}
 
 		for _, value := range vargs.Dns {
