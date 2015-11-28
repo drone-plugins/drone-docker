@@ -10,6 +10,7 @@ The following parameters are used to configure this plugin:
 * `force_tag` - replace existing matched image tags
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
+* `bip` - use for pass bridge ip
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
 * `save` - save image layers to the specified tar file (see [docker save](https://docs.docker.com/engine/reference/commandline/save/))
     * `file` - absolute / relative destination path
