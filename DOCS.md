@@ -7,6 +7,7 @@ The following parameters are used to configure this plugin:
 * `email` - authenticates with this email
 * `repo` - repository name for the image
 * `tag` - repository tag for the image
+* `force_tag` - replace existing matched image tags
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
