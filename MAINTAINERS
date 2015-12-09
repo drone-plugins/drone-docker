@@ -1,10 +1,10 @@
-approvals = 2
-
 [people]
   [people.bradrydzewski]
     name = "Brad Rydzewski"
     email = "brad@drone.io"
     login = "bradrydzewski"
+  [people.Bugagazavr]
+    login = "Bugagazavr"
   [people.donny-dont]
     name = "Don Olmstead"
     email = "donny-dont@gmail.com"
@@ -28,4 +28,4 @@ approvals = 2
 
 [org]
   [org.core]
-    people = ["bradrydzewski", "donny-dont", "jackspirou", "msteinert", "nlf", "tboerger"]
+    people = ["bradrydzewski", "Bugagazavr", "donny-dont", "jackspirou", "msteinert", "nlf", "tboerger"]
