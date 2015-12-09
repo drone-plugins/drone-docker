@@ -13,8 +13,8 @@ The following parameters are used to configure this plugin:
 * `bip` - use for pass bridge ip
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
 * `save` - save image layers to the specified tar file (see [docker save](https://docs.docker.com/engine/reference/commandline/save/))
-    * `file` - absolute / relative destination path
-    * `tags` - cherry-pick tags to save (optional)
+    * `destination` - absolute / relative destination path
+    * `tag` - cherry-pick tags to save (optional)
 * `load` - restore image layers from the specified tar file
 
 The following is a sample Docker configuration in your .drone.yml file:
