@@ -144,10 +144,10 @@ time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/memory
 time="2015-12-17T08:06:57Z" level=fatal msg="no such file or directory" 
 ```
 
-The above issue can be resolved by editing your grub.cfg and adding these options to you kernel image:
+The above issue can be resolved by editing your `grub.cfg` and adding these options to you kernel image:
 `cgroup_enable=memory swapaccount=1`
 
-you should then have somehting like this:
+you should then have something like this:
 ```
 menuentry 'Debian GNU/Linux, avec Linux 3.16.0-0.bpo.4-amd64' --class debian --class gnu-linux --class gnu --class os {
         load_video
