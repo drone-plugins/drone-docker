@@ -23,7 +23,7 @@ The following is a sample Docker configuration in your .drone.yml file:
 publish:
   docker:
     username: kevinbacon
-    password: $$DOCKER_PASSWORD
+    password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag: latest
@@ -37,7 +37,7 @@ You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `
 publish:
   docker:
     username: kevinbacon
-    password: $$DOCKER_PASSWORD
+    password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag: $$BRANCH
@@ -49,7 +49,7 @@ Or you may prefer to build an image with multiple tags:
 publish:
   docker:
     username: kevinbacon
-    password: $$DOCKER_PASSWORD
+    password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag:
@@ -68,7 +68,7 @@ The Drone build environment is, by default, ephemeral meaning that you layers ar
 publish:
   docker:
     username: kevinbacon
-    password: $$DOCKER_PASSWORD
+    password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag:
