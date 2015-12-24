@@ -16,6 +16,7 @@ The following parameters are used to configure this plugin:
     * `destination` - absolute / relative destination path
     * `tag` - cherry-pick tags to save (optional)
 * `load` - restore image layers from the specified tar file
+* `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
 
 The following is a sample Docker configuration in your .drone.yml file:
 
@@ -59,6 +60,19 @@ publish:
 ```
 
 Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
+
+It's also possible to pass build arguments to docker:
+
+```yaml
+publish:
+  docker:
+    username: kevinbacon
+    password: pa55word
+    email: kevin.bacon@mail.com
+    repo: foo/bar
+    build_args:
+      - HTTP_PROXY=http://yourproxy.com
+```
  
 ## Layer Caching
 
