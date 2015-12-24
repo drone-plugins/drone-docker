@@ -20,23 +20,24 @@ type Save struct {
 }
 
 type Docker struct {
-	Storage  string   `json:"storage_driver"`
-	Registry string   `json:"registry"`
-	Mirror   string   `json:"mirror"`
-	Insecure bool     `json:"insecure"`
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Email    string   `json:"email"`
-	Auth     string   `json:"auth"`
-	Repo     string   `json:"repo"`
-	ForceTag bool     `json:"force_tag"`
-	Tag      StrSlice `json:"tag"`
-	File     string   `json:"file"`
-	Context  string   `json:"context"`
-	Bip      string   `json:"bip"`
-	Dns      []string `json:"dns"`
-	Load     string   `json:"load"`
-	Save     Save     `json:"save"`
+	Storage   string   `json:"storage_driver"`
+	Registry  string   `json:"registry"`
+	Mirror    string   `json:"mirror"`
+	Insecure  bool     `json:"insecure"`
+	Username  string   `json:"username"`
+	Password  string   `json:"password"`
+	Email     string   `json:"email"`
+	Auth      string   `json:"auth"`
+	Repo      string   `json:"repo"`
+	ForceTag  bool     `json:"force_tag"`
+	Tag       StrSlice `json:"tag"`
+	File      string   `json:"file"`
+	Context   string   `json:"context"`
+	Bip       string   `json:"bip"`
+	Dns       []string `json:"dns"`
+	Load      string   `json:"load"`
+	Save      Save     `json:"save"`
+	BuildArgs []string `json:"build_args"`
 }
 
 func main() {
@@ -175,7 +176,11 @@ func main() {
 
 	// Build the container
 	name := fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag.Slice()[0])
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name, vargs.Context)
+	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name)
+	for _, value := range vargs.BuildArgs {
+		cmd.Args = append(cmd.Args, "--build-arg", value)
+	}
+	cmd.Args = append(cmd.Args, vargs.Context)
 	cmd.Dir = workspace.Path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
