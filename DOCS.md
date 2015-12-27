@@ -16,7 +16,6 @@ The following parameters are used to configure this plugin:
     * `destination` - absolute / relative destination path
     * `tag` - cherry-pick tags to save (optional)
 * `load` - restore image layers from the specified tar file
-* `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
 
 The following is a sample Docker configuration in your .drone.yml file:
 
@@ -24,7 +23,7 @@ The following is a sample Docker configuration in your .drone.yml file:
 publish:
   docker:
     username: kevinbacon
-    password: pa55word
+    password: $$DOCKER_PASSWORD
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag: latest
@@ -38,7 +37,7 @@ You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `
 publish:
   docker:
     username: kevinbacon
-    password: pa55word
+    password: $$DOCKER_PASSWORD
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag: $$BRANCH
@@ -50,7 +49,7 @@ Or you may prefer to build an image with multiple tags:
 publish:
   docker:
     username: kevinbacon
-    password: pa55word
+    password: $$DOCKER_PASSWORD
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag:
@@ -60,19 +59,6 @@ publish:
 ```
 
 Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
-
-It's also possible to pass build arguments to docker:
-
-```yaml
-publish:
-  docker:
-    username: kevinbacon
-    password: pa55word
-    email: kevin.bacon@mail.com
-    repo: foo/bar
-    build_args:
-      - HTTP_PROXY=http://yourproxy.com
-```
  
 ## Layer Caching
 
@@ -82,7 +68,7 @@ The Drone build environment is, by default, ephemeral meaning that you layers ar
 publish:
   docker:
     username: kevinbacon
-    password: pa55word
+    password: $$DOCKER_PASSWORD
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag:
@@ -144,3 +130,37 @@ Cannot connect to the Docker daemon. Is 'docker -d' running on this host?
 ```
 
 The above issue can be resolved by setting `storage_driver: vfs` in the `.drone.yml` file. This may work, but will have very poor performance as discussed [here](https://github.com/rancher/docker-from-scratch/issues/20).
+
+
+This error occurs when using Debian wheezy or jessie, cgroups memory features are not configured at the kernel level:
+```
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/blkio cgroup blkio" 
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/perf_event cgroup perf_event" 
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/cpuset cgroup cpuset" 
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/cpu,cpuacct cgroup cpu,cpuacct" 
+time="2015-12-17T08:06:57Z" level=debug msg="Creating /sys/fs/cgroup/memory" 
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/memory cgroup memory" 
+time="2015-12-17T08:06:57Z" level=fatal msg="no such file or directory" 
+```
+
+The above issue can be resolved by editing your `grub.cfg` and adding these options to you kernel image:
+`cgroup_enable=memory swapaccount=1`
+
+you should then have something like this:
+```
+menuentry 'Debian GNU/Linux, avec Linux 3.16.0-0.bpo.4-amd64' --class debian --class gnu-linux --class gnu --class os {
+        load_video
+        insmod gzio
+        insmod raid
+        insmod mdraid09
+        insmod part_msdos
+        insmod part_msdos
+        insmod part_msdos
+        insmod ext2
+        set root='(mduuid/dab6cffad124a3d7a4d2adc226fd5302)'
+        search --no-floppy --fs-uuid --set=root a4085974-c507-4993-a9ed-bdc17e375cad
+        echo    'Chargement de Linux 3.16.0-0.bpo.4-amd64 ...'
+        linux   /boot/vmlinuz-3.16.0-0.bpo.4-amd64 root=/dev/md1 ro  cgroup_enable=memory swapaccount=1 quiet
+        echo    'Chargement du disque mémoire initial ...'
+        initrd  /boot/initrd.img-3.16.0-0.bpo.4-amd64
+```
