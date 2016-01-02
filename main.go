@@ -93,7 +93,7 @@ func main() {
 	}
 
 	go func() {
-		args := []string{"daemon"}
+		args := []string{"daemon", "-g", "/drone/docker"}
 
 		if len(vargs.Storage) != 0 {
 			args = append(args, "-s", vargs.Storage)
