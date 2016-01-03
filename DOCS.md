@@ -76,7 +76,7 @@ publish:
 
 ## Caching
 
-The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. There are two methods for caching layers.
+The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. There are two methods for caching your layers.
 
 ### Graph directory caching
 
