@@ -231,7 +231,7 @@ func main() {
 
 	// Remove untagged images, if any
 	var outbuf bytes.Buffer
-	cmd = exec.Command("sh", "-c", "docker images | grep '^<none>' | awk '{print $3}'")
+	cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
 	cmd.Stdout = &outbuf
 	cmd.Stderr = os.Stderr
 	trace(cmd)
