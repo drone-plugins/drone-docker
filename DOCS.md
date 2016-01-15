@@ -7,10 +7,14 @@ The following parameters are used to configure this plugin:
 * `email` - authenticates with this email
 * `repo` - repository name for the image
 * `tag` - repository tag for the image
+* `file` - dockerfile to be used, defaults to Dockerfile
+* `auth` - auth token for the registry
+* `context` - the context path to use, defaults to root of the git repo
 * `force_tag` - replace existing matched image tags
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
 * `bip` - use for pass bridge ip
+* `dns` - set custom dns servers for the container
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
 * `save` - save image layers to the specified tar file (see [docker save](https://docs.docker.com/engine/reference/commandline/save/))
     * `destination` - absolute / relative destination path
