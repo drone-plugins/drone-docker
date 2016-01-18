@@ -40,7 +40,13 @@ type Docker struct {
 	BuildArgs []string `json:"build_args"`
 }
 
+var (
+	buildDate string
+)
+
 func main() {
+	fmt.Printf("Drone Docker Plugin built at %s\n", buildDate)
+
 	workspace := plugin.Workspace{}
 	build := plugin.Build{}
 	vargs := Docker{}
