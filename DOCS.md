@@ -84,7 +84,7 @@ The Drone build environment is, by default, ephemeral meaning that you layers ar
 
 ### Graph directory caching
 
-This is the preferred method when using the `overlay` storage driver. Just use Drone's caching feature to backup and restore the directory `/drone/docker`, as shown in the following example:
+This is the preferred method when using the `overlay` or `aufs` storage drivers. Just use Drone's caching feature to backup and restore the directory `/drone/docker`, as shown in the following example:
 
 ```yaml
 publish:
@@ -102,7 +102,7 @@ cache:
     - /drone/docker
 ```
 
-NOTE: This probably won't work correctly with the `btrfs` driver, and it will be very inefficient with the `devicemapper` driver. Please make sure to use the `overlay` storage driver with this method.
+NOTE: This probably won't work correctly with the `btrfs` driver, and it will be very inefficient with the `devicemapper` driver. Please make sure to use the `overlay` or `aufs` storage driver with this method.
 
 ### Layer Caching
 
