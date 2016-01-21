@@ -142,7 +142,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		fmt.Printf("A username was not specified. Assuming anoynmous publishing.\n")
+		fmt.Printf("A username was not specified. Assuming anonymous publishing.\n")
 	}
 
 	// Docker environment info
