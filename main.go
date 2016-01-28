@@ -93,7 +93,7 @@ func main() {
 	}
 
 	go func() {
-		args := []string{"-d"}
+		args := []string{"daemon"}
 
 		if len(vargs.Storage) != 0 {
 			args = append(args, "-s", vargs.Storage)
