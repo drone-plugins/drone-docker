@@ -140,8 +140,13 @@ func main() {
 	if len(vargs.Username) != 0 {
 		cmd := exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
 		cmd.Dir = workspace.Path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		if os.Getenv("DOCKER_LAUNCH_DEBUG") == "true" {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		} else {
+			cmd.Stdout = ioutil.Discard
+			cmd.Stderr = ioutil.Discard
+		}
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println("Login failed.")
