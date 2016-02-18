@@ -27,7 +27,6 @@ The following is a sample Docker configuration in your .drone.yml file:
 ```yaml
 publish:
   docker:
-    privileged: true
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -42,7 +41,6 @@ You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `
 ```yaml
 publish:
   docker:
-    privileged: true
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -55,7 +53,6 @@ Or you may prefer to build an image with multiple tags:
 ```yaml
 publish:
   docker:
-    privileged: true
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -73,7 +70,6 @@ It's also possible to pass build arguments to docker:
 ```yaml
 publish:
   docker:
-    privileged: true
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -89,7 +85,6 @@ The Drone build environment is, by default, ephemeral meaning that you layers ar
 ```yaml
 publish:
   docker:
-    privileged: true
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -122,12 +117,9 @@ For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable i
 ```yaml
 publish:
   docker:
-    privileged: true
     environment:
       - DOCKER_LAUNCH_DEBUG=true
 ```
-
-The privileged flag is required and the project needs to be run in trusted mode.
 
 ## Known Issues
 
