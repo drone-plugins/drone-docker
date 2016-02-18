@@ -148,3 +148,35 @@ Cannot connect to the Docker daemon. Is 'docker -d' running on this host?
 ```
 
 The above issue can be resolved by setting `storage_driver: vfs` in the `.drone.yml` file. This may work, but will have very poor performance as discussed [here](https://github.com/rancher/docker-from-scratch/issues/20).
+
+This error occurs when using Debian wheezy or jessie and cgroups memory features are not configured at the kernel level:
+
+```
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/blkio cgroup blkio"
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/perf_event cgroup perf_event"
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/cpuset cgroup cpuset"
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/cpu,cpuacct cgroup cpu,cpuacct"
+time="2015-12-17T08:06:57Z" level=debug msg="Creating /sys/fs/cgroup/memory"
+time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/memory cgroup memory"
+time="2015-12-17T08:06:57Z" level=fatal msg="no such file or directory"
+```
+
+The above issue can be resolved by editing your `grub.cfg` and adding `cgroup_enable=memory swapaccount=1` to you kernel image. This change should look like that afterwards:
+
+```
+menuentry 'Debian GNU/Linux, avec Linux 3.16.0-0.bpo.4-amd64' --class debian --class gnu-linux --class gnu --class os {
+        load_video
+        insmod gzio
+        insmod raid
+        insmod mdraid09
+        insmod part_msdos
+        insmod part_msdos
+        insmod part_msdos
+        insmod ext2
+        set root='(mduuid/dab6cffad124a3d7a4d2adc226fd5302)'
+        search --no-floppy --fs-uuid --set=root a4085974-c507-4993-a9ed-bdc17e375cad
+        echo    'Chargement de Linux 3.16.0-0.bpo.4-amd64 ...'
+        linux   /boot/vmlinuz-3.16.0-0.bpo.4-amd64 root=/dev/md1 ro  cgroup_enable=memory swapaccount=1 quiet
+        echo    'Chargement du disque mémoire initial ...'
+        initrd  /boot/initrd.img-3.16.0-0.bpo.4-amd64
+```
