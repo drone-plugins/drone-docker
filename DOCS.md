@@ -77,7 +77,7 @@ publish:
     build_args:
       - HTTP_PROXY=http://yourproxy.com
 ```
- 
+
 ## Layer Caching
 
 The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
