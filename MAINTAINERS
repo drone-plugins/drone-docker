@@ -4,6 +4,8 @@
     email = "brad@drone.io"
     login = "bradrydzewski"
   [people.Bugagazavr]
+    name = "Kirill"
+    email = ""
     login = "Bugagazavr"
   [people.donny-dont]
     name = "Don Olmstead"
@@ -23,9 +25,22 @@
     login = "nlf"
   [people.tboerger]
     name = "Thomas Boerger"
-    email = ""
+    email = "thomas@webhippie.de"
     login = "tboerger"
+  [people.athieriot]
+    name = "Aurélien Thieriot"
+    email = "a.thieriot@gmail.com"
+    login = "athieriot"
 
 [org]
   [org.core]
-    people = ["bradrydzewski", "Bugagazavr", "donny-dont", "jackspirou", "msteinert", "nlf", "tboerger"]
+    people = [
+      "bradrydzewski",
+      "Bugagazavr",
+      "donny-dont",
+      "jackspirou",
+      "msteinert",
+      "nlf",
+      "tboerger",
+      "athieriot"
+    ]
