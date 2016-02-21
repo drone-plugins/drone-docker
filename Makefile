@@ -2,8 +2,9 @@
 
 EXECUTABLE ?= drone-docker
 IMAGE ?= plugins/$(EXECUTABLE)
+COMMIT ?= $(shell git rev-parse --short HEAD)
 
-LDFLAGS = -X "main.buildDate=$(shell date -u '+%Y-%m-%d %H:%M:%S %Z')"
+LDFLAGS = -X "main.buildCommit=$(COMMIT)"
 PACKAGES = $(shell go list ./... | grep -v /vendor/)
 
 all: deps build test
