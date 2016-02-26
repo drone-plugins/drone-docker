@@ -4,7 +4,7 @@
 [![Coverage Status](https://aircover.co/badges/drone-plugins/drone-docker/coverage.svg)](https://aircover.co/drone-plugins/drone-docker)
 [![](https://badge.imagelayers.io/plugins/drone-docker:latest.svg)](https://imagelayers.io/?images=plugins/drone-docker:latest 'Get your own badge on imagelayers.io')
 
-Drone plugin to build and publish images to a Docker registry
+Drone plugin to build and publish images to a Docker registry. For the usage information and a listing of the available options please take a look at [the docs](DOCS.md).
 
 ## Docker
 

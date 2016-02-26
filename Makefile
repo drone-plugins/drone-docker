@@ -1,11 +1,13 @@
-.PHONY: clean deps fmt vet test docker
+.PHONY: all clean deps fmt vet test docker
 
 EXECUTABLE ?= drone-docker
 IMAGE ?= plugins/$(EXECUTABLE)
-CI_BUILD_NUMBER ?= 0
+COMMIT ?= $(shell git rev-parse --short HEAD)
 
-LDFLAGS = -X "main.buildDate=$(shell date -u '+%Y-%m-%d %H:%M:%S %Z')"
+LDFLAGS = -X "main.buildCommit=$(COMMIT)"
 PACKAGES = $(shell go list ./... | grep -v /vendor/)
+
+all: deps build test
 
 clean:
 	go clean -i ./...
