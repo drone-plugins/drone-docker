@@ -36,7 +36,7 @@ publish:
     insecure: false
 ```
 
-You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `$$BUILD_NUMBER` variables to tag your image with the branch, commit sha or build number:
+You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT`, `$$BUILD_NUMBER` and `$$TAG` variables to tag your image with the branch, commit sha, build number or commit tag:
 
 ```yaml
 publish:
@@ -47,6 +47,9 @@ publish:
     repo: foo/bar
     tag: $$BRANCH
 ```
+
+If you use the `$$TAG` variable, you need to enable builds for tags, which can be done in your drone repository setting screen.
+You can also do `$${TAG##v}` to remove the `v` prefix on your tag name.
 
 Or you may prefer to build an image with multiple tags:
 
