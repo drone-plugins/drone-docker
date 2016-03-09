@@ -31,6 +31,10 @@
     name = "Aurélien Thieriot"
     email = "a.thieriot@gmail.com"
     login = "athieriot"
+  [people.austenLacy]
+    name = "Austen Lacy"
+    email = ""
+    login = "austenLacy"
 
 [org]
   [org.core]
@@ -42,5 +46,6 @@
       "msteinert",
       "nlf",
       "tboerger",
-      "athieriot"
+      "athieriot",
+      "austenLacy"
     ]
