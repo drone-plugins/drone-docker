@@ -19,25 +19,31 @@ type Save struct {
 	Tags StrSlice `json:"tag"`
 }
 
+type PullBefore struct {
+	Repo string `json:"repo"`
+	Tag  string `json:"tag"`
+}
+
 type Docker struct {
-	Storage   string   `json:"storage_driver"`
-	Registry  string   `json:"registry"`
-	Mirror    string   `json:"mirror"`
-	Insecure  bool     `json:"insecure"`
-	Username  string   `json:"username"`
-	Password  string   `json:"password"`
-	Email     string   `json:"email"`
-	Auth      string   `json:"auth"`
-	Repo      string   `json:"repo"`
-	ForceTag  bool     `json:"force_tag"`
-	Tag       StrSlice `json:"tag"`
-	File      string   `json:"file"`
-	Context   string   `json:"context"`
-	Bip       string   `json:"bip"`
-	Dns       []string `json:"dns"`
-	Load      string   `json:"load"`
-	Save      Save     `json:"save"`
-	BuildArgs []string `json:"build_args"`
+	Storage    string     `json:"storage_driver"`
+	Registry   string     `json:"registry"`
+	Mirror     string     `json:"mirror"`
+	Insecure   bool       `json:"insecure"`
+	Username   string     `json:"username"`
+	Password   string     `json:"password"`
+	Email      string     `json:"email"`
+	Auth       string     `json:"auth"`
+	Repo       string     `json:"repo"`
+	ForceTag   bool       `json:"force_tag"`
+	Tag        StrSlice   `json:"tag"`
+	File       string     `json:"file"`
+	Context    string     `json:"context"`
+	Bip        string     `json:"bip"`
+	Dns        []string   `json:"dns"`
+	Load       string     `json:"load"`
+	Save       Save       `json:"save"`
+	PullBefore PullBefore `json:"pull_before"`
+	BuildArgs  []string   `json:"build_args"`
 }
 
 var (
@@ -162,6 +168,23 @@ func main() {
 	cmd.Stderr = os.Stderr
 	trace(cmd)
 	cmd.Run()
+
+	// Pull an image before building
+	if len(vargs.PullBefore.Repo) != 0 {
+		if len(vargs.PullBefore.Tag) == 0 {
+			vargs.PullBefore.Tag = "latest"
+		}
+
+		name := fmt.Sprintf("%s:%s", vargs.PullBefore.Repo, vargs.PullBefore.Tag)
+		cmd := exec.Command("/usr/bin/docker", "pull", name)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		trace(cmd)
+		err := cmd.Run()
+		if err != nil {
+			os.Exit(1)
+		}
+	}
 
 	// Restore from tarred image repository
 	if len(vargs.Load) != 0 {
