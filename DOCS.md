@@ -20,6 +20,7 @@ The following parameters are used to configure this plugin:
     * `destination` - absolute / relative destination path
     * `tag` - cherry-pick tags to save (optional)
 * `load` - restore image layers from the specified tar file
+* `pull_before` - image to pull before building
 * `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
 
 The following is a sample Docker configuration in your .drone.yml file:
@@ -135,6 +136,28 @@ docker/*
 ```
 
 In some cases caching will greatly improve build performance, however, the tradeoff is that caching Docker image layers may consume very large amounts of disk space.
+
+## Pulling Images
+
+You can optionally pull an image before a build with `pull_before`:
+
+```yaml
+publish:
+  docker:
+    username: kevinbacon
+    password: pa55word
+    email: kevin.bacon@mail.com
+    repo: foo/bar
+    tag:
+      - latest
+      - "1.0.1"
+    pull_before: "foo/bar:latest"
+```
+
+Layers from the pulled image can then be used during the build, effectively acting as a cache.
+
+If an earlier version of the image being built is pulled, it can improve build times, but will cause more network traffic.
+For larger images with short build times, this may end up being slower.
 
 ## Troubleshooting
 
