@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone/drone-plugin-go/plugin"
+	"github.com/drone/drone-go/drone"
+	"github.com/drone/drone-go/plugin"
+
 )
 
 type Save struct {
@@ -48,8 +50,9 @@ var (
 func main() {
 	fmt.Printf("Drone Docker Plugin built at %s\n", buildDate)
 
-	workspace := plugin.Workspace{}
-	build := plugin.Build{}
+	workspace := drone.Workspace{}
+	build := drone.Build{}
+
 	vargs := Docker{}
 
 	plugin.Param("workspace", &workspace)
