@@ -11,6 +11,8 @@ The following parameters are used to configure this plugin:
 * `auth` - auth token for the registry
 * `context` - the context path to use, defaults to root of the git repo
 * `force_tag` - replace existing matched image tags
+* `use_branch_tag` - use 1 to 1 mapping of branch name to tag name.  anything in `tag` will override this.
+* `latest_branch` - specify a branch other than master to be latest.  this requires `use_branch_tag: true`
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
 * `bip` - use for pass bridge ip
@@ -77,10 +79,36 @@ publish:
     build_args:
       - HTTP_PROXY=http://yourproxy.com
 ```
- 
-## Layer Caching
 
-The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
+## Caching
+
+The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. There are two methods for caching your layers.
+
+### Graph directory caching
+
+This is the preferred method when using the `overlay` or `aufs` storage drivers. Just use Drone's caching feature to backup and restore the directory `/drone/docker`, as shown in the following example:
+
+```yaml
+publish:
+  docker:
+    username: kevinbacon
+    password: pa55word
+    email: kevin.bacon@mail.com
+    repo: foo/bar
+    tag:
+      - latest
+      - "1.0.1"
+
+cache:
+  mount:
+    - /drone/docker
+```
+
+NOTE: This probably won't work correctly with the `btrfs` driver, and it will be very inefficient with the `devicemapper` driver. Please make sure to use the `overlay` or `aufs` storage driver with this method.
+
+### Layer Caching
+
+The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
 
 ```yaml
 publish:
