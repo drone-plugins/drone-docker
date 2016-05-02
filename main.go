@@ -10,7 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone/drone-plugin-go/plugin"
+	"github.com/drone/drone-go/drone"
+	"github.com/drone/drone-go/plugin"
 )
 
 type Save struct {
@@ -21,24 +22,26 @@ type Save struct {
 }
 
 type Docker struct {
-	Storage   string   `json:"storage_driver"`
-	Registry  string   `json:"registry"`
-	Mirror    string   `json:"mirror"`
-	Insecure  bool     `json:"insecure"`
-	Username  string   `json:"username"`
-	Password  string   `json:"password"`
-	Email     string   `json:"email"`
-	Auth      string   `json:"auth"`
-	Repo      string   `json:"repo"`
-	ForceTag  bool     `json:"force_tag"`
-	Tag       StrSlice `json:"tag"`
-	File      string   `json:"file"`
-	Context   string   `json:"context"`
-	Bip       string   `json:"bip"`
-	Dns       []string `json:"dns"`
-	Load      string   `json:"load"`
-	Save      Save     `json:"save"`
-	BuildArgs []string `json:"build_args"`
+	Storage      string   `json:"storage_driver"`
+	Registry     string   `json:"registry"`
+	Mirror       string   `json:"mirror"`
+	Insecure     bool     `json:"insecure"`
+	Username     string   `json:"username"`
+	Password     string   `json:"password"`
+	Email        string   `json:"email"`
+	Auth         string   `json:"auth"`
+	Repo         string   `json:"repo"`
+	ForceTag     bool     `json:"force_tag"`
+	Tag          StrSlice `json:"tag"`
+	File         string   `json:"file"`
+	Context      string   `json:"context"`
+	Bip          string   `json:"bip"`
+	Dns          []string `json:"dns"`
+	Load         string   `json:"load"`
+	Save         Save     `json:"save"`
+	BuildArgs    []string `json:"build_args"`
+	BranchTag    bool     `json:"use_branch_tag"`
+	LatestBranch string   `json:"latest_branch"`
 }
 
 var (
@@ -48,8 +51,8 @@ var (
 func main() {
 	fmt.Printf("Drone Docker Plugin built at %s\n", buildDate)
 
-	workspace := plugin.Workspace{}
-	build := plugin.Build{}
+	workspace := drone.Workspace{}
+	build := drone.Build{}
 	vargs := Docker{}
 
 	plugin.Param("workspace", &workspace)
@@ -79,7 +82,19 @@ func main() {
 	// Set the Tag value
 	if vargs.Tag.Len() == 0 {
 		vargs.Tag = StrSlice{[]string{"latest"}}
+		// Setup branch to tag map
+		if vargs.BranchTag {
+			// No latest branch specified, use master
+			if len(vargs.LatestBranch) == 0 {
+				vargs.LatestBranch = "master"
+			}
+			// Set tag if it isn't latest
+			if build.Branch != vargs.LatestBranch{
+				vargs.Tag = StrSlice{[]string{build.Branch}}
+			}
+		}
 	}
+
 	// Get absolute path for 'save' file
 	if len(vargs.Save.File) != 0 {
 		if !filepath.IsAbs(vargs.Save.File) {

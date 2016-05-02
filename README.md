@@ -35,7 +35,7 @@ docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
         "finished_at": 1421029813,
         "message": "Update the Readme",
         "author": "johnsmith",
-        "author_email": "john.smith@gmail.com"
+        "author_email": "john.smith@gmail.com",
         "event": "push",
         "branch": "master",
         "commit": "436b7a6e2abaddfd35740527353e78a227ddcb2c",

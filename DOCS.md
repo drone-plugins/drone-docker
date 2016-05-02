@@ -11,6 +11,8 @@ The following parameters are used to configure this plugin:
 * `auth` - auth token for the registry
 * `context` - the context path to use, defaults to root of the git repo
 * `force_tag` - replace existing matched image tags
+* `use_branch_tag` - use 1 to 1 mapping of branch name to tag name.  anything in `tag` will override this.
+* `latest_branch` - specify a branch other than master to be latest.  this requires `use_branch_tag: true`
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
 * `bip` - use for pass bridge ip
