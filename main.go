@@ -1,305 +1,203 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/drone/drone-plugin-go/plugin"
+	"github.com/codegangsta/cli"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-type Save struct {
-	// Absolute or relative path
-	File string `json:"destination"`
-	// Only save specified tags (optional)
-	Tags StrSlice `json:"tag"`
-}
+// build number set at compile-time
+var version string
 
-type Docker struct {
-	Storage   string   `json:"storage_driver"`
-	Registry  string   `json:"registry"`
-	Mirror    string   `json:"mirror"`
-	Insecure  bool     `json:"insecure"`
-	Username  string   `json:"username"`
-	Password  string   `json:"password"`
-	Email     string   `json:"email"`
-	Auth      string   `json:"auth"`
-	Repo      string   `json:"repo"`
-	ForceTag  bool     `json:"force_tag"`
-	Tag       StrSlice `json:"tag"`
-	File      string   `json:"file"`
-	Context   string   `json:"context"`
-	Bip       string   `json:"bip"`
-	Dns       []string `json:"dns"`
-	Load      string   `json:"load"`
-	Save      Save     `json:"save"`
-	BuildArgs []string `json:"build_args"`
-}
-
-var (
-	buildDate string
-)
+// default docker registry
+const defaultRegistry = "https://index.docker.io/v1/"
 
 func main() {
-	fmt.Printf("Drone Docker Plugin built at %s\n", buildDate)
+	app := cli.NewApp()
+	app.Name = "my plugin"
+	app.Usage = "my plugin usage"
+	app.Action = run
+	app.Version = version
+	app.Flags = []cli.Flag{
 
-	workspace := plugin.Workspace{}
-	build := plugin.Build{}
-	vargs := Docker{}
+		cli.BoolFlag{
+			Name:   "dry-run",
+			Usage:  "dry run disables docker push",
+			EnvVar: "PLUGIN_DRY_RUN",
+		},
 
-	plugin.Param("workspace", &workspace)
-	plugin.Param("build", &build)
-	plugin.Param("vargs", &vargs)
-	plugin.MustParse()
+		cli.StringFlag{
+			Name:   "commit.sha",
+			Usage:  "git commit sha",
+			EnvVar: "DRONE_COMMIT_SHA",
+		},
 
-	// in case someone uses the shorthand repository name
-	// with a custom registry, we should concatinate so that
-	// we have the fully qualified image name.
-	if strings.Count(vargs.Repo, "/") <= 1 && len(vargs.Registry) != 0 && !strings.HasPrefix(vargs.Repo, vargs.Registry) {
-		vargs.Repo = fmt.Sprintf("%s/%s", vargs.Registry, vargs.Repo)
+		// daemon parameters
+		cli.StringFlag{
+			Name:   "daemon.mirror",
+			Usage:  "docker daemon registry mirror",
+			EnvVar: "PLUGIN_REGISTRY",
+		},
+		cli.StringFlag{
+			Name:   "daemon.storage-driver",
+			Usage:  "docker daemon storage driver",
+			EnvVar: "PLUGIN_STORAGE_DRIVER",
+		},
+		cli.StringFlag{
+			Name:   "daemon.storage-driver",
+			Usage:  "docker daemon storage path",
+			Value:  "/tmp/docker",
+			EnvVar: "PLUGIN_STORAGE_PATH",
+		},
+		cli.StringFlag{
+			Name:   "daemon.bip",
+			Usage:  "docker daemon bride ip address",
+			EnvVar: "PLUGIN_BIP",
+		},
+		cli.StringSliceFlag{
+			Name:   "daemon.dns",
+			Usage:  "docker daemon dns server",
+			EnvVar: "PLUGIN_DNS",
+		},
+		cli.BoolFlag{
+			Name:   "daemon.insecure",
+			Usage:  "docker daemon allows insecure registries",
+			EnvVar: "PLUGIN_INSECURE",
+		},
+		cli.BoolFlag{
+			Name:   "daemon.debug",
+			Usage:  "docker daemon executes in debug mode",
+			EnvVar: "PLUGIN_DEBUG",
+		},
+		cli.BoolFlag{
+			Name:   "daemon.debug",
+			Usage:  "docker daemon executes in debug mode",
+			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
+		},
+		cli.BoolFlag{
+			Name:   "daemon.off",
+			Usage:  "docker daemon executes in debug mode",
+			EnvVar: "PLUGIN_DAEMON_OFF",
+		},
+
+		// build parameters
+
+		cli.StringFlag{
+			Name:   "dockerfile",
+			Usage:  "build dockerfile",
+			Value:  "Dockerfile",
+			EnvVar: "PLUGIN_DOCKERFILE",
+		},
+		cli.StringFlag{
+			Name:   "context",
+			Usage:  "build context",
+			Value:  ".",
+			EnvVar: "PLUGIN_CONTEXT",
+		},
+		cli.StringSliceFlag{
+			Name:   "tags",
+			Usage:  "build tags",
+			Value:  &cli.StringSlice{"latest"},
+			EnvVar: "PLUGIN_TAG,PLUGIN_TAGS",
+		},
+		cli.BoolFlag{
+			Name:   "force",
+			Usage:  "build tags are forced",
+			EnvVar: "PLUGIN_FORCE",
+		},
+		cli.StringSliceFlag{
+			Name:   "args",
+			Usage:  "build args",
+			EnvVar: "PLUGIN_ARGS",
+		},
+		cli.StringFlag{
+			Name:   "repo",
+			Usage:  "docker repository",
+			EnvVar: "PLUGIN_REPO",
+		},
+
+		// secret variables
+		cli.StringFlag{
+			Name:   "docker.registry",
+			Usage:  "docker username",
+			Value:  defaultRegistry,
+			EnvVar: "DOCKER_REGISTRY,PLUGIN_REGISTRY",
+		},
+		cli.StringFlag{
+			Name:   "docker.username",
+			Usage:  "docker username",
+			EnvVar: "DOCKER_USERNAME,PLUGIN_USERNAME",
+		},
+		cli.StringFlag{
+			Name:   "docker.password",
+			Usage:  "docker password",
+			EnvVar: "DOCKER_PASSWORD,PLUGIN_PASSWORD",
+		},
+		cli.StringFlag{
+			Name:   "docker.email",
+			Usage:  "docker email",
+			EnvVar: "DOCKER_EMAIL,PLUGIN_EMAIL",
+		},
 	}
 
-	// Set the Registry value
-	if len(vargs.Registry) == 0 {
-		vargs.Registry = "https://index.docker.io/v1/"
-	}
-	// Set the Dockerfile name
-	if len(vargs.File) == 0 {
-		vargs.File = "Dockerfile"
-	}
-	// Set the Context value
-	if len(vargs.Context) == 0 {
-		vargs.Context = "."
-	}
-	// Set the Tag value
-	if vargs.Tag.Len() == 0 {
-		vargs.Tag = StrSlice{[]string{"latest"}}
-	}
-	// Get absolute path for 'save' file
-	if len(vargs.Save.File) != 0 {
-		if !filepath.IsAbs(vargs.Save.File) {
-			vargs.Save.File = filepath.Join(workspace.Path, vargs.Save.File)
-		}
-	}
-	// Get absolute path for 'load' file
-	if len(vargs.Load) != 0 {
-		if !filepath.IsAbs(vargs.Load) {
-			vargs.Load = filepath.Join(workspace.Path, vargs.Load)
-		}
+	app.Run(os.Args)
+}
+
+func run(c *cli.Context) {
+	plugin := Plugin{
+		Dryrun: c.Bool("dry-run"),
+		Login: Login{
+			Registry: c.String("docker.registry"),
+			Username: c.String("docker.username"),
+			Password: c.String("docker.password"),
+			Email:    c.String("docker.email"),
+		},
+		Build: Build{
+			Name:       c.String("commit.sha"),
+			Dockerfile: c.String("dockerfile"),
+			Context:    c.String("context"),
+			Tags:       c.StringSlice("tags"),
+			Args:       c.StringSlice("args"),
+			Repo:       c.String("repo"),
+			Force:      c.Bool("force"),
+		},
+		Daemon: Daemon{
+			Registry:      c.String("docker.registry"),
+			Mirror:        c.String("daemon.mirror"),
+			StorageDriver: c.String("daemon.storage-driver"),
+			StoragePath:   c.String("daemon.storage-path"),
+			Insecure:      c.Bool("daemon.insecure"),
+			Disabled:      c.Bool("daemon.off"),
+			Debug:         c.Bool("deamon.debug"),
+			Bip:           c.String("daemon.bip"),
+			DNS:           c.StringSlice("daemon.dns"),
+		},
 	}
 
-	go func() {
-		args := []string{"daemon", "-g", "/drone/docker"}
+	plugin.Dryrun = true // TODO remote this line
 
-		if len(vargs.Storage) != 0 {
-			args = append(args, "-s", vargs.Storage)
-		}
-		if vargs.Insecure && len(vargs.Registry) != 0 {
-			args = append(args, "--insecure-registry", vargs.Registry)
-		}
-		if len(vargs.Mirror) != 0 {
-			args = append(args, "--registry-mirror", vargs.Mirror)
-		}
-		if len(vargs.Bip) != 0 {
-			args = append(args, "--bip", vargs.Bip)
-		}
-
-		for _, value := range vargs.Dns {
-			args = append(args, "--dns", value)
-		}
-
-		cmd := exec.Command("/usr/bin/docker", args...)
-		if os.Getenv("DOCKER_LAUNCH_DEBUG") == "true" {
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-		} else {
-			cmd.Stdout = ioutil.Discard
-			cmd.Stderr = ioutil.Discard
-		}
-		trace(cmd)
-		cmd.Run()
-	}()
-
-	// ping Docker until available
-	for i := 0; i < 3; i++ {
-		cmd := exec.Command("/usr/bin/docker", "info")
-		cmd.Stdout = ioutil.Discard
-		cmd.Stderr = ioutil.Discard
-		err := cmd.Run()
-		if err == nil {
-			break
-		}
-		time.Sleep(time.Second * 5)
+	// this code attempts to normalize the repository name by appending the fully
+	// qualified registry name if otherwise omitted.
+	if plugin.Login.Registry != defaultRegistry &&
+		strings.HasPrefix(plugin.Build.Repo, defaultRegistry) {
+		plugin.Build.Repo = plugin.Login.Registry + "/" + plugin.Build.Repo
 	}
 
-	// Login to Docker
-	if len(vargs.Username) != 0 {
-		cmd := exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
-		cmd.Dir = workspace.Path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("Login failed.")
-			os.Exit(1)
-		}
-	} else {
-		fmt.Printf("A username was not specified. Assuming anonymous publishing.\n")
-	}
-
-	// Docker environment info
-	cmd := exec.Command("/usr/bin/docker", "version")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	trace(cmd)
-	cmd.Run()
-	cmd = exec.Command("/usr/bin/docker", "info")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	trace(cmd)
-	cmd.Run()
-
-	// Restore from tarred image repository
-	if len(vargs.Load) != 0 {
-		if _, err := os.Stat(vargs.Load); err != nil {
-			fmt.Printf("Archive %s does not exist. Building from scratch.\n", vargs.Load)
-		} else {
-			cmd := exec.Command("/usr/bin/docker", "load", "-i", vargs.Load)
-			cmd.Dir = workspace.Path
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			trace(cmd)
-			err := cmd.Run()
-			if err != nil {
-				os.Exit(1)
-			}
-		}
-	}
-
-	// Build the container
-	name := fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag.Slice()[0])
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name)
-	for _, value := range vargs.BuildArgs {
-		cmd.Args = append(cmd.Args, "--build-arg", value)
-	}
-	cmd.Args = append(cmd.Args, vargs.Context)
-	cmd.Dir = workspace.Path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	trace(cmd)
-	err := cmd.Run()
-	if err != nil {
+	if err := plugin.Exec(); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	// Creates image tags
-	for _, tag := range vargs.Tag.Slice()[1:] {
-		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-		cmd = exec.Command("/usr/bin/docker", "tag")
-		if vargs.ForceTag {
-			cmd.Args = append(cmd.Args, "--force=true")
-		}
-		cmd.Args = append(cmd.Args, name, name_)
-		cmd.Dir = workspace.Path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-		err = cmd.Run()
-		if err != nil {
-			os.Exit(1)
-		}
-	}
-
-	// Push the image and tags to the registry
-	for _, tag := range vargs.Tag.Slice() {
-		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-		cmd = exec.Command("/usr/bin/docker", "push", name_)
-		cmd.Dir = workspace.Path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-		err = cmd.Run()
-		if err != nil {
-			os.Exit(1)
-		}
-	}
-
-	// Remove untagged images, if any
-	var outbuf bytes.Buffer
-	cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
-	cmd.Stdout = &outbuf
-	cmd.Stderr = os.Stderr
-	trace(cmd)
-	err = cmd.Run()
-	if err != nil {
-		os.Exit(1)
-	}
-
-	if outbuf.Len() > 0 {
-		images := strings.Split(strings.TrimSpace(outbuf.String()), "\n")
-		cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-		err := cmd.Run()
-		if err != nil {
-			os.Exit(1)
-		}
-	}
-
-	// Save to tarred image repository
-	if len(vargs.Save.File) != 0 {
-		// if the destination directory does not exist, create it
-		dir := filepath.Dir(vargs.Save.File)
-		os.MkdirAll(dir, 0755)
-
-		cmd = exec.Command("/usr/bin/docker", "save", "-o", vargs.Save.File)
-
-		// Limit saving to the given tags
-		if vargs.Save.Tags.Len() != 0 {
-			for _, tag := range vargs.Save.Tags.Slice() {
-				name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-				cmd.Args = append(cmd.Args, name_)
-			}
-		} else {
-			cmd.Args = append(cmd.Args, vargs.Repo)
-		}
-
-		cmd.Dir = workspace.Path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-		err := cmd.Run()
-		if err != nil {
-			os.Exit(1)
-		}
-	}
+	// TODO execute code remove dangling images
+	// this is problematic because we are running docker in scratch which does
+	// not have bash, so we need to hack something together
+	// docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi
 }
 
-// Trace writes each command to standard error (preceded by a ‘$ ’) before it
-// is executed. Used for debugging your build.
-func trace(cmd *exec.Cmd) {
-	fmt.Println("$", strings.Join(cmd.Args, " "))
-}
-
-// authorize is a helper function that authorizes the Docker client
-// by manually creating the Docker authentication file.
-func authorize(d *Docker) error {
-	var path = "/root/.dockercfg" // TODO should probably use user.Home() for good measure
-	var data = fmt.Sprintf(dockerconf, d.Registry, d.Auth, d.Email)
-	return ioutil.WriteFile(path, []byte(data), 0644)
-}
-
-var dockerconf = `
-{
-	"%s": {
-		"auth": "%s",
-		"email": "%s"
-	}
-}
-`
+/*
+cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
+cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
+*/
