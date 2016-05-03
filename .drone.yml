@@ -5,7 +5,6 @@ build:
       - CGO_ENABLED=0
       - GO15VENDOREXPERIMENT=1
     commands:
-      - go vet
       - go test -cover -coverprofile=coverage.out
       - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER"
 
