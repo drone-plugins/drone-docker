@@ -167,8 +167,6 @@ func run(c *cli.Context) {
 		},
 	}
 
-	plugin.Dryrun = true // TODO remote this line
-
 	// this code attempts to normalize the repository name by appending the fully
 	// qualified registry name if otherwise omitted.
 	if plugin.Login.Registry != defaultRegistry &&
