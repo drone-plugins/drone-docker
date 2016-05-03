@@ -20,7 +20,7 @@ publish:
     repo: plugins/docker
     tag: latest
     when:
-      branch: master
+      branch: release/0.5
 
 plugin:
   name: Docker

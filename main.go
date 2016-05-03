@@ -17,8 +17,8 @@ const defaultRegistry = "https://index.docker.io/v1/"
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "my plugin"
-	app.Usage = "my plugin usage"
+	app.Name = "docker plugin"
+	app.Usage = "docker plugin"
 	app.Action = run
 	app.Version = version
 	app.Flags = []cli.Flag{
@@ -33,6 +33,7 @@ func main() {
 			Name:   "commit.sha",
 			Usage:  "git commit sha",
 			EnvVar: "DRONE_COMMIT_SHA",
+			Value:  "00000000",
 		},
 
 		// daemon parameters
@@ -47,7 +48,7 @@ func main() {
 			EnvVar: "PLUGIN_STORAGE_DRIVER",
 		},
 		cli.StringFlag{
-			Name:   "daemon.storage-driver",
+			Name:   "daemon.storage-path",
 			Usage:  "docker daemon storage path",
 			Value:  "/tmp/docker",
 			EnvVar: "PLUGIN_STORAGE_PATH",
@@ -66,11 +67,6 @@ func main() {
 			Name:   "daemon.insecure",
 			Usage:  "docker daemon allows insecure registries",
 			EnvVar: "PLUGIN_INSECURE",
-		},
-		cli.BoolFlag{
-			Name:   "daemon.debug",
-			Usage:  "docker daemon executes in debug mode",
-			EnvVar: "PLUGIN_DEBUG",
 		},
 		cli.BoolFlag{
 			Name:   "daemon.debug",
@@ -103,15 +99,10 @@ func main() {
 			Value:  &cli.StringSlice{"latest"},
 			EnvVar: "PLUGIN_TAG,PLUGIN_TAGS",
 		},
-		cli.BoolFlag{
-			Name:   "force",
-			Usage:  "build tags are forced",
-			EnvVar: "PLUGIN_FORCE",
-		},
 		cli.StringSliceFlag{
 			Name:   "args",
 			Usage:  "build args",
-			EnvVar: "PLUGIN_ARGS",
+			EnvVar: "PLUGIN_BUILD_ARGS",
 		},
 		cli.StringFlag{
 			Name:   "repo",
@@ -162,7 +153,6 @@ func run(c *cli.Context) {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Repo:       c.String("repo"),
-			Force:      c.Bool("force"),
 		},
 		Daemon: Daemon{
 			Registry:      c.String("docker.registry"),
@@ -171,7 +161,7 @@ func run(c *cli.Context) {
 			StoragePath:   c.String("daemon.storage-path"),
 			Insecure:      c.Bool("daemon.insecure"),
 			Disabled:      c.Bool("daemon.off"),
-			Debug:         c.Bool("deamon.debug"),
+			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
 		},

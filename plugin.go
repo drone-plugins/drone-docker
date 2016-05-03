@@ -39,7 +39,6 @@ type (
 		Tags       []string // Docker build tags
 		Args       []string // Docker build args
 		Repo       string   // Docker build repository
-		Force      bool     // Docker build forces image tag creation
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -160,14 +159,11 @@ func commandBuild(build Build) *exec.Cmd {
 // helper function to create the docker tag command.
 func commandTag(build Build, tag string) *exec.Cmd {
 	var (
-		force = fmt.Sprintf("--force=%v", build.Force)
-		from  = build.Name
-		to    = fmt.Sprintf("%s:%s", build.Repo, tag)
+		source = build.Name
+		target = fmt.Sprintf("%s:%s", build.Repo, tag)
 	)
 	return exec.Command(
-		"/usr/bin/docker", "tag",
-		force,
-		from, to,
+		"/usr/bin/docker", "tag", source, target,
 	)
 }
 
