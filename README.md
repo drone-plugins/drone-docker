@@ -17,13 +17,13 @@ make deps docker
 ### Example
 
 ```sh
-docker run -i --privileged -v $(pwd):/drone/src/github.com/plugins/drone-docker plugins/drone-docker <<EOF
+docker run -i --privileged -v $(pwd):/drone/src/github.com/drone-plugins/drone-docker plugins/drone-docker <<EOF
 {
     "repo": {
-        "clone_url": "git://github.com/drone/drone",
+        "clone_url": "git://github.com/drone-plugins/drone-docker",
         "owner": "drone",
-        "name": "drone",
-        "full_name": "drone/drone"
+        "name": "drone-docker",
+        "full_name": "drone-plugins/drone-docker"
     },
     "system": {
         "link_url": "https://beta.drone.io"
@@ -43,7 +43,7 @@ docker run -i --privileged -v $(pwd):/drone/src/github.com/plugins/drone-docker 
     },
     "workspace": {
         "root": "/drone/src",
-        "path": "/drone/src/github.com/plugins/drone-docker"
+        "path": "/drone/src/github.com/drone-plugins/drone-docker"
     },
     "vargs": {
         "username": "kevinbacon",
