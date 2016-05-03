@@ -17,13 +17,13 @@ make deps docker
 ### Example
 
 ```sh
-docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
+docker run -i --privileged -v $(pwd):/drone/src/github.com/drone-plugins/drone-docker plugins/drone-docker <<EOF
 {
     "repo": {
-        "clone_url": "git://github.com/drone/drone",
+        "clone_url": "git://github.com/drone-plugins/drone-docker",
         "owner": "drone",
-        "name": "drone",
-        "full_name": "drone/drone"
+        "name": "drone-docker",
+        "full_name": "drone-plugins/drone-docker"
     },
     "system": {
         "link_url": "https://beta.drone.io"
@@ -35,7 +35,7 @@ docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
         "finished_at": 1421029813,
         "message": "Update the Readme",
         "author": "johnsmith",
-        "author_email": "john.smith@gmail.com"
+        "author_email": "john.smith@gmail.com",
         "event": "push",
         "branch": "master",
         "commit": "436b7a6e2abaddfd35740527353e78a227ddcb2c",
@@ -43,7 +43,7 @@ docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
     },
     "workspace": {
         "root": "/drone/src",
-        "path": "/drone/src/github.com/drone/drone"
+        "path": "/drone/src/github.com/drone-plugins/drone-docker"
     },
     "vargs": {
         "username": "kevinbacon",
