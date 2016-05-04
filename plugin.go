@@ -100,7 +100,7 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(tag)) // docker push
+			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
 
@@ -168,8 +168,9 @@ func commandTag(build Build, tag string) *exec.Cmd {
 }
 
 // helper function to create the docker push command.
-func commandPush(tag string) *exec.Cmd {
-	return exec.Command("/usr/bin/docker", "push", tag)
+func commandPush(build Build, tag string) *exec.Cmd {
+	target := fmt.Sprintf("%s:%s", build.Repo, tag)
+	return exec.Command("/usr/bin/docker", "push", target)
 }
 
 // helper function to create the docker daemon command.
