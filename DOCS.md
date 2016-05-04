@@ -1,5 +1,4 @@
-Use the Docker plugin to build and push Docker images to a registry.
-The following parameters are used to configure this plugin:
+Use the Docker plugin to build and push Docker images to a registry. The following parameters are used to configure this plugin:
 
 * `registry` - authenticates to this registry
 * `username` - authenticates with this username
@@ -8,18 +7,13 @@ The following parameters are used to configure this plugin:
 * `repo` - repository name for the image
 * `tag` - repository tag for the image
 * `file` - dockerfile to be used, defaults to Dockerfile
-* `auth` - auth token for the registry
 * `context` - the context path to use, defaults to root of the git repo
-* `force_tag` - replace existing matched image tags
 * `insecure` - enable insecure communication to this registry
 * `mirror` - use a mirror registry instead of pulling images directly from the central Hub
 * `bip` - use for pass bridge ip
 * `dns` - set custom dns servers for the container
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
-* `save` - save image layers to the specified tar file (see [docker save](https://docs.docker.com/engine/reference/commandline/save/))
-    * `destination` - absolute / relative destination path
-    * `tag` - cherry-pick tags to save (optional)
-* `load` - restore image layers from the specified tar file
+* `storage_path` - location of docker daemon storage on disk
 * `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
 
 The following is a sample Docker configuration in your .drone.yml file:
@@ -36,19 +30,7 @@ publish:
     insecure: false
 ```
 
-You may want to dynamically tag your image. Use the `$$BRANCH`, `$$COMMIT` and `$$BUILD_NUMBER` variables to tag your image with the branch, commit sha or build number:
-
-```yaml
-publish:
-  docker:
-    username: kevinbacon
-    password: pa55word
-    email: kevin.bacon@mail.com
-    repo: foo/bar
-    tag: $$BRANCH
-```
-
-Or you may prefer to build an image with multiple tags:
+Publish and image with multiple tags:
 
 ```yaml
 publish:
@@ -59,13 +41,11 @@ publish:
     repo: foo/bar
     tag:
       - latest
-      - "1.0.1"
+      - 1.0.1
       - "1.0"
 ```
 
-Note that in the above example we quote the version numbers. If the yaml parser interprets the value as a number it will cause a parsing error.
-
-It's also possible to pass build arguments to docker:
+Build an image with arguments:
 
 ```yaml
 publish:
@@ -77,14 +57,19 @@ publish:
     build_args:
       - HTTP_PROXY=http://yourproxy.com
 ```
- 
-## Layer Caching
 
-The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. The below example combines Drone's caching feature and Docker's `save` and `load` capabilities to cache and restore image layers between builds:
+## Caching
+
+The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. There are two methods for caching your layers.
+
+### Graph directory caching
+
+This is the preferred method when using the `overlay` or `aufs` storage drivers. Just use Drone's caching feature to backup and restore the directory `/drone/docker`, as shown in the following example:
 
 ```yaml
 publish:
   docker:
+    storage_path: /drone/docker
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -92,23 +77,11 @@ publish:
     tag:
       - latest
       - "1.0.1"
-    load: docker/image.tar
-    save:
-      destination: docker/image.tar
-      tag: latest
 
 cache:
   mount:
-    - docker/image.tar
+    - /drone/docker
 ```
-
-You might also want to create a `.dockerignore` file in your repo to exclude `image.tar` from Docker build context:
-
-```
-docker/*
-```
-
-In some cases caching will greatly improve build performance, however, the tradeoff is that caching Docker image layers may consume very large amounts of disk space.
 
 ## Troubleshooting
 

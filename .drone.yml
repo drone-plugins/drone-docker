@@ -1,39 +1,27 @@
-build:
-  image: golang:1.5
-  environment:
-    - CGO_ENABLED=0
-  commands:
-    - make deps
-    - make vet
-    - make build
-    - make test
+workspace:
+  base: /go
 
-publish:
-  coverage:
+script:
+  test:
+    image: golang:1.6
+    environment:
+      - CGO_ENABLED=0
+    commands:
+      - go test -cover -coverprofile=coverage.out
+      - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER"
+  docker:
+    storage_driver: overlay
+    repo: plugins/docker
+    tag: [ "latest", "1.0", "1" ]
     when:
       branch: master
-  docker:
-    username: $$DOCKER_USER
-    password: $$DOCKER_PASS
-    email: $$DOCKER_EMAIL
-    repo: plugins/drone-docker
-    tag: latest
-    when:
-      branch: master
-  docker:
-    username: $$DOCKER_USER
-    password: $$DOCKER_PASS
-    email: $$DOCKER_EMAIL
-    repo: plugins/drone-docker
-    tag: develop
-    when:
-      branch: develop
+      event: push
 
 plugin:
   name: Docker
   desc: Build and publish images to a Docker registry
   type: publish
-  image: plugins/drone-docker
+  image: plugins/docker
   labels:
     - docker
     - image
