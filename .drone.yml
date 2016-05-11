@@ -1,4 +1,4 @@
-script:
+pipeline:
   test:
     image: golang:1.6
     environment:

@@ -198,5 +198,5 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 // trace writes each command to stdout with the command wrapped in an xml
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
-	fmt.Fprintf(os.Stdout, "<command>%s</command>", strings.Join(cmd.Args, " "))
+	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
 }
