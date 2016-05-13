@@ -4,6 +4,6 @@
 
 FROM rancher/docker:v1.10.2
 
-ADD drone-docker /go/bin/
+ADD drone-docker /usr/bin/
 VOLUME /var/lib/docker
-ENTRYPOINT ["/usr/bin/dockerlaunch", "/go/bin/drone-docker"]
+ENTRYPOINT ["/usr/bin/dockerlaunch", "/usr/bin/drone-docker"]
