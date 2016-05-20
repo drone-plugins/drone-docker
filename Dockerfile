@@ -4,6 +4,6 @@
 
 FROM docker:1.11-dind
 
-ADD drone-docker /go/bin/
+ADD drone-docker /bin/
 
-ENTRYPOINT ["/go/bin/drone-docker"]
+ENTRYPOINT ["/bin/drone-docker"]
