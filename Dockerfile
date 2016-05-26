@@ -2,8 +2,8 @@
 #
 #     docker build --rm=true -t plugins/docker .
 
-FROM rancher/docker:v1.10.2
+FROM docker:1.11-dind
 
-ADD drone-docker /usr/bin/
-VOLUME /var/lib/docker
-ENTRYPOINT ["/usr/bin/dockerlaunch", "/usr/bin/drone-docker"]
+ADD drone-docker /bin/
+
+ENTRYPOINT ["/bin/drone-docker"]

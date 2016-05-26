@@ -119,10 +119,12 @@ func (p Plugin) Exec() error {
 	return nil
 }
 
+const dockerExe = "/usr/local/bin/docker"
+
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
 	return exec.Command(
-		"/usr/bin/docker", "login",
+		dockerExe, "login",
 		"-u", login.Username,
 		"-p", login.Password,
 		"-e", login.Email,
@@ -132,18 +134,18 @@ func commandLogin(login Login) *exec.Cmd {
 
 // helper function to create the docker info command.
 func commandVersion() *exec.Cmd {
-	return exec.Command("/usr/bin/docker", "version")
+	return exec.Command(dockerExe, "version")
 }
 
 // helper function to create the docker info command.
 func commandInfo() *exec.Cmd {
-	return exec.Command("/usr/bin/docker", "info")
+	return exec.Command(dockerExe, "info")
 }
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
 	cmd := exec.Command(
-		"/usr/bin/docker", "build",
+		dockerExe, "build",
 		"--pull=true",
 		"--rm=true",
 		"-f", build.Dockerfile,
@@ -163,14 +165,14 @@ func commandTag(build Build, tag string) *exec.Cmd {
 		target = fmt.Sprintf("%s:%s", build.Repo, tag)
 	)
 	return exec.Command(
-		"/usr/bin/docker", "tag", source, target,
+		dockerExe, "tag", source, target,
 	)
 }
 
 // helper function to create the docker push command.
 func commandPush(build Build, tag string) *exec.Cmd {
 	target := fmt.Sprintf("%s:%s", build.Repo, tag)
-	return exec.Command("/usr/bin/docker", "push", target)
+	return exec.Command(dockerExe, "push", target)
 }
 
 // helper function to create the docker daemon command.
@@ -192,7 +194,7 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	for _, dns := range daemon.DNS {
 		args = append(args, "--dns", dns)
 	}
-	return exec.Command("/usr/bin/docker", args...)
+	return exec.Command(dockerExe, args...)
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
