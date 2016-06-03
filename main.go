@@ -50,7 +50,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "daemon.storage-path",
 			Usage:  "docker daemon storage path",
-			Value:  "/tmp/docker",
+			Value:  "/var/lib/docker",
 			EnvVar: "PLUGIN_STORAGE_PATH",
 		},
 		cli.StringFlag{

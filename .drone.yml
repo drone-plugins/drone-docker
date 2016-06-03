@@ -9,7 +9,7 @@ pipeline:
       - go test -cover -coverprofile=coverage.out
       - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER"
   docker:
-    storage_driver: overlay
+    storage_driver: vfs
     repo: plugins/docker
     tag: [ "latest", "1.0", "1" ]
     when:
