@@ -1,0 +1,3 @@
+vendors:
+- path: github.com/drone/drone-plugin-go
+  rev: d6109f644c5935c22620081b4c234bb2263743c7
