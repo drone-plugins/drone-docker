@@ -1,33 +1,20 @@
-build:
-  image: golang:1.5
-  environment:
-    - CGO_ENABLED=0
-  commands:
-    - make deps
-    - make vet
-    - make build
-    - make test
-
-publish:
-  coverage:
-    when:
-      branch: master
+pipeline:
+  test:
+    image: golang:1.6
+    environment:
+      - CGO_ENABLED=0
+      - GOPATH=/drone
+    commands:
+      - make vet
+      - make build
+      - make test
   docker:
-    username: $$DOCKER_USER
-    password: $$DOCKER_PASS
-    email: $$DOCKER_EMAIL
+    storage_driver: overlay
     repo: plugins/drone-docker
-    tag: latest
+    tag: [ "latest" ]
     when:
-      branch: master
-  docker:
-    username: $$DOCKER_USER
-    password: $$DOCKER_PASS
-    email: $$DOCKER_EMAIL
-    repo: plugins/drone-docker
-    tag: develop
-    when:
-      branch: develop
+      branch: release/0.4
+      event: push
 
 plugin:
   name: Docker
