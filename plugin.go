@@ -95,8 +95,10 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
+
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
+
 		if p.Dryrun == false {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
