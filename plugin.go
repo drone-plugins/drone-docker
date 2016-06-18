@@ -134,7 +134,7 @@ func commandLogin(login Login) *exec.Cmd {
 	)
 }
 
-func commandLoginEmail(p.Login) *exec.Cmd {
+func commandLoginEmail(login Login) *exec.Cmd {
 	return exec.Command(
 		dockerExe, "login",
 		"-u", login.Username,
