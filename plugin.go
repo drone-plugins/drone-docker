@@ -95,11 +95,11 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
-
 	for _, tag := range p.Build.Tags {
+		fmt.Fprintf(os.Stdout, "Tagging: %s\n", tag)
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
-
 		if p.Dryrun == false {
+			fmt.Fprintf(os.Stdout, "Pushing: %s\n", tag)
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
@@ -123,11 +123,12 @@ const dockerExe = "/usr/local/bin/docker"
 
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
+	fmt.Fprintf(os.Stdout, "Logging in to registry: %s with user: %s and email: %s\n", login.Registry, login.Username, login.Email)
 	return exec.Command(
 		dockerExe, "login",
 		"-u", login.Username,
 		"-p", login.Password,
-		"-e", login.Email,
+		// "-e", login.Email,
 		login.Registry,
 	)
 }
