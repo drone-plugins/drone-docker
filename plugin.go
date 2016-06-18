@@ -123,7 +123,7 @@ const dockerExe = "/usr/local/bin/docker"
 
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
-	if p.Login.Email != "" {
+	if login.Email != "" {
 		return commandLoginEmail(login)
 	}
 	return exec.Command(
