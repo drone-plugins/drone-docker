@@ -83,6 +83,18 @@ cache:
     - /drone/docker
 ```
 
+## Complex tags
+
+If you need more detail in your tags then Drone provides by standard, create a .droneTags.yml file in the root of the project with a simple list of tags you would like applied.  This list can be generated programmatically as a build task.
+
+`.droneTags.yml`
+```yaml
+tags:
+  - latest
+  - build_1
+  - owner_repo_feature-branch_1.0.2_1_as3e9214
+```
+
 ## Troubleshooting
 
 For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable in your plugin configuration. This starts Docker with verbose logging enabled.

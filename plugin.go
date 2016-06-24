@@ -5,8 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 type (
@@ -47,6 +50,11 @@ type (
 		Build  Build  // Docker build configuration
 		Daemon Daemon // Docker daemon configuration
 		Dryrun bool   // Docker push is skipped
+	}
+
+	// TagsFile defines slice of tags from .droneTags.yml
+	TagsFile struct {
+		Tags []string `yaml:"tags"`
 	}
 )
 
@@ -95,6 +103,15 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
+
+	// Override Tags if .droneTags.yml exists
+	droneTags, err := getDroneTags(p.Build.Context)
+	if err != nil {
+		return err
+	}
+	if droneTags != nil {
+		p.Build.Tags = droneTags
+	}
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
@@ -207,6 +224,35 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 		args = append(args, "--dns", dns)
 	}
 	return exec.Command(dockerExe, args...)
+}
+
+// conditionally read in .droneTags.yml and return resulting data structure
+func getDroneTags(context string) ([]string, error) {
+	fmt.Println("Looking For .droneTags.yml")
+	var path = filepath.Join(context, ".droneTags.yml")
+	_, err := os.Stat(path)
+	if err != nil {
+		// droneTags.yml doesn't exist, this is OK
+		return nil, nil
+	}
+
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("Error Reading File %s, %s", path, err)
+	}
+
+	fmt.Println("Found .droneTags.yml")
+	var droneTags TagsFile
+	err = yaml.Unmarshal(file, &droneTags)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse .droneTags.yml: %s", err)
+	}
+
+	fmt.Println("Tag generated from .droneTags.yml:")
+	for _, tag := range droneTags.Tags {
+		fmt.Println("  ", tag)
+	}
+	return droneTags.Tags, nil
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
