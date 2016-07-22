@@ -1,0 +1,4 @@
+FROM ???
+
+ADD drone-docker /bin/
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
