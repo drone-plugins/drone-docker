@@ -1,26 +1,64 @@
-Use the Docker plugin to build and push Docker images to a registry. The following parameters are used to configure this plugin:
+Use the Docker plugin to build and push Docker images to a public or even a
+private registry.
 
-* `registry` - authenticates to this registry
-* `username` - authenticates with this username
-* `password` - authenticates with this password
-* `email` - authenticates with this email
-* `repo` - repository name for the image
-* `tag` - repository tag for the image
-* `file` - dockerfile to be used, defaults to Dockerfile
-* `context` - the context path to use, defaults to root of the git repo
-* `insecure` - enable insecure communication to this registry
-* `mirror` - use a mirror registry instead of pulling images directly from the central Hub
-* `bip` - use for pass bridge ip
-* `dns` - set custom dns servers for the container
-* `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
-* `storage_path` - location of docker daemon storage on disk
-* `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
-* `mtu` - custom [mtu settings](https://docs.docker.com/v1.8/articles/networking/#docker0) when starting the docker daemon
+## Config
 
-The following is a sample Docker configuration in your .drone.yml file:
+The following parameters are used to configure the plugin:
+
+* **registry** - authenticates to this registry
+* **username** - authenticates with this username
+* **password** - authenticates with this password
+* **email** - authenticates with this email
+* **repo** - repository name for the image
+* **tag** - repository tag for the image
+* **file** - dockerfile to be used, defaults to Dockerfile
+* **context** - the context path to use, defaults to root of the git repo
+* **insecure** - enable insecure communication to this registry
+* **mirror** - use a mirror registry instead of pulling images directly from the central Hub
+* **bip** - use for pass bridge ip
+* **dns** - set custom dns servers for the container
+* **storage_driver** - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
+* **storage_path** - location of docker daemon storage on disk
+* **build_args** - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
+* **mtu** - custom [mtu settings](https://docs.docker.com/v1.8/articles/networking/#docker0) when starting the docker daemon
+
+The following secret values can be set to configure the plugin.
+
+* **DOCKER_REGISTRY** - corresponds to **registry**
+* **DOCKER_USERNAME** - corresponds to **username**
+* **DOCKER_PASSWORD** - corresponds to **password**
+* **DOCKER_EMAIL** - corresponds to **email**
+
+It is highly recommended to put the **DOCKER_USERNAME**, **DOCKER_PASSWORD**
+and **DOCKER_EMAIL** into secrets so it is not exposed to users. This can be
+done using the drone-cli.
+
+```bash
+drone secret add --image=docker \
+    octocat/hello-world DOCKER_USERNAME kevinbacon
+
+drone secret add --image=docker \
+    octocat/hello-world DOCKER_PASSWORD pa55word
+
+drone secret add --image=docker \
+    octocat/hello-world DOCKER_EMAIL kevin.bacon@mail.com
+```
+
+Then sign the YAML file after all secrets are added.
+
+```bash
+drone sign octocat/hello-world
+```
+
+See [secrets](http://readme.drone.io/0.5/usage/secrets/) for additional
+information on secrets
+
+## Examples
+
+Simple publishing of a docker container:
 
 ```yaml
-publish:
+pipeline:
   docker:
     username: kevinbacon
     password: pa55word
@@ -34,22 +72,22 @@ publish:
 Publish and image with multiple tags:
 
 ```yaml
-publish:
+pipeline:
   docker:
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
-    tag:
+    tags:
       - latest
       - 1.0.1
       - "1.0"
 ```
 
-Build an image with arguments:
+Build an image with additional arguments:
 
 ```yaml
-publish:
+pipeline:
   docker:
     username: kevinbacon
     password: pa55word
@@ -61,35 +99,43 @@ publish:
 
 ## Caching
 
-The Drone build environment is, by default, ephemeral meaning that you layers are not saved between builds. There are two methods for caching your layers.
+The Drone build environment is, by default, ephemeral meaning that you layers
+are not saved between builds. There are two methods for caching your layers.
 
 ### Graph directory caching
 
-This is the preferred method when using the `overlay` or `aufs` storage drivers. Just use Drone's caching feature to backup and restore the directory `/drone/docker`, as shown in the following example:
+This is the preferred method when using the `overlay` or `aufs` storage
+drivers. Just use Drone's caching feature to backup and restore the directory
+`/drone/docker`, as shown in the following example:
 
 ```yaml
-publish:
+pipeline:
+  sftp_cache:
+    restore: true
+    mount: /drone/docker
+
   docker:
     storage_path: /drone/docker
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
     repo: foo/bar
-    tag:
+    tags:
       - latest
       - "1.0.1"
 
-cache:
-  mount:
-    - /drone/docker
+  sftp_cache:
+    rebuild: true
+    mount: /drone/docker
 ```
 
 ## Troubleshooting
 
-For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable in your plugin configuration. This starts Docker with verbose logging enabled.
+For detailed output you can set the `DOCKER_LAUNCH_DEBUG` environment variable
+in your plugin configuration. This starts Docker with verbose logging enabled.
 
 ```yaml
-publish:
+pipeline:
   docker:
     environment:
       - DOCKER_LAUNCH_DEBUG=true
@@ -97,15 +143,21 @@ publish:
 
 ## Known Issues
 
-There are known issues when attempting to run this plugin on CentOS, RedHat, and Linux installations that do not have a supported storage driver installed. You can check by running `docker info | grep 'Storage Driver:'` on your host machine. If the storage driver is not `aufs` or `overlay` you will need to re-configure your host machine.
+There are known issues when attempting to run this plugin on CentOS, RedHat,
+and Linux installations that do not have a supported storage driver installed.
+You can check by running `docker info | grep 'Storage Driver:'` on your host
+machine. If the storage driver is not `aufs` or `overlay` you will need to
+re-configure your host machine.
 
-This error occurs when trying to use the default `aufs` storage Driver but aufs is not installed:
+This error occurs when trying to use the default `aufs` storage Driver but aufs
+is not installed:
 
 ```
 level=fatal msg="Error starting daemon: error initializing graphdriver: driver not supported
 ```
 
-This error occurs when trying to use the `overlay` storage Driver but overlay is not installed:
+This error occurs when trying to use the `overlay` storage Driver but overlay
+is not installed:
 
 ```
 level=error msg="'overlay' not found as a supported filesystem on this host.
@@ -113,7 +165,8 @@ Please ensure kernel is new enough and has overlay support loaded."
 level=fatal msg="Error starting daemon: error initializing graphdriver: driver not supported"
 ```
 
-This error occurs when using CentOS or RedHat which default to the `devicemapper` storage driver:
+This error occurs when using CentOS or RedHat which default to the
+`devicemapper` storage driver:
 
 ```
 level=error msg="There are no more loopback devices available."
@@ -121,9 +174,12 @@ level=fatal msg="Error starting daemon: error initializing graphdriver: loopback
 Cannot connect to the Docker daemon. Is 'docker -d' running on this host?
 ```
 
-The above issue can be resolved by setting `storage_driver: vfs` in the `.drone.yml` file. This may work, but will have very poor performance as discussed [here](https://github.com/rancher/docker-from-scratch/issues/20).
+The above issue can be resolved by setting `storage_driver: vfs` in the
+`.drone.yml` file. This may work, but will have very poor performance as
+discussed [here](https://github.com/rancher/docker-from-scratch/issues/20).
 
-This error occurs when using Debian wheezy or jessie and cgroups memory features are not configured at the kernel level:
+This error occurs when using Debian wheezy or jessie and cgroups memory
+features are not configured at the kernel level:
 
 ```
 time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/blkio cgroup blkio"
@@ -135,7 +191,9 @@ time="2015-12-17T08:06:57Z" level=debug msg="Mounting none /sys/fs/cgroup/memory
 time="2015-12-17T08:06:57Z" level=fatal msg="no such file or directory"
 ```
 
-The above issue can be resolved by editing your `grub.cfg` and adding `cgroup_enable=memory swapaccount=1` to you kernel image. This change should look like that afterwards:
+The above issue can be resolved by editing your `grub.cfg` and adding
+`cgroup_enable=memory swapaccount=1` to you kernel image. This change should
+look like that afterwards:
 
 ```
 menuentry 'Debian GNU/Linux, avec Linux 3.16.0-0.bpo.4-amd64' --class debian --class gnu-linux --class gnu --class os {
