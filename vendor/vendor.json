@@ -3,19 +3,23 @@
 	"ignore": "test",
 	"package": [
 		{
-			"path": "github.com/codegangsta/cli",
-			"revision": "71f57d300dd6a780ac1856c005c4b518cfd498ec",
-			"revisionTime": "2016-04-03T18:54:34-07:00"
-		},
-		{
+			"checksumSHA1": "ljZrmD7pmMXAkGNfp6IEzj31fY8=",
 			"path": "github.com/joho/godotenv",
 			"revision": "4ed13390c0acd2ff4e371e64d8b97c8954138243",
-			"revisionTime": "2015-09-07T11:02:28+10:00"
+			"revisionTime": "2015-09-07T01:02:28Z"
 		},
 		{
+			"checksumSHA1": "UE4lhbPYYWEhqHXQk24OA73m5+8=",
 			"path": "github.com/joho/godotenv/autoload",
 			"revision": "4ed13390c0acd2ff4e371e64d8b97c8954138243",
-			"revisionTime": "2015-09-07T11:02:28+10:00"
+			"revisionTime": "2015-09-07T01:02:28Z"
+		},
+		{
+			"checksumSHA1": "W1G9Avuz92Ng1IqblcO/cIe6pHU=",
+			"path": "github.com/urfave/cli",
+			"revision": "d9021faab69f92295ef7061bd39e4a76dcbdef32",
+			"revisionTime": "2016-07-26T01:14:03Z"
 		}
-	]
+	],
+	"rootPath": "github.com/drone-plugins/drone-docker"
 }
