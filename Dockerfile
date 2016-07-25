@@ -1,9 +1,9 @@
 # Docker image for the docker plugin
 #
-#     docker build --rm=true -t plugins/drone-docker .
+#     docker build --rm=true -t plugins/docker .
 
-FROM rancher/docker:1.9.1
+FROM docker:1.11-dind
 
-ADD drone-docker /go/bin/
-VOLUME /var/lib/docker
-ENTRYPOINT ["/usr/bin/dockerlaunch", "/go/bin/drone-docker"]
+ADD drone-docker /bin/
+
+ENTRYPOINT [ "/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker" ]

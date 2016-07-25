@@ -1,57 +1,46 @@
 # drone-docker
 
-[![Build Status](http://beta.drone.io/api/badges/drone-plugins/drone-docker/status.svg)](http://beta.drone.io/drone-plugins/drone-docker)
-[![Coverage Status](https://aircover.co/badges/drone-plugins/drone-docker/coverage.svg)](https://aircover.co/drone-plugins/drone-docker)
-[![](https://badge.imagelayers.io/plugins/drone-docker:latest.svg)](https://imagelayers.io/?images=plugins/drone-docker:latest 'Get your own badge on imagelayers.io')
+Drone plugin can be used to build and publish Docker images to a container registry. For the usage information and a listing of the available options please take a look at [the docs](DOCS.md).
 
-Drone plugin to build and publish images to a Docker registry. For the usage information and a listing of the available options please take a look at [the docs](DOCS.md).
+## Build
+
+Build the binary with the following commands:
+
+```
+export GO15VENDOREXPERIMENT=1
+export GOOS=linux
+export GOARCH=amd64
+export CGO_ENABLED=0
+
+go build -a -tags netgo
+```
 
 ## Docker
 
-Build the container using `make`:
+Build the docker image with the following commands:
 
 ```
-make deps docker
+docker build --rm=true -t plugins/docker .
 ```
 
-### Example
+Please note incorrectly building the image for the correct x64 linux and with GCO disabled will result in an error when running the Docker image:
 
-```sh
-docker run -i --privileged -v $(pwd):/drone/src plugins/drone-docker <<EOF
-{
-    "repo": {
-        "clone_url": "git://github.com/drone/drone",
-        "owner": "drone",
-        "name": "drone",
-        "full_name": "drone/drone"
-    },
-    "system": {
-        "link_url": "https://beta.drone.io"
-    },
-    "build": {
-        "number": 22,
-        "status": "success",
-        "started_at": 1421029603,
-        "finished_at": 1421029813,
-        "message": "Update the Readme",
-        "author": "johnsmith",
-        "author_email": "john.smith@gmail.com"
-        "event": "push",
-        "branch": "master",
-        "commit": "436b7a6e2abaddfd35740527353e78a227ddcb2c",
-        "ref": "refs/heads/master"
-    },
-    "workspace": {
-        "root": "/drone/src",
-        "path": "/drone/src/github.com/drone/drone"
-    },
-    "vargs": {
-        "username": "kevinbacon",
-        "password": "pa$$word",
-        "email": "foo@bar.com",
-        "repo": "foo/bar",
-        "storage_driver": "aufs"
-    }
-}
-EOF
+```
+docker: Error response from daemon: Container command
+'/go/bin/drone-docker' not found or does not exist..
+```
+
+## Usage
+
+Build and publish from your current working directory:
+
+```
+docker run --rm \
+  -e PLUGIN_TAG=latest \
+  -e PLUGIN_REPO=octocat/hello-world \
+  -e DRONE_COMMIT_SHA=d8dbe4d94f15fe89232e0402c6e8a0ddf21af3ab \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) \
+  --privileged \
+  plugins/docker --dry-run
 ```
