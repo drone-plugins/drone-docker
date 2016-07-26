@@ -169,7 +169,7 @@ func run(c *cli.Context) {
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
-			MTU:		   c.String("daemon.mtu"),
+			MTU:           c.String("daemon.mtu"),
 		},
 	}
 

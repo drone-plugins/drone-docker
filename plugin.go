@@ -21,7 +21,7 @@ type (
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
-		MTU			  string   // Docker daemon mtu setting
+		MTU           string   // Docker daemon mtu setting
 	}
 
 	// Login defines Docker login parameters.
