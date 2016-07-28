@@ -21,6 +21,7 @@ The following parameters are used to configure this plugin:
     * `tag` - cherry-pick tags to save (optional)
 * `load` - restore image layers from the specified tar file
 * `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
+* `mtu` - set custom mtu settings for the docker daemon
 
 The following is a sample Docker configuration in your .drone.yml file:
 
