@@ -58,6 +58,11 @@ func main() {
 			Usage:  "docker daemon bride ip address",
 			EnvVar: "PLUGIN_BIP",
 		},
+		cli.StringFlag{
+			Name:   "daemon.mtu",
+			Usage:  "docker daemon custom mtu setting",
+			EnvVar: "PLUGIN_MTU",
+		},
 		cli.StringSliceFlag{
 			Name:   "daemon.dns",
 			Usage:  "docker daemon dns server",
@@ -164,6 +169,7 @@ func run(c *cli.Context) {
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
+			MTU:           c.String("daemon.mtu"),
 		},
 	}
 

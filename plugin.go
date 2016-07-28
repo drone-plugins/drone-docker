@@ -21,6 +21,7 @@ type (
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
+		MTU           string   // Docker daemon mtu setting
 	}
 
 	// Login defines Docker login parameters.
@@ -205,6 +206,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	for _, dns := range daemon.DNS {
 		args = append(args, "--dns", dns)
+	}
+	if len(daemon.MTU) != 0 {
+		args = append(args, "--mtu", daemon.MTU)
 	}
 	return exec.Command(dockerExe, args...)
 }

@@ -15,6 +15,7 @@ Use the Docker plugin to build and push Docker images to a registry. The followi
 * `storage_driver` - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
 * `storage_path` - location of docker daemon storage on disk
 * `build_args` - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
+* `mtu` - custom [mtu settings](https://docs.docker.com/v1.8/articles/networking/#docker0) when starting the docker daemon
 
 The following is a sample Docker configuration in your .drone.yml file:
 
