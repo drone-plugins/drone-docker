@@ -38,6 +38,7 @@ type Docker struct {
 	Dns       []string `json:"dns"`
 	Load      string   `json:"load"`
 	Save      Save     `json:"save"`
+	MTU       string   `json:"mtu"`
 	BuildArgs []string `json:"build_args"`
 }
 
@@ -111,6 +112,10 @@ func main() {
 
 		for _, value := range vargs.Dns {
 			args = append(args, "--dns", value)
+		}
+
+		if len(vargs.MTU) != 0 {
+			args = append(args, "--mtu", vargs.MTU)
 		}
 
 		cmd := exec.Command("/usr/bin/docker", args...)
