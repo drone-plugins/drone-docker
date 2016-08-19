@@ -34,13 +34,13 @@ and **DOCKER_EMAIL** into secrets so it is not exposed to users. This can be
 done using the drone-cli.
 
 ```bash
-drone secret add --image=docker \
+drone secret add --image=plugins/docker \
     octocat/hello-world DOCKER_USERNAME kevinbacon
 
-drone secret add --image=docker \
+drone secret add --image=plugins/docker \
     octocat/hello-world DOCKER_PASSWORD pa55word
 
-drone secret add --image=docker \
+drone secret add --image=plugins/docker \
     octocat/hello-world DOCKER_EMAIL kevin.bacon@mail.com
 ```
 
@@ -60,6 +60,7 @@ Simple publishing of a docker container:
 ```yaml
 pipeline:
   docker:
+    image: plugins/docker
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -74,6 +75,7 @@ Publish and image with multiple tags:
 ```yaml
 pipeline:
   docker:
+    image: plugins/docker
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -89,6 +91,7 @@ Build an image with additional arguments:
 ```yaml
 pipeline:
   docker:
+    image: plugins/docker
     username: kevinbacon
     password: pa55word
     email: kevin.bacon@mail.com
@@ -111,10 +114,12 @@ drivers. Just use Drone's caching feature to backup and restore the directory
 ```yaml
 pipeline:
   sftp_cache:
+    image: plugins/sftp-cache
     restore: true
     mount: /drone/docker
 
   docker:
+    image: plugins/docker
     storage_path: /drone/docker
     username: kevinbacon
     password: pa55word
@@ -125,6 +130,7 @@ pipeline:
       - "1.0.1"
 
   sftp_cache:
+    image: plugins/sftp-cache
     rebuild: true
     mount: /drone/docker
 ```
