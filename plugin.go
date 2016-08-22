@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+const (
+	// default docker registry
+	defaultRegistry = "https://index.docker.io/v1/"
+)
+
 type (
 	// Daemon defines Docker daemon parameters.
 	Daemon struct {
@@ -53,6 +58,22 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	// this code attempts to normalize the repository name by appending the fully
+	// qualified registry name if otherwise omitted.
+	if p.Login.Registry != defaultRegistry &&
+		strings.HasPrefix(p.Build.Repo, defaultRegistry) {
+		p.Build.Repo = p.Login.Registry + "/" + p.Build.Repo
+	}
+
+	// TODO execute code remove dangling images
+	// this is problematic because we are running docker in scratch which does
+	// not have bash, so we need to hack something together
+	// docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi
+
+	/*
+		cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
+		cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
+	*/
 
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
