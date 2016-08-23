@@ -1,19 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
-	_ "github.com/joho/godotenv/autoload"
 )
 
-// build number set at compile-time
-var version string
-
-// default docker registry
-const defaultRegistry = "https://index.docker.io/v1/"
+var version string // build number set at compile-time
 
 func main() {
 	app := cli.NewApp()
@@ -22,21 +17,17 @@ func main() {
 	app.Action = run
 	app.Version = version
 	app.Flags = []cli.Flag{
-
 		cli.BoolFlag{
 			Name:   "dry-run",
 			Usage:  "dry run disables docker push",
 			EnvVar: "PLUGIN_DRY_RUN",
 		},
-
 		cli.StringFlag{
 			Name:   "commit.sha",
 			Usage:  "git commit sha",
 			EnvVar: "DRONE_COMMIT_SHA",
 			Value:  "00000000",
 		},
-
-		// daemon parameters
 		cli.StringFlag{
 			Name:   "daemon.mirror",
 			Usage:  "docker daemon registry mirror",
@@ -83,9 +74,6 @@ func main() {
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DAEMON_OFF",
 		},
-
-		// build parameters
-
 		cli.StringFlag{
 			Name:   "dockerfile",
 			Usage:  "build dockerfile",
@@ -114,8 +102,6 @@ func main() {
 			Usage:  "docker repository",
 			EnvVar: "PLUGIN_REPO",
 		},
-
-		// secret variables
 		cli.StringFlag{
 			Name:   "docker.registry",
 			Usage:  "docker username",
@@ -137,12 +123,22 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "DOCKER_EMAIL,PLUGIN_EMAIL",
 		},
+		cli.StringFlag{
+			Name:  "env-file",
+			Usage: "source env file",
+		},
 	}
 
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		logrus.Fatal(err)
+	}
 }
 
-func run(c *cli.Context) {
+func run(c *cli.Context) error {
+	if c.String("env-file") != "" {
+		_ = godotenv.Load(c.String("env-file"))
+	}
+
 	plugin := Plugin{
 		Dryrun: c.Bool("dry-run"),
 		Login: Login{
@@ -173,25 +169,5 @@ func run(c *cli.Context) {
 		},
 	}
 
-	// this code attempts to normalize the repository name by appending the fully
-	// qualified registry name if otherwise omitted.
-	if plugin.Login.Registry != defaultRegistry &&
-		strings.HasPrefix(plugin.Build.Repo, defaultRegistry) {
-		plugin.Build.Repo = plugin.Login.Registry + "/" + plugin.Build.Repo
-	}
-
-	if err := plugin.Exec(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// TODO execute code remove dangling images
-	// this is problematic because we are running docker in scratch which does
-	// not have bash, so we need to hack something together
-	// docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi
+	return plugin.Exec()
 }
-
-/*
-cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
-cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
-*/
