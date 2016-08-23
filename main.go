@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Sirupsen/logrus"
@@ -8,14 +9,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-var version string // build number set at compile-time
+var build = "0" // build number set at compile-time
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "docker plugin"
 	app.Usage = "docker plugin"
 	app.Action = run
-	app.Version = version
+	app.Version = fmt.Sprintf("1.0.%s", build)
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:   "dry-run",
