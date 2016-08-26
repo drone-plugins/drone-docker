@@ -49,3 +49,12 @@ docker run --rm \
   --privileged \
   plugins/docker --dry-run
 ```
+
+## Testing the plugin on Drone server
+
+When running your plugin on Drone server, add it to the `agent`'s environment
+variable `DRONE_PLUGIN_PRIVILEGED`, e.g.
+
+```
+DRONE_PLUGIN_PRIVILEGED=johndoe/drone-docker:*,johndoe/drone-docker,plugins/docker:*,plugins/docker
+```
