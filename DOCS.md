@@ -10,8 +10,8 @@ The following parameters are used to configure the plugin:
 * **password** - authenticates with this password
 * **email** - authenticates with this email
 * **repo** - repository name for the image
-* **tag** - repository tag for the image
-* **file** - dockerfile to be used, defaults to Dockerfile
+* **tag**, **tags** - repository tags for the image
+* **dockerfile** - dockerfile to be used, defaults to Dockerfile
 * **context** - the context path to use, defaults to root of the git repo
 * **insecure** - enable insecure communication to this registry
 * **mirror** - use a mirror registry instead of pulling images directly from the central Hub
@@ -42,6 +42,10 @@ drone secret add --image=plugins/docker \
 
 drone secret add --image=plugins/docker \
     octocat/hello-world DOCKER_EMAIL kevin.bacon@mail.com
+
+# Example adding JSON key file for GCR, it reads contents of file google-key.json
+drone secret add --image=plugins/docker \
+    octocat/hello-world DOCKER_PASSWORD @google-key.json
 ```
 
 Then sign the YAML file after all secrets are added.
@@ -70,7 +74,7 @@ pipeline:
     insecure: false
 ```
 
-Publish and image with multiple tags:
+Publish an image with multiple tags:
 
 ```yaml
 pipeline:
@@ -84,6 +88,24 @@ pipeline:
       - latest
       - 1.0.1
       - "1.0"
+```
+
+Publish an image to GCR using JSON key. You need first get [JSON key file](https://cloud.google.com/container-registry/docs/advanced-authentication)
+and put contents to `google-key.json` and run following command
+`drone secret add --image=plugins/docker octocat/hello-world DOCKER_PASSWORD @google-key.json`
+
+```yaml
+pipeline:
+  gcr:
+    image: plugins/docker
+    registry: gcr.io
+    username: _json_key
+    repo: gcr.io/<project ID>/<repository>
+    tags:
+      - latest
+      - ${DRONE_TAG}
+    when:
+      event: tag
 ```
 
 Build an image with additional arguments:
