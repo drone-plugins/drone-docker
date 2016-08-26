@@ -61,7 +61,7 @@ func (p Plugin) Exec() error {
 	// this code attempts to normalize the repository name by appending the fully
 	// qualified registry name if otherwise omitted.
 	if p.Login.Registry != defaultRegistry &&
-		strings.HasPrefix(p.Build.Repo, defaultRegistry) {
+		!strings.HasPrefix(p.Build.Repo, p.Login.Registry) {
 		p.Build.Repo = p.Login.Registry + "/" + p.Build.Repo
 	}
 
