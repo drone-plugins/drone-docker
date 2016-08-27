@@ -10,8 +10,8 @@ The following parameters are used to configure the plugin:
 * **password** - authenticates with this password
 * **email** - authenticates with this email
 * **repo** - repository name for the image
-* **tag** - repository tag for the image
-* **file** - dockerfile to be used, defaults to Dockerfile
+* **tag**, **tags** - repository tags for the image
+* **dockerfile** - dockerfile to be used, defaults to Dockerfile
 * **context** - the context path to use, defaults to root of the git repo
 * **insecure** - enable insecure communication to this registry
 * **mirror** - use a mirror registry instead of pulling images directly from the central Hub
@@ -70,7 +70,7 @@ pipeline:
     insecure: false
 ```
 
-Publish and image with multiple tags:
+Publish an image with multiple tags:
 
 ```yaml
 pipeline:
