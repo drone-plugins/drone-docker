@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -12,6 +13,10 @@ import (
 const (
 	// default docker registry
 	defaultRegistry = "https://index.docker.io/v1/"
+)
+
+var (
+	removeProtocolRegex = regexp.MustCompile(`^(\w+)://`)
 )
 
 type (
@@ -60,9 +65,12 @@ type (
 func (p Plugin) Exec() error {
 	// this code attempts to normalize the repository name by appending the fully
 	// qualified registry name if otherwise omitted.
-	if p.Login.Registry != defaultRegistry &&
-		!strings.HasPrefix(p.Build.Repo, p.Login.Registry) {
-		p.Build.Repo = p.Login.Registry + "/" + p.Build.Repo
+	if p.Login.Registry != defaultRegistry {
+		_loginRegistry := string(removeProtocolRegex.ReplaceAll([]byte(p.Login.Registry), []byte{}))
+		_repo := string(removeProtocolRegex.ReplaceAll([]byte(p.Build.Repo), []byte{}))
+		if !strings.HasPrefix(_repo, _loginRegistry) {
+			p.Build.Repo = p.Login.Registry + "/" + p.Build.Repo
+		}
 	}
 
 	// TODO execute code remove dangling images
