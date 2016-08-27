@@ -100,6 +100,18 @@ pipeline:
       - HTTP_PROXY=http://yourproxy.com
 ```
 
+## Using a custom registry
+
+Please note that when using a custom registry (other than DockerHub) you will need to provide the registry URL and you will need to use a fully qualified repository name. For example:
+
+```yaml
+pipeline:
+  docker:
+    image: plugins/docker
+    registry: http://registry.company.com
+    repo: registry.company.com/my/image
+```
+
 ## Caching
 
 The Drone build environment is, by default, ephemeral meaning that you layers
