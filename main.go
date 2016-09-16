@@ -105,7 +105,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "docker.registry",
-			Usage:  "docker username",
+			Usage:  "docker registry",
 			Value:  defaultRegistry,
 			EnvVar: "DOCKER_REGISTRY,PLUGIN_REGISTRY",
 		},
