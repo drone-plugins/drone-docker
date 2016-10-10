@@ -27,6 +27,7 @@ type (
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
 		MTU           string   // Docker daemon mtu setting
+		IPv6	      bool     // Docker daemon IPv6 networking
 	}
 
 	// Login defines Docker login parameters.
