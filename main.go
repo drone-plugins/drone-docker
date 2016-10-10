@@ -66,6 +66,11 @@ func main() {
 			EnvVar: "PLUGIN_INSECURE",
 		},
 		cli.BoolFlag{
+			Name:   "daemon.ipv6",
+			Usage:  "docker daemon IPv6 networking",
+			EnvVar: "PLUGIN_IPV6",
+		},
+		cli.BoolFlag{
 			Name:   "daemon.debug",
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
@@ -163,6 +168,7 @@ func run(c *cli.Context) error {
 			StoragePath:   c.String("daemon.storage-path"),
 			Insecure:      c.Bool("daemon.insecure"),
 			Disabled:      c.Bool("daemon.off"),
+			IPv6:          c.Bool("daemon.ipv6"),
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
