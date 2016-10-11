@@ -27,6 +27,7 @@ type (
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
 		MTU           string   // Docker daemon mtu setting
+		IPv6	      bool     // Docker daemon IPv6 networking
 	}
 
 	// Login defines Docker login parameters.
@@ -212,6 +213,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	if daemon.Insecure && daemon.Registry != "" {
 		args = append(args, "--insecure-registry", daemon.Registry)
+	}
+	if daemon.IPv6 {
+		args = append(args, "--ipv6")
 	}
 	if len(daemon.Mirror) != 0 {
 		args = append(args, "--registry-mirror", daemon.Mirror)
