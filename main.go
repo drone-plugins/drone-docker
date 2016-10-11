@@ -145,7 +145,7 @@ func main() {
 	// Login to Docker
 	if len(vargs.Username) != 0 {
 		var cmd *exec.Cmd
-		if len(vargs.Email) == 0 {
+		if vargs.Email == "" {
 			cmd = exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, vargs.Registry)
 		} else {
 			cmd = exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
