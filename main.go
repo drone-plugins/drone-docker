@@ -46,6 +46,8 @@ var (
 	buildDate string
 )
 
+const dockerExe = "/usr/local/bin/docker"
+
 func main() {
 	fmt.Printf("Drone Docker Plugin built at %s\n", buildDate)
 
@@ -118,7 +120,7 @@ func main() {
 			args = append(args, "--mtu", vargs.MTU)
 		}
 
-		cmd := exec.Command("/usr/bin/docker", args...)
+		cmd := exec.Command(dockerExe, args...)
 		if os.Getenv("DOCKER_LAUNCH_DEBUG") == "true" {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -132,7 +134,7 @@ func main() {
 
 	// ping Docker until available
 	for i := 0; i < 3; i++ {
-		cmd := exec.Command("/usr/bin/docker", "info")
+		cmd := exec.Command(dockerExe, "info")
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 		err := cmd.Run()
@@ -146,9 +148,9 @@ func main() {
 	if len(vargs.Username) != 0 {
 		var cmd *exec.Cmd
 		if vargs.Email == "" {
-			cmd = exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, vargs.Registry)
+			cmd = exec.Command(dockerExe, "login", "-u", vargs.Username, "-p", vargs.Password, vargs.Registry)
 		} else {
-			cmd = exec.Command("/usr/bin/docker", "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
+			cmd = exec.Command(dockerExe, "login", "-u", vargs.Username, "-p", vargs.Password, "-e", vargs.Email, vargs.Registry)
 		}
 		cmd.Dir = workspace.Path
 		cmd.Stdout = os.Stdout
@@ -163,12 +165,12 @@ func main() {
 	}
 
 	// Docker environment info
-	cmd := exec.Command("/usr/bin/docker", "version")
+	cmd := exec.Command(dockerExe, "version")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
 	cmd.Run()
-	cmd = exec.Command("/usr/bin/docker", "info")
+	cmd = exec.Command(dockerExe, "info")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	trace(cmd)
@@ -179,7 +181,7 @@ func main() {
 		if _, err := os.Stat(vargs.Load); err != nil {
 			fmt.Printf("Archive %s does not exist. Building from scratch.\n", vargs.Load)
 		} else {
-			cmd := exec.Command("/usr/bin/docker", "load", "-i", vargs.Load)
+			cmd := exec.Command(dockerExe, "load", "-i", vargs.Load)
 			cmd.Dir = workspace.Path
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -193,7 +195,7 @@ func main() {
 
 	// Build the container
 	name := fmt.Sprintf("%s:%s", vargs.Repo, vargs.Tag.Slice()[0])
-	cmd = exec.Command("/usr/bin/docker", "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name)
+	cmd = exec.Command(dockerExe, "build", "--pull=true", "--rm=true", "-f", vargs.File, "-t", name)
 	for _, value := range vargs.BuildArgs {
 		cmd.Args = append(cmd.Args, "--build-arg", value)
 	}
@@ -210,7 +212,7 @@ func main() {
 	// Creates image tags
 	for _, tag := range vargs.Tag.Slice()[1:] {
 		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-		cmd = exec.Command("/usr/bin/docker", "tag")
+		cmd = exec.Command(dockerExe, "tag")
 		if vargs.ForceTag {
 			cmd.Args = append(cmd.Args, "--force=true")
 		}
@@ -228,7 +230,7 @@ func main() {
 	// Push the image and tags to the registry
 	for _, tag := range vargs.Tag.Slice() {
 		name_ := fmt.Sprintf("%s:%s", vargs.Repo, tag)
-		cmd = exec.Command("/usr/bin/docker", "push", name_)
+		cmd = exec.Command(dockerExe, "push", name_)
 		cmd.Dir = workspace.Path
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -268,7 +270,7 @@ func main() {
 		dir := filepath.Dir(vargs.Save.File)
 		os.MkdirAll(dir, 0755)
 
-		cmd = exec.Command("/usr/bin/docker", "save", "-o", vargs.Save.File)
+		cmd = exec.Command(dockerExe, "save", "-o", vargs.Save.File)
 
 		// Limit saving to the given tags
 		if vargs.Save.Tags.Len() != 0 {
