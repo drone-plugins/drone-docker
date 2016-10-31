@@ -27,7 +27,7 @@ type (
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
 		MTU           string   // Docker daemon mtu setting
-		IPv6	      bool     // Docker daemon IPv6 networking
+		IPv6          bool     // Docker daemon IPv6 networking
 	}
 
 	// Login defines Docker login parameters.
@@ -108,6 +108,9 @@ func (p Plugin) Exec() error {
 		fmt.Println("Registry credentials not provided. Guest mode enabled.")
 	}
 
+	// add proxy build args
+	addProxyBuildArgs(&p.Build)
+
 	var cmds []*exec.Cmd
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
@@ -180,11 +183,55 @@ func commandBuild(build Build) *exec.Cmd {
 		"-f", build.Dockerfile,
 		"-t", build.Name,
 	)
+
 	for _, arg := range build.Args {
 		cmd.Args = append(cmd.Args, "--build-arg", arg)
 	}
 	cmd.Args = append(cmd.Args, build.Context)
 	return cmd
+}
+
+// helper function to add proxy values from the environment
+func addProxyBuildArgs(build *Build) {
+	addProxyValue(build, "http_proxy")
+	addProxyValue(build, "https_proxy")
+	addProxyValue(build, "no_proxy")
+}
+
+// helper function to add the upper and lower case version of a proxy value.
+func addProxyValue(build *Build, key string) {
+	value := getProxyValue(key)
+
+	if len(value) > 0 && !hasProxyBuildArg(build, key) {
+		build.Args = append(build.Args, fmt.Sprintf("%s=%s", key, value))
+		build.Args = append(build.Args, fmt.Sprintf("%s=%s", strings.ToUpper(key), value))
+	}
+}
+
+// helper function to get a proxy value from the environment.
+//
+// assumes that the upper and lower case versions of are the same.
+func getProxyValue(key string) string {
+	value := os.Getenv(key)
+
+	if len(value) > 0 {
+		return value
+	}
+
+	return os.Getenv(strings.ToUpper(key))
+}
+
+// helper function that looks to see if a proxy value was set in the build args.
+func hasProxyBuildArg(build *Build, key string) bool {
+	keyUpper := strings.ToUpper(key)
+
+	for _, s := range build.Args {
+		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // helper function to create the docker tag command.
