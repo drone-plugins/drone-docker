@@ -13,7 +13,7 @@ pipeline:
       - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -tags netgo
 
   latest:
-    image: docker
+    image: plugins/docker
     repo: plugins/docker
     tags: [ "latest", "1.0", "1" ]
     when:
