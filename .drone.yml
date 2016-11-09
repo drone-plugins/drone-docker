@@ -1,5 +1,6 @@
 workspace:
   base: /go
+  path: src/github.com/drone-plugins/drone-docker
 
 pipeline:
   test:

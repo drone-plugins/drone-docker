@@ -12,6 +12,11 @@ import (
 var build = "0" // build number set at compile-time
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	app := cli.NewApp()
 	app.Name = "docker plugin"
 	app.Usage = "docker plugin"
@@ -129,10 +134,6 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "DOCKER_EMAIL,PLUGIN_EMAIL",
 		},
-		cli.StringFlag{
-			Name:  "env-file",
-			Usage: "source env file",
-		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -141,10 +142,6 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	if c.String("env-file") != "" {
-		_ = godotenv.Load(c.String("env-file"))
-	}
-
 	plugin := Plugin{
 		Dryrun: c.Bool("dry-run"),
 		Login: Login{
