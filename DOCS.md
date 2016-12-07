@@ -66,7 +66,7 @@ pipeline:
     email: kevin.bacon@mail.com
     repo: foo/bar
     tag: latest
-    file: Dockerfile
+    dockerfile: Dockerfile
     insecure: false
 ```
 
