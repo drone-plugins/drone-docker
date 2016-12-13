@@ -42,6 +42,10 @@ drone secret add --image=plugins/docker \
 
 drone secret add --image=plugins/docker \
     octocat/hello-world DOCKER_EMAIL kevin.bacon@mail.com
+
+# Example adding JSON key file for GCR, it reads contents of file google-key.json
+drone secret add --image=plugins/docker \
+    octocat/hello-world DOCKER_PASSWORD @google-key.json
 ```
 
 Then sign the YAML file after all secrets are added.
@@ -84,6 +88,24 @@ pipeline:
       - latest
       - 1.0.1
       - "1.0"
+```
+
+Publish an image to GCR using JSON key. You need first get [JSON key file](https://cloud.google.com/container-registry/docs/advanced-authentication)
+and put contents to `google-key.json` and run following command
+`drone secret add --image=plugins/docker octocat/hello-world DOCKER_PASSWORD @google-key.json`
+
+```yaml
+pipeline:
+  gcr:
+    image: plugins/docker
+    registry: gcr.io
+    username: _json_key
+    repo: gcr.io/<project ID>/<repository>
+    tags:
+      - latest
+      - ${DRONE_TAG}
+    when:
+      event: tag
 ```
 
 Build an image with additional arguments:
