@@ -1,27 +1,3 @@
-Use the Docker plugin to build and push Docker images to a public or even a
-private registry.
-
-## Config
-
-The following parameters are used to configure the plugin:
-
-* **registry** - authenticates to this registry
-* **username** - authenticates with this username
-* **password** - authenticates with this password
-* **email** - authenticates with this email
-* **repo** - repository name for the image
-* **tag**, **tags** - repository tags for the image
-* **dockerfile** - dockerfile to be used, defaults to Dockerfile
-* **context** - the context path to use, defaults to root of the git repo
-* **insecure** - enable insecure communication to this registry
-* **mirror** - use a mirror registry instead of pulling images directly from the central Hub
-* **bip** - use for pass bridge ip
-* **dns** - set custom dns servers for the container
-* **storage_driver** - use `aufs`, `devicemapper`, `btrfs` or `overlay` driver
-* **storage_path** - location of docker daemon storage on disk
-* **build_args** - [build arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables-build-arg) to pass to `docker build`
-* **mtu** - custom [mtu settings](https://docs.docker.com/v1.8/articles/networking/#docker0) when starting the docker daemon
-
 ---
 date: 2016-01-01T00:00:00+00:00
 title: Docker
