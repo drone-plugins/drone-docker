@@ -46,6 +46,7 @@ type (
 		Context    string   // Docker build context
 		Tags       []string // Docker build tags
 		Args       []string // Docker build args
+		Squash     bool     // Docker build squash
 		Repo       string   // Docker build repository
 	}
 
@@ -107,6 +108,11 @@ func (p Plugin) Exec() error {
 		}
 	} else {
 		fmt.Println("Registry credentials not provided. Guest mode enabled.")
+	}
+
+	if p.Build.Squash && !p.Daemon.Experimental {
+		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
+		p.Build.Squash = false
 	}
 
 	// add proxy build args
@@ -177,19 +183,23 @@ func commandInfo() *exec.Cmd {
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
-	cmd := exec.Command(
-		dockerExe, "build",
+	args := []string {
+		"build",
 		"--pull=true",
 		"--rm=true",
 		"-f", build.Dockerfile,
 		"-t", build.Name,
-	)
-
-	for _, arg := range build.Args {
-		cmd.Args = append(cmd.Args, "--build-arg", arg)
 	}
-	cmd.Args = append(cmd.Args, build.Context)
-	return cmd
+
+	args = append(args, build.Context)
+	if build.Squash {
+		args = append(args, "--squash")
+	}
+	for _, arg := range build.Args {
+		args = append(args, "--build-arg", arg)
+	}
+
+	return exec.Command(dockerExe, args...)
 }
 
 // helper function to add proxy values from the environment

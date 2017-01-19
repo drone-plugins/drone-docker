@@ -113,6 +113,11 @@ func main() {
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS",
 		},
+		cli.BoolFlag{
+			Name:   "squash",
+			Usage:  "squash the layers at build time",
+			EnvVar: "PLUGIN_SQUASH",
+		},
 		cli.StringFlag{
 			Name:   "repo",
 			Usage:  "docker repository",
@@ -161,6 +166,7 @@ func run(c *cli.Context) error {
 			Context:    c.String("context"),
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
+			Squash:     c.Bool("squash"),
 			Repo:       c.String("repo"),
 		},
 		Daemon: Daemon{
