@@ -76,6 +76,11 @@ func main() {
 			EnvVar: "PLUGIN_IPV6",
 		},
 		cli.BoolFlag{
+			Name:   "daemon.experimental",
+			Usage:  "docker daemon Experimental mode",
+			EnvVar: "PLUGIN_EXPERIMENTAL",
+		},
+		cli.BoolFlag{
 			Name:   "daemon.debug",
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
@@ -170,6 +175,7 @@ func run(c *cli.Context) error {
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
 			MTU:           c.String("daemon.mtu"),
+			Experimental:  c.Bool("daemon.experimental"),
 		},
 	}
 

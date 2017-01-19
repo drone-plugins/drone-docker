@@ -28,6 +28,7 @@ type (
 		DNS           []string // Docker daemon dns server
 		MTU           string   // Docker daemon mtu setting
 		IPv6          bool     // Docker daemon IPv6 networking
+		Experimental  bool     // Docker daemon enable experimental mode
 	}
 
 	// Login defines Docker login parameters.
@@ -275,6 +276,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	if len(daemon.MTU) != 0 {
 		args = append(args, "--mtu", daemon.MTU)
+	}
+	if daemon.Experimental {
+		args = append(args, "--experimental")
 	}
 	return exec.Command(dockerExe, args...)
 }
