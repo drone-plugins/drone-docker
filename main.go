@@ -76,6 +76,11 @@ func main() {
 			EnvVar: "PLUGIN_IPV6",
 		},
 		cli.BoolFlag{
+			Name:   "daemon.experimental",
+			Usage:  "docker daemon Experimental mode",
+			EnvVar: "PLUGIN_EXPERIMENTAL",
+		},
+		cli.BoolFlag{
 			Name:   "daemon.debug",
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
@@ -107,6 +112,11 @@ func main() {
 			Name:   "args",
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS",
+		},
+		cli.BoolFlag{
+			Name:   "squash",
+			Usage:  "squash the layers at build time",
+			EnvVar: "PLUGIN_SQUASH",
 		},
 		cli.StringFlag{
 			Name:   "repo",
@@ -156,6 +166,7 @@ func run(c *cli.Context) error {
 			Context:    c.String("context"),
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
+			Squash:     c.Bool("squash"),
 			Repo:       c.String("repo"),
 		},
 		Daemon: Daemon{
@@ -170,6 +181,7 @@ func run(c *cli.Context) error {
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
 			MTU:           c.String("daemon.mtu"),
+			Experimental:  c.Bool("daemon.experimental"),
 		},
 	}
 
