@@ -28,6 +28,11 @@ func main() {
 			Usage:  "dry run disables docker push",
 			EnvVar: "PLUGIN_DRY_RUN",
 		},
+		cli.BoolFlag{
+			Name:   "verbose",
+			Usage:  "output docker version and docker info comands",
+			EnvVar: "PLUGIN_VERBOSE",
+		},
 		cli.StringFlag{
 			Name:   "commit.sha",
 			Usage:  "git commit sha",
@@ -154,6 +159,7 @@ func main() {
 func run(c *cli.Context) error {
 	plugin := Plugin{
 		Dryrun: c.Bool("dry-run"),
+		Verbose: c.Bool("verbose"),
 		Login: Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
