@@ -147,6 +147,7 @@ func (p Plugin) Exec() error {
 }
 
 const dockerExe = "/usr/local/bin/docker"
+const dockerdExe = "/usr/local/bin/dockerd"
 
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
@@ -264,7 +265,7 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{"daemon", "-g", daemon.StoragePath}
+	args := []string{"-g", daemon.StoragePath}
 
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
@@ -290,7 +291,7 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	if daemon.Experimental {
 		args = append(args, "--experimental")
 	}
-	return exec.Command(dockerExe, args...)
+	return exec.Command(dockerdExe, args...)
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
