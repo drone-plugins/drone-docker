@@ -47,6 +47,7 @@ type (
 		Tags       []string // Docker build tags
 		Args       []string // Docker build args
 		Squash     bool     // Docker build squash
+		Compress   bool     // Docker build compress
 		Repo       string   // Docker build repository
 	}
 
@@ -194,6 +195,9 @@ func commandBuild(build Build) *exec.Cmd {
 	args = append(args, build.Context)
 	if build.Squash {
 		args = append(args, "--squash")
+	}
+	if build.Compress {
+		args = append(args, "--compress")
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
