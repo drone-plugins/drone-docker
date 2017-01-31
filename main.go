@@ -118,6 +118,11 @@ func main() {
 			Usage:  "squash the layers at build time",
 			EnvVar: "PLUGIN_SQUASH",
 		},
+		cli.BoolFlag{
+			Name:   "compress",
+			Usage:  "compress the build context using gzip",
+			EnvVar: "PLUGIN_COMPRESS",
+		},
 		cli.StringFlag{
 			Name:   "repo",
 			Usage:  "docker repository",
@@ -167,6 +172,7 @@ func run(c *cli.Context) error {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Squash:     c.Bool("squash"),
+			Compress:   c.Bool("compress"),
 			Repo:       c.String("repo"),
 		},
 		Daemon: Daemon{
