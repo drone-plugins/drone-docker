@@ -7,7 +7,7 @@
 
 Drone plugin can be used to build and publish Docker images to a container
 registry. For the usage information and a listing of the available options
-please take a look at [the docs](DOCS.md).
+please take a look at [the docs](http://plugins.drone.io/drone-plugins/drone-docker/).
 
 ## Build
 
