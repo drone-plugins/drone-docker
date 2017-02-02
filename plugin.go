@@ -34,6 +34,7 @@ type (
 	// Login defines Docker login parameters.
 	Login struct {
 		Registry string // Docker registry address
+		Repo     string // Docker registry repo
 		Username string // Docker registry username
 		Password string // Docker registry password
 		Email    string // Docker registry email
@@ -53,10 +54,11 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login  Login  // Docker login configuration
-		Build  Build  // Docker build configuration
-		Daemon Daemon // Docker daemon configuration
-		Dryrun bool   // Docker push is skipped
+		Login          Login   // Docker login configuration
+		Build          Build   // Docker build configuration
+		Daemon         Daemon  // Docker daemon configuration
+		PushRegistries []Login // Docker registries
+		Dryrun         bool    // Docker push is skipped
 	}
 )
 
@@ -111,6 +113,29 @@ func (p Plugin) Exec() error {
 		fmt.Println("Registry credentials not provided. Guest mode enabled.")
 	}
 
+	// login to each of the registries we want to push to
+	for i := range p.PushRegistries {
+		r := p.PushRegistries[i]
+
+		// If the registry is the same as the main one, only
+		// try to login if the username is filled in or different
+		if r.Registry == p.Login.Registry && (r.Username == "" || r.Username == p.Login.Username) {
+			// already logged in (or "enabled guest mode") to this registry above
+			continue
+		}
+
+		if r.Password == "" {
+			fmt.Printf("Registry credentials not provided for %s%s. Guest mode enabled.\n", r.Registry, r.Repo)
+			continue
+		}
+
+		cmd := commandLogin(r)
+		err := cmd.Run()
+		if err != nil {
+			return fmt.Errorf("Error authenticating to push registry %s%s: %s", r.Registry, r.Repo, err)
+		}
+	}
+
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false
@@ -125,10 +150,20 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
+		cmds = append(cmds, commandTag(p.Build.Name, p.Build.Repo, tag)) // docker tag
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+			cmds = append(cmds, commandPush(p.Build.Repo, tag)) // docker push
+		}
+
+		// tag and push for each push registry
+		for _, pr := range p.PushRegistries {
+			repo := pr.Registry + pr.Repo
+			cmds = append(cmds, commandTag(p.Build.Name, repo, tag)) // docker tag
+
+			if p.Dryrun == false {
+				cmds = append(cmds, commandPush(repo, tag)) // docker push
+			}
 		}
 	}
 
@@ -185,7 +220,7 @@ func commandInfo() *exec.Cmd {
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
-	args := []string {
+	args := []string{
 		"build",
 		"--pull=true",
 		"--rm=true",
@@ -251,19 +286,16 @@ func hasProxyBuildArg(build *Build, key string) bool {
 }
 
 // helper function to create the docker tag command.
-func commandTag(build Build, tag string) *exec.Cmd {
-	var (
-		source = build.Name
-		target = fmt.Sprintf("%s:%s", build.Repo, tag)
-	)
+func commandTag(source, repo, tag string) *exec.Cmd {
+	target := fmt.Sprintf("%s:%s", repo, tag)
 	return exec.Command(
 		dockerExe, "tag", source, target,
 	)
 }
 
 // helper function to create the docker push command.
-func commandPush(build Build, tag string) *exec.Cmd {
-	target := fmt.Sprintf("%s:%s", build.Repo, tag)
+func commandPush(repo, tag string) *exec.Cmd {
+	target := fmt.Sprintf("%s:%s", repo, tag)
 	return exec.Command(dockerExe, "push", target)
 }
 
