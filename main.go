@@ -118,6 +118,11 @@ func main() {
 			Usage:  "squash the layers at build time",
 			EnvVar: "PLUGIN_SQUASH",
 		},
+		cli.BoolTFlag{
+			Name:   "cache",
+			Usage:  "don't attempt to re-build layers of the image that already exist",
+			EnvVar: "PLUGIN_USE_CACHE",
+		},
 		cli.BoolFlag{
 			Name:   "compress",
 			Usage:  "compress the build context using gzip",
@@ -172,6 +177,7 @@ func run(c *cli.Context) error {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Squash:     c.Bool("squash"),
+			Cache:       c.Bool("cache"),
 			Compress:   c.Bool("compress"),
 			Repo:       c.String("repo"),
 		},

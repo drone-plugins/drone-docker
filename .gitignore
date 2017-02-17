@@ -26,3 +26,6 @@ _testmain.go
 
 coverage.out
 drone-docker
+
+# IDE/Editor related files
+**.swp
