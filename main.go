@@ -119,9 +119,9 @@ func main() {
 			EnvVar: "PLUGIN_SQUASH",
 		},
 		cli.BoolTFlag{
-			Name:   "cache",
-			Usage:  "don't attempt to re-build layers of the image that already exist",
-			EnvVar: "PLUGIN_USE_CACHE",
+			Name:   "pull-image",
+			Usage:  "force pull base image at build time",
+			EnvVar: "PLUGIN_PULL_IMAGE",
 		},
 		cli.BoolFlag{
 			Name:   "compress",
@@ -177,7 +177,7 @@ func run(c *cli.Context) error {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Squash:     c.Bool("squash"),
-			Cache:       c.Bool("cache"),
+			Pull:       c.BoolT("pull-image"),
 			Compress:   c.Bool("compress"),
 			Repo:       c.String("repo"),
 		},
