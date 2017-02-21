@@ -118,6 +118,11 @@ func main() {
 			Usage:  "squash the layers at build time",
 			EnvVar: "PLUGIN_SQUASH",
 		},
+		cli.BoolTFlag{
+			Name:   "pull-image",
+			Usage:  "force pull base image at build time",
+			EnvVar: "PLUGIN_PULL_IMAGE",
+		},
 		cli.BoolFlag{
 			Name:   "compress",
 			Usage:  "compress the build context using gzip",
@@ -172,6 +177,7 @@ func run(c *cli.Context) error {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Squash:     c.Bool("squash"),
+			Pull:       c.BoolT("pull-image"),
 			Compress:   c.Bool("compress"),
 			Repo:       c.String("repo"),
 		},

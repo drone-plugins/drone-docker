@@ -47,6 +47,7 @@ type (
 		Tags       []string // Docker build tags
 		Args       []string // Docker build args
 		Squash     bool     // Docker build squash
+		Pull       bool     // Docker build pull
 		Compress   bool     // Docker build compress
 		Repo       string   // Docker build repository
 	}
@@ -185,9 +186,8 @@ func commandInfo() *exec.Cmd {
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
-	args := []string {
+	args := []string{
 		"build",
-		"--pull=true",
 		"--rm=true",
 		"-f", build.Dockerfile,
 		"-t", build.Name,
@@ -199,6 +199,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Compress {
 		args = append(args, "--compress")
+	}
+	if build.Pull {
+		args = append(args, "--pull=true")
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
