@@ -58,6 +58,7 @@ type (
 		Build  Build  // Docker build configuration
 		Daemon Daemon // Docker daemon configuration
 		Dryrun bool   // Docker push is skipped
+		Verbose bool  // Output docker version and docker info commands
 	}
 )
 
@@ -121,8 +122,10 @@ func (p Plugin) Exec() error {
 	addProxyBuildArgs(&p.Build)
 
 	var cmds []*exec.Cmd
-	cmds = append(cmds, commandVersion())      // docker version
-	cmds = append(cmds, commandInfo())         // docker info
+	if p.Verbose {
+		cmds = append(cmds, commandVersion())      // docker version
+		cmds = append(cmds, commandInfo())         // docker info
+	}
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
