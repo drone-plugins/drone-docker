@@ -63,17 +63,6 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
-
-	// TODO execute code remove dangling images
-	// this is problematic because we are running docker in scratch which does
-	// not have bash, so we need to hack something together
-	// docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi
-
-	/*
-		cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
-		cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
-	*/
-
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		cmd := commandDaemon(p.Daemon)
@@ -123,6 +112,7 @@ func (p Plugin) Exec() error {
 	var cmds []*exec.Cmd
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
+	cmds = append(cmds, commandDockerPrune())  // cleanup docker
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -299,6 +289,10 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 		args = append(args, "--experimental")
 	}
 	return exec.Command(dockerdExe, args...)
+}
+
+func commandDockerPrune() *exec.Cmd {
+	return exec.Command(dockerExe, "system", "prune", "-f")
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
