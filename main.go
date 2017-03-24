@@ -137,22 +137,22 @@ func main() {
 			Name:   "docker.registry",
 			Usage:  "docker registry",
 			Value:  defaultRegistry,
-			EnvVar: "DOCKER_REGISTRY,PLUGIN_REGISTRY",
+			EnvVar: "PLUGIN_REGISTRY,DOCKER_REGISTRY",
 		},
 		cli.StringFlag{
 			Name:   "docker.username",
 			Usage:  "docker username",
-			EnvVar: "DOCKER_USERNAME,PLUGIN_USERNAME",
+			EnvVar: "PLUGIN_USERNAME,DOCKER_USERNAME",
 		},
 		cli.StringFlag{
 			Name:   "docker.password",
 			Usage:  "docker password",
-			EnvVar: "DOCKER_PASSWORD,PLUGIN_PASSWORD",
+			EnvVar: "PLUGIN_PASSWORD,DOCKER_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "docker.email",
 			Usage:  "docker email",
-			EnvVar: "DOCKER_EMAIL,PLUGIN_EMAIL",
+			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
 	}
 
