@@ -47,6 +47,8 @@ type (
 		Tags       []string // Docker build tags
 		Args       []string // Docker build args
 		Squash     bool     // Docker build squash
+		Pull       bool     // Docker build pull
+		Compress   bool     // Docker build compress
 		Repo       string   // Docker build repository
 	}
 
@@ -61,17 +63,6 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
-
-	// TODO execute code remove dangling images
-	// this is problematic because we are running docker in scratch which does
-	// not have bash, so we need to hack something together
-	// docker images --quiet --filter=dangling=true | xargs --no-run-if-empty docker rmi
-
-	/*
-		cmd = exec.Command("docker", "images", "-q", "-f", "dangling=true")
-		cmd = exec.Command("docker", append([]string{"rmi"}, images...)...)
-	*/
-
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		cmd := commandDaemon(p.Daemon)
@@ -121,6 +112,7 @@ func (p Plugin) Exec() error {
 	var cmds []*exec.Cmd
 	cmds = append(cmds, commandVersion())      // docker version
 	cmds = append(cmds, commandInfo())         // docker info
+	cmds = append(cmds, commandDockerPrune())  // cleanup docker
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -147,6 +139,7 @@ func (p Plugin) Exec() error {
 }
 
 const dockerExe = "/usr/local/bin/docker"
+const dockerdExe = "/usr/local/bin/dockerd"
 
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
@@ -183,9 +176,8 @@ func commandInfo() *exec.Cmd {
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
-	args := []string {
+	args := []string{
 		"build",
-		"--pull=true",
 		"--rm=true",
 		"-f", build.Dockerfile,
 		"-t", build.Name,
@@ -194,6 +186,12 @@ func commandBuild(build Build) *exec.Cmd {
 	args = append(args, build.Context)
 	if build.Squash {
 		args = append(args, "--squash")
+	}
+	if build.Compress {
+		args = append(args, "--compress")
+	}
+	if build.Pull {
+		args = append(args, "--pull=true")
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
@@ -264,7 +262,7 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{"daemon", "-g", daemon.StoragePath}
+	args := []string{"-g", daemon.StoragePath}
 
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
@@ -290,7 +288,11 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	if daemon.Experimental {
 		args = append(args, "--experimental")
 	}
-	return exec.Command(dockerExe, args...)
+	return exec.Command(dockerdExe, args...)
+}
+
+func commandDockerPrune() *exec.Cmd {
+	return exec.Command(dockerExe, "system", "prune", "-f")
 }
 
 // trace writes each command to stdout with the command wrapped in an xml

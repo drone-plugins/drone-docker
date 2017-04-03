@@ -118,6 +118,16 @@ func main() {
 			Usage:  "squash the layers at build time",
 			EnvVar: "PLUGIN_SQUASH",
 		},
+		cli.BoolTFlag{
+			Name:   "pull-image",
+			Usage:  "force pull base image at build time",
+			EnvVar: "PLUGIN_PULL_IMAGE",
+		},
+		cli.BoolFlag{
+			Name:   "compress",
+			Usage:  "compress the build context using gzip",
+			EnvVar: "PLUGIN_COMPRESS",
+		},
 		cli.StringFlag{
 			Name:   "repo",
 			Usage:  "docker repository",
@@ -127,22 +137,22 @@ func main() {
 			Name:   "docker.registry",
 			Usage:  "docker registry",
 			Value:  defaultRegistry,
-			EnvVar: "DOCKER_REGISTRY,PLUGIN_REGISTRY",
+			EnvVar: "PLUGIN_REGISTRY,DOCKER_REGISTRY",
 		},
 		cli.StringFlag{
 			Name:   "docker.username",
 			Usage:  "docker username",
-			EnvVar: "DOCKER_USERNAME,PLUGIN_USERNAME",
+			EnvVar: "PLUGIN_USERNAME,DOCKER_USERNAME",
 		},
 		cli.StringFlag{
 			Name:   "docker.password",
 			Usage:  "docker password",
-			EnvVar: "DOCKER_PASSWORD,PLUGIN_PASSWORD",
+			EnvVar: "PLUGIN_PASSWORD,DOCKER_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "docker.email",
 			Usage:  "docker email",
-			EnvVar: "DOCKER_EMAIL,PLUGIN_EMAIL",
+			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
 	}
 
@@ -167,6 +177,8 @@ func run(c *cli.Context) error {
 			Tags:       c.StringSlice("tags"),
 			Args:       c.StringSlice("args"),
 			Squash:     c.Bool("squash"),
+			Pull:       c.BoolT("pull-image"),
+			Compress:   c.Bool("compress"),
 			Repo:       c.String("repo"),
 		},
 		Daemon: Daemon{
