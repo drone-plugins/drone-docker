@@ -21,10 +21,11 @@
 			"revisionTime": "2015-09-07T01:02:28Z"
 		},
 		{
-			"checksumSHA1": "W1G9Avuz92Ng1IqblcO/cIe6pHU=",
+			"checksumSHA1": "S8aBnWst2swLRVgReTMCRXGmNT4=",
+			"origin": "github.com/bradrydzewski/cli",
 			"path": "github.com/urfave/cli",
-			"revision": "d9021faab69f92295ef7061bd39e4a76dcbdef32",
-			"revisionTime": "2016-07-26T01:14:03Z"
+			"revision": "420da9fff3724cc19afe25bef61aeabd5b81e9f7",
+			"revisionTime": "2017-04-10T14:45:51Z"
 		}
 	],
 	"rootPath": "github.com/drone-plugins/drone-docker"
