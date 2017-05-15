@@ -17,6 +17,7 @@ pipeline:
     image: plugins/docker
     repo: plugins/docker
     tags: [ "latest", "17", "17.04" ]
+    secrets: [ docker_username, docker_password ]
     when:
       branch: master
       event: push
