@@ -63,7 +63,7 @@ func main() {
 		cli.StringSliceFlag{
 			Name:   "daemon.dns",
 			Usage:  "docker daemon dns server",
-			EnvVar: "PLUGIN_DNS",
+			EnvVar: "PLUGIN_CUSTOM_DNS",
 		},
 		cli.BoolFlag{
 			Name:   "daemon.insecure",
@@ -103,10 +103,10 @@ func main() {
 			EnvVar: "PLUGIN_CONTEXT",
 		},
 		cli.StringSliceFlag{
-			Name:   "tags",
-			Usage:  "build tags",
-			Value:  &cli.StringSlice{"latest"},
-			EnvVar: "PLUGIN_TAG,PLUGIN_TAGS",
+			Name:     "tags",
+			Usage:    "build tags",
+			Value:    &cli.StringSlice{"latest"},
+			EnvVar:   "PLUGIN_TAG,PLUGIN_TAGS",
 			FilePath: ".tags",
 		},
 		cli.StringSliceFlag{
