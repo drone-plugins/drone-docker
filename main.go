@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -155,6 +156,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "push.registries",
+			Usage:  "push registries",
+			EnvVar: "PLUGIN_PUSH_REGISTRIES",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -198,5 +204,32 @@ func run(c *cli.Context) error {
 		},
 	}
 
+	if r, err := parsePushRegistries(c.String("push.registries"), plugin.Login.Registry); err == nil {
+		plugin.PushRegistries = r
+	} else {
+		return err
+	}
+
 	return plugin.Exec()
+}
+
+func parsePushRegistries(raw, defaultRegistry string) ([]Login, error) {
+	if raw == "" {
+		return nil, nil
+	}
+
+	var out []Login
+
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		return nil, fmt.Errorf("Failed to parse push registries: %s", err.Error())
+	}
+
+	// Default to the main registry set, in case only a repo is provided
+	for i := range out {
+		if out[i].Registry == "" {
+			out[i].Registry = defaultRegistry
+		}
+	}
+
+	return out, nil
 }
