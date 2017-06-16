@@ -21,3 +21,14 @@ pipeline:
     when:
       branch: master
       event: push
+
+
+  publish:
+    image: plugins/gcr
+    repo: plugins/gcr
+    dockerfile: Dockerfile_gcr
+    tags: [ "latest", "17", "17.05" ]
+    secrets: [ docker_username, docker_password ]
+    when:
+      branch: master
+      event: push

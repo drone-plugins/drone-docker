@@ -79,6 +79,11 @@ func (p Plugin) Exec() error {
 		}()
 	}
 
+	// Concat the Registry URL and the Repository name if necessary
+	if strings.Count(p.Build.Repo, "/") == 1 {
+		p.Build.Repo = fmt.Sprintf("%s/%s", p.Login.Registry, p.Build.Repo)
+	}
+
 	// poll the docker daemon until it is started. This ensures the daemon is
 	// ready to accept connections before we proceed.
 	for i := 0; i < 15; i++ {
