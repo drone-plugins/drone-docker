@@ -1,0 +1,7 @@
+FROM ergu/docker-dind-arm64:17.05.0-ce-dind
+
+RUN ln -s /usr/bin/dockerd /usr/local/bin/dockerd
+RUN ln -s /usr/bin/docker /usr/local/bin/docker
+
+ADD drone-docker /bin/
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
