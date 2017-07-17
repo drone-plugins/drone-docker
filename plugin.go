@@ -41,15 +41,17 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Name       string   // Docker build using default named tag
-		Dockerfile string   // Docker build Dockerfile
-		Context    string   // Docker build context
-		Tags       []string // Docker build tags
-		Args       []string // Docker build args
-		Squash     bool     // Docker build squash
-		Pull       bool     // Docker build pull
-		Compress   bool     // Docker build compress
-		Repo       string   // Docker build repository
+		Remote      string   // Git remote URL
+		Name        string   // Docker build using default named tag
+		Dockerfile  string   // Docker build Dockerfile
+		Context     string   // Docker build context
+		Tags        []string // Docker build tags
+		Args        []string // Docker build args
+		Squash      bool     // Docker build squash
+		Pull        bool     // Docker build pull
+		Compress    bool     // Docker build compress
+		Repo        string   // Docker build repository
+		LabelSchema []string // Label schema map
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -110,8 +112,8 @@ func (p Plugin) Exec() error {
 	addProxyBuildArgs(&p.Build)
 
 	var cmds []*exec.Cmd
-	cmds = append(cmds, commandVersion())      // docker version
-	cmds = append(cmds, commandInfo())         // docker info
+	cmds = append(cmds, commandVersion()) // docker version
+	cmds = append(cmds, commandInfo())    // docker info
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
@@ -198,6 +200,20 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
+	}
+
+	labelSchema := []string{
+		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
+		fmt.Sprintf("vcs-ref=%s", build.Name),
+		fmt.Sprintf("vcs-url=%s", build.Remote),
+	}
+
+	if len(build.LabelSchema) > 0 {
+		labelSchema = append(labelSchema, build.LabelSchema...)
+	}
+
+	for _, label := range labelSchema {
+		args = append(args, "--label", fmt.Sprintf("org.label-schema.%s", label))
 	}
 
 	return exec.Command(dockerExe, args...)
