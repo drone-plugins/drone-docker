@@ -70,6 +70,11 @@ func main() {
 			Usage:  "docker daemon dns server",
 			EnvVar: "PLUGIN_CUSTOM_DNS",
 		},
+		cli.StringSliceFlag{
+			Name:   "daemon.dns-search",
+			Usage:  "docker daemon dns search domains",
+			EnvVar: "PLUGIN_CUSTOM_DNS_SEARCH",
+		},
 		cli.BoolFlag{
 			Name:   "daemon.insecure",
 			Usage:  "docker daemon allows insecure registries",
@@ -205,6 +210,7 @@ func run(c *cli.Context) error {
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
+			DNSSearch:     c.StringSlice("daemon.dns-search"),
 			MTU:           c.String("daemon.mtu"),
 			Experimental:  c.Bool("daemon.experimental"),
 		},

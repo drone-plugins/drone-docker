@@ -26,6 +26,7 @@ type (
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
+		DNSSearch     []string // Docker daemon dns search domain
 		MTU           string   // Docker daemon mtu setting
 		IPv6          bool     // Docker daemon IPv6 networking
 		Experimental  bool     // Docker daemon enable experimental mode
@@ -300,6 +301,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	for _, dns := range daemon.DNS {
 		args = append(args, "--dns", dns)
+	}
+	for _, dnsSearch := range daemon.DNSSearch {
+		args = append(args, "--dns-search", dnsSearch)
 	}
 	if len(daemon.MTU) != 0 {
 		args = append(args, "--mtu", daemon.MTU)
