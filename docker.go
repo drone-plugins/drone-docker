@@ -43,6 +43,7 @@ type (
 		Context     string   // Docker build context
 		Tags        []string // Docker build tags
 		Args        []string // Docker build args
+		EnvArgs     []string // Docker build args from environment
 		Squash      bool     // Docker build squash
 		Pull        bool     // Docker build pull
 		Compress    bool     // Docker build compress
@@ -193,6 +194,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Pull {
 		args = append(args, "--pull=true")
+	}
+	for _, arg := range build.EnvArgs {
+		addProxyValue(&build, arg)
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
