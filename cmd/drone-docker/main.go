@@ -7,6 +7,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
+
+	"github.com/drone-plugins/drone-docker"
 )
 
 var build = "0" // build number set at compile-time
@@ -152,7 +154,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "docker.registry",
 			Usage:  "docker registry",
-			Value:  defaultRegistry,
+			Value:  "https://index.docker.io/v1/",
 			EnvVar: "PLUGIN_REGISTRY,DOCKER_REGISTRY",
 		},
 		cli.StringFlag{
@@ -178,15 +180,15 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	plugin := Plugin{
+	plugin := docker.Plugin{
 		Dryrun: c.Bool("dry-run"),
-		Login: Login{
+		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
 			Password: c.String("docker.password"),
 			Email:    c.String("docker.email"),
 		},
-		Build: Build{
+		Build: docker.Build{
 			Remote:      c.String("remote.url"),
 			Name:        c.String("commit.sha"),
 			Dockerfile:  c.String("dockerfile"),
@@ -199,7 +201,7 @@ func run(c *cli.Context) error {
 			Repo:        c.String("repo"),
 			LabelSchema: c.StringSlice("label-schema"),
 		},
-		Daemon: Daemon{
+		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
 			Mirror:        c.String("daemon.mirror"),
 			StorageDriver: c.String("daemon.storage-driver"),

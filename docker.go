@@ -1,4 +1,4 @@
-package main
+package docker
 
 import (
 	"fmt"
@@ -7,11 +7,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-)
-
-const (
-	// default docker registry
-	defaultRegistry = "https://index.docker.io/v1/"
 )
 
 type (
