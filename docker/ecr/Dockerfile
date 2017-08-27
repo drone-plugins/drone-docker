@@ -1,0 +1,1 @@
+FROM plugins/docker:latest
