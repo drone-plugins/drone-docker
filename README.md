@@ -1,21 +1,13 @@
 # drone-docker
 
-[![Build Status](http://beta.drone.io/api/badges/drone-plugins/drone-docker/status.svg)](http://beta.drone.io/drone-plugins/drone-docker)
-[![Go Doc](https://godoc.org/github.com/drone-plugins/drone-docker?status.svg)](http://godoc.org/github.com/drone-plugins/drone-docker)
-[![Go Report](https://goreportcard.com/badge/github.com/drone-plugins/drone-docker)](https://goreportcard.com/report/github.com/drone-plugins/drone-docker)
-[![Join the chat at https://gitter.im/drone/drone](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/drone/drone)
-
-Drone plugin to build and publish Docker images to a container
-registry. For the usage information and a listing of the available options
-please take a look at [the docs](http://plugins.drone.io/drone-plugins/drone-docker/).
+Drone plugin to build and publish Docker images to a container registry.
 
 ## Build
 
 Build the binary with the following commands:
 
 ```
-go build
-go test
+sh .drone.sh
 ```
 
 ## Docker
@@ -23,16 +15,7 @@ go test
 Build the Docker image with the following commands:
 
 ```
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo
-docker build --rm=true -t plugins/docker .
-```
-
-Please note incorrectly building the image for the correct x64 linux and with
-CGO disabled will result in an error when running the Docker image:
-
-```
-docker: Error response from daemon: Container command
-'/bin/drone-docker' not found or does not exist..
+docker build --rm=true -f docker/Dockerfile -t plugins/docker .
 ```
 
 ## Usage
