@@ -19,6 +19,7 @@ type (
 		StoragePath   string   // Docker daemon storage path
 		Disabled      bool     // Docker daemon is disabled (already running)
 		DisablePrune  bool     // Docker daemon won't run post-build prune
+		DisableRMI    bool     // Docker daemon won't run post-build rmi
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
@@ -123,7 +124,9 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+	if !p.Daemon.DisableRMI {
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+	}
 	if !p.Daemon.DisablePrune {
 		cmds = append(cmds, commandPrune()) // docker system prune -f
 	}
