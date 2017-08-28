@@ -102,6 +102,11 @@ func main() {
 			Usage:  "don't start the docker daemon",
 			EnvVar: "PLUGIN_DAEMON_OFF",
 		},
+		cli.BoolFlag{
+			Name:   "daemon.disable-system-prune",
+			Usage:  "don't run post-build docker system prune",
+			EnvVar: "PLUGIN_DISABLE_SYSTEM_PRUNE",
+		},
 		cli.StringFlag{
 			Name:   "dockerfile",
 			Usage:  "build dockerfile",
@@ -214,6 +219,7 @@ func run(c *cli.Context) error {
 			StoragePath:   c.String("daemon.storage-path"),
 			Insecure:      c.Bool("daemon.insecure"),
 			Disabled:      c.Bool("daemon.off"),
+			DisablePrune:  c.Bool("daemon.disable-system-prune"),
 			IPv6:          c.Bool("daemon.ipv6"),
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),

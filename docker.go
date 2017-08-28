@@ -18,6 +18,7 @@ type (
 		StorageDriver string   // Docker daemon storage driver
 		StoragePath   string   // Docker daemon storage path
 		Disabled      bool     // DOcker daemon is disabled (already running)
+		DisablePrune  bool     // Docker daemon won't run post-build prune
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
@@ -123,7 +124,9 @@ func (p Plugin) Exec() error {
 	}
 
 	cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-	cmds = append(cmds, commandPrune())           // docker system prune -f
+	if !p.Daemon.DisablePrune {
+		cmds = append(cmds, commandPrune()) // docker system prune -f
+	}
 
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
