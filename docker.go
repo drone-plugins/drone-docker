@@ -17,7 +17,7 @@ type (
 		Insecure      bool     // Docker daemon enable insecure registries
 		StorageDriver string   // Docker daemon storage driver
 		StoragePath   string   // Docker daemon storage path
-		Disabled      bool     // DOcker daemon is disabled (already running)
+		Disabled      bool     // Docker daemon is disabled (already running)
 		DisablePrune  bool     // Docker daemon won't run post-build prune
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
