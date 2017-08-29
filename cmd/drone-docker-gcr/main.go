@@ -19,7 +19,7 @@ func main() {
 			"PLUGIN_JSON_KEY",
 			"GCR_JSON_KEY",
 			"GOOGLE_CREDENTIALS",
-			"GOOGLE_APPLICATION_CREDENTIALS",
+			"TOKEN",
 		)
 	)
 
