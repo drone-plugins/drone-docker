@@ -2,6 +2,10 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ecr"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,13 +17,8 @@ const (
 )
 
 func main() {
+	var registryIds []*string
 	ecrRegion := DEFAULT_REGION
-	authorizationOptions := []string{
-		"ecr",
-		"get-authorization-token",
-		"--output",
-		"text",
-	}
 
 	// If environment variables are not specified
 	// awscli will assume instance role
@@ -37,25 +36,17 @@ func main() {
 	}
 
 	// Useful when using a registry from another account
-	if registryIds := getenv("PLUGIN_REGISTRY_IDS"); registryIds != "" {
-		authorizationOptions = append(authorizationOptions, "--registry-ids")
-		authorizationOptions = append(authorizationOptions, registryIds)
+	if registries := getenv("PLUGIN_REGISTRY_IDS"); registries != "" {
+		registryIds = append(registryIds, &registries)
 	}
-
-	// Get credentials
-	awsCli := exec.Command("aws", authorizationOptions...)
-	output, err := awsCli.Output()
+	password, registry, err := getCredentials(ecrRegion, registryIds)
 	if err != nil {
-		os.Exit(1)
+		fmt.Println(err)
+		return
 	}
-
-	tokens := strings.Split(string(output), "\t")
-	dockerPassword := strings.Split(decodeBase64(tokens[1]), ":")[1]
-	dockerRegistry := tokens[3]
-
 	os.Setenv("DOCKER_USERNAME", DOCKER_USER)
-	os.Setenv("DOCKER_PASSWORD", dockerPassword)
-	os.Setenv("DOCKER_REGISTRY", dockerRegistry)
+	os.Setenv("DOCKER_PASSWORD", password)
+	os.Setenv("DOCKER_REGISTRY", registry)
 
 	cmd := exec.Command("drone-docker")
 	cmd.Stdout = os.Stdout
@@ -82,4 +73,41 @@ func decodeBase64(data string) string {
 		return ""
 	}
 	return string(decoded)
+}
+
+func getRegistry(proxyEndpoint string) string {
+	// proxyEndpoint has format
+	// https://<registryid>.dkr.ecr.us-east-1.amazonaws.com
+	return strings.Split(proxyEndpoint, ".")[0][8:]
+}
+
+func getECRClient(region string) (*ecr.ECR, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(region),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return ecr.New(sess), nil
+}
+
+func getCredentials(region string, registryIds []*string) (string, string, error) {
+	client, err := getECRClient(region)
+	if err != nil {
+		fmt.Println(err)
+		return "", "", err
+	}
+
+	input := &ecr.GetAuthorizationTokenInput{
+		RegistryIds: registryIds,
+	}
+	result, err := client.GetAuthorizationToken(input)
+	if err != nil {
+		fmt.Println(err)
+		return "", "", err
+	}
+	// Password has a prefix "AWS:" which is not necessary
+	password := decodeBase64(*result.AuthorizationData[0].AuthorizationToken)[4:]
+	registry := getRegistry(*result.AuthorizationData[0].ProxyEndpoint)
+	return password, registry, nil
 }
