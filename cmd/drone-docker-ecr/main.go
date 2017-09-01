@@ -18,14 +18,11 @@ const (
 
 func main() {
 	var registryIds []*string
-	ecrRegion := DEFAULT_REGION
 
-	// If environment variables are not specified
-	// awscli will assume instance role
+	ecrRegion := DEFAULT_REGION
 	if getenv("PLUGIN_ECR_REGION") != "" {
 		ecrRegion = getenv("PLUGIN_ECR_REGION")
 	}
-	os.Setenv("AWS_DEFAULT_REGION", ecrRegion)
 
 	if accessKey := getenv("PLUGIN_ACCESS_KEY"); accessKey != "" {
 		os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
@@ -44,6 +41,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
 	os.Setenv("DOCKER_USERNAME", DOCKER_USER)
 	os.Setenv("DOCKER_PASSWORD", password)
 	os.Setenv("DOCKER_REGISTRY", registry)
