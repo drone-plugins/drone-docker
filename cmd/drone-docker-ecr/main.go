@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 const (
@@ -20,8 +19,17 @@ func main() {
 	var registryIds []*string
 
 	ecrRegion := DEFAULT_REGION
-	if getenv("PLUGIN_ECR_REGION") != "" {
-		ecrRegion = getenv("PLUGIN_ECR_REGION")
+
+	if getenv("ECR_REGION") != "" {
+		os.Setenv("PLUGIN_REGION", getenv("ECR_REGION"))
+	}
+
+	if accessKey := getenv("ECR_ACCESS_KEY"); accessKey != "" {
+		os.Setenv("PLUGIN_ACCESS_KEY", accessKey)
+	}
+
+	if secretKey := getenv("ECR_SECRET_KEY"); secretKey != "" {
+		os.Setenv("PLUGIN_SECRET_KEY", secretKey)
 	}
 
 	if accessKey := getenv("PLUGIN_ACCESS_KEY"); accessKey != "" {
@@ -73,12 +81,6 @@ func decodeBase64(data string) string {
 	return string(decoded)
 }
 
-func getRegistry(proxyEndpoint string) string {
-	// proxyEndpoint has format
-	// https://<registryid>.dkr.ecr.us-east-1.amazonaws.com
-	return strings.Split(proxyEndpoint, ".")[0][8:]
-}
-
 func getECRClient(region string) (*ecr.ECR, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(region),
@@ -106,6 +108,6 @@ func getCredentials(region string, registryIds []*string) (string, string, error
 	}
 	// Password has a prefix "AWS:" which is not necessary
 	password := decodeBase64(*result.AuthorizationData[0].AuthorizationToken)[4:]
-	registry := getRegistry(*result.AuthorizationData[0].ProxyEndpoint)
+	registry := *result.AuthorizationData[0].ProxyEndpoint
 	return password, registry, nil
 }
