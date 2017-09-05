@@ -11,46 +11,40 @@ import (
 )
 
 const (
-	DOCKER_USER    = "AWS"
-	DEFAULT_REGION = "us-east-1"
+	DockerUser    = "AWS"
+	DefaultRegion = "us-east-1"
 )
 
 func main() {
 	var registryIds []*string
+	var (
+		ecrRegion  = getenv("ECR_REGION", "PLUGIN_REGION")
+		accessKey  = getenv("ECR_ACCESS_KEY", "PLUGIN_ACCESS_KEY")
+		secretKey  = getenv("ECR_SECRET_KEY", "PLUGIN_SECRET_KEY")
+		registries = getenv("ECR_REGISTRY_IDS", "PLUGIN_REGISTRY_IDS")
+	)
 
-	ecrRegion := DEFAULT_REGION
-
-	if getenv("ECR_REGION") != "" {
-		os.Setenv("PLUGIN_REGION", getenv("ECR_REGION"))
+	if ecrRegion == "" {
+		ecrRegion = DefaultRegion
 	}
 
-	if accessKey := getenv("ECR_ACCESS_KEY"); accessKey != "" {
-		os.Setenv("PLUGIN_ACCESS_KEY", accessKey)
-	}
-
-	if secretKey := getenv("ECR_SECRET_KEY"); secretKey != "" {
-		os.Setenv("PLUGIN_SECRET_KEY", secretKey)
-	}
-
-	if accessKey := getenv("PLUGIN_ACCESS_KEY"); accessKey != "" {
+	if accessKey != "" && secretKey != "" {
 		os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
-	}
-
-	if secretKey := getenv("PLUGIN_SECRET_KEY"); secretKey != "" {
 		os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
 	}
 
 	// Useful when using a registry from another account
-	if registries := getenv("PLUGIN_REGISTRY_IDS"); registries != "" {
+	if registries != "" {
 		registryIds = append(registryIds, &registries)
 	}
+
 	password, registry, err := getCredentials(ecrRegion, registryIds)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	os.Setenv("DOCKER_USERNAME", DOCKER_USER)
+	os.Setenv("DOCKER_USERNAME", DockerUser)
 	os.Setenv("DOCKER_PASSWORD", password)
 	os.Setenv("DOCKER_REGISTRY", registry)
 
