@@ -2,5 +2,7 @@
 
 FROM docker:17.05.0-ce-dind
 
+RUN apk update && apk add ca-certificates
+
 ADD release/linux/amd64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
