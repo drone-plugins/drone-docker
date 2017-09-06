@@ -19,8 +19,8 @@ func main() {
 	var registryIds []*string
 	var (
 		ecrRegion  = getenv("ECR_REGION", "PLUGIN_REGION")
-		accessKey  = getenv("ECR_ACCESS_KEY", "PLUGIN_ACCESS_KEY")
-		secretKey  = getenv("ECR_SECRET_KEY", "PLUGIN_SECRET_KEY")
+		accessKey  = getenv("AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY", "PLUGIN_ACCESS_KEY")
+		secretKey  = getenv("AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "PLUGIN_SECRET_KEY")
 		registries = getenv("ECR_REGISTRY_IDS", "PLUGIN_REGISTRY_IDS")
 	)
 
@@ -28,17 +28,12 @@ func main() {
 		ecrRegion = DefaultRegion
 	}
 
-	if accessKey != "" && secretKey != "" {
-		os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
-		os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
-	}
-
 	// Useful when using a registry from another account
 	if registries != "" {
 		registryIds = append(registryIds, &registries)
 	}
 
-	password, registry, err := getCredentials(ecrRegion, registryIds)
+	password, registry, err := getCredentials(ecrRegion, accessKey, secretKey, registryIds)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -75,18 +70,24 @@ func decodeBase64(data string) string {
 	return string(decoded)
 }
 
-func getECRClient(region string) (*ecr.ECR, error) {
-	sess, err := session.NewSession(&aws.Config{
+func getECRClient(region string, accessKey string, secretKey string) (*ecr.ECR, error) {
+	config := aws.Config {
 		Region: aws.String(region),
-	})
+	}
+	if accessKey != "" && secretKey != "" {
+		credentials := aws.NewStaticCredentials(accessKey, secretKey, "")
+		config.Credentials = credentials
+	}
+
+	sess, err := session.NewSession(&config)
 	if err != nil {
 		return nil, err
 	}
 	return ecr.New(sess), nil
 }
 
-func getCredentials(region string, registryIds []*string) (string, string, error) {
-	client, err := getECRClient(region)
+func getCredentials(region string, accessKey string, secretKey string, registryIds []*string) (string, string, error) {
+	client, err := getECRClient(region, accessKey, secretKey)
 	if err != nil {
 		fmt.Println(err)
 		return "", "", err
