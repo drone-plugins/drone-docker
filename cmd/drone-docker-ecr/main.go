@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"os"
@@ -19,9 +20,19 @@ func main() {
 	var registryIds []*string
 	var (
 		ecrRegion  = getenv("ECR_REGION", "PLUGIN_REGION")
-		accessKey  = getenv("AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY", "PLUGIN_ACCESS_KEY")
-		secretKey  = getenv("AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "PLUGIN_SECRET_KEY")
 		registries = getenv("ECR_REGISTRY_IDS", "PLUGIN_REGISTRY_IDS")
+		accessKey  = getenv(
+			"AWS_ACCESS_KEY_ID",
+			"AWS_ACCESS_KEY",
+			"ECR_ACCESS_KEY",
+			"PLUGIN_ACCESS_KEY",
+		)
+		secretKey = getenv(
+			"AWS_SECRET_ACCESS_KEY",
+			"AWS_SECRET_KEY",
+			"ECR_SECRET_KEY",
+			"PLUGIN_SECRET_KEY",
+		)
 	)
 
 	if ecrRegion == "" {
@@ -71,12 +82,12 @@ func decodeBase64(data string) string {
 }
 
 func getECRClient(region string, accessKey string, secretKey string) (*ecr.ECR, error) {
-	config := aws.Config {
+	config := aws.Config{
 		Region: aws.String(region),
 	}
 	if accessKey != "" && secretKey != "" {
-		credentials := aws.NewStaticCredentials(accessKey, secretKey, "")
-		config.Credentials = credentials
+		creds := credentials.NewStaticCredentials(accessKey, secretKey, "")
+		config.Credentials = creds
 	}
 
 	sess, err := session.NewSession(&config)
