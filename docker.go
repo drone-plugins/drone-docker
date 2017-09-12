@@ -49,6 +49,7 @@ type (
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
 		LabelSchema []string // Label schema map
+		CacheFrom   string   // Docker build cache_from
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -194,6 +195,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Pull {
 		args = append(args, "--pull=true")
+	}
+	if build.CacheFrom != "" {
+		args = append(args, "--cache-from", build.CacheFrom)
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
