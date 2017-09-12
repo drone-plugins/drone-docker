@@ -17,6 +17,16 @@ pipeline:
       branch: master
       event: push
 
+  publish_hyper:
+    image: plugins/docker
+    repo: plugins/hyper
+    tags: "latest"
+    secrets: [ docker_username, docker_password ]
+    dockerfile: docker/hyper/Dockerfile
+    when:
+      branch: master
+      event: push
+
   publish_heroku:
     image: plugins/docker
     repo: plugins/heroku
