@@ -36,3 +36,13 @@ pipeline:
     when:
       branch: master
       event: push
+
+  publish_ecr:
+    image: plugins/docker
+    repo: plugins/ecr
+    tags: [ "latest", "17", "17.05" ]
+    secrets: [ docker_username, docker_password ]
+    dockerfile: docker/ecr/Dockerfile
+    when:
+      branch: master
+      event: push
