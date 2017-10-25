@@ -281,7 +281,7 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{"-g", daemon.StoragePath}
+	args := []string{"--data-root", daemon.StoragePath}
 
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
