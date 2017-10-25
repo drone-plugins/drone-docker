@@ -2,12 +2,16 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
@@ -32,11 +36,23 @@ func main() {
 	os.Setenv("AWS_SECRET_ACCESS_KEY", secret)
 	os.Setenv("AWS_REGION", region)
 
-	sess := session.Must(session.NewSession())
+	sess, err := session.NewSession(&aws.Config{
+		Credentials: credentials.NewEnvCredentials(),
+		Region:      &region,
+	})
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
+	}
+
 	svc := ecr.New(sess)
 	username, password, registry, err := getAuthInfo(svc)
 	if err != nil {
 		os.Exit(1)
+	}
+
+	if !strings.HasPrefix(repo, registry) {
+		repo = fmt.Sprintf("%s/%s", registry, repo)
 	}
 
 	// always attempt to create the repo if createBool is true, eat exists error
@@ -91,7 +107,7 @@ func getAuthInfo(svc *ecr.ECR) (username, password, registry string, err error) 
 		return
 	}
 
-	registry = *auth.ProxyEndpoint
+	registry = strings.TrimPrefix(*auth.ProxyEndpoint, "https://")
 	creds := strings.Split(string(decoded), ":")
 	username = creds[0]
 	password = creds[1]
