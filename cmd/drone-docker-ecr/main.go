@@ -55,9 +55,8 @@ func main() {
 		repo = fmt.Sprintf("%s/%s", registry, repo)
 	}
 
-	// always attempt to create the repo if createBool is true, eat exists error
 	if create {
-		err = createRepo(svc, strings.TrimPrefix(repo, registry))
+		err = ensureRepoExists(svc, strings.TrimPrefix(repo, registry))
 		if err != nil {
 			os.Exit(1)
 		}
@@ -77,7 +76,7 @@ func main() {
 	}
 }
 
-func createRepo(svc *ecr.ECR, name string) (err error) {
+func ensureRepoExists(svc *ecr.ECR, name string) (err error) {
 	input := &ecr.CreateRepositoryInput{}
 	input.SetRepositoryName(name)
 	_, err = svc.CreateRepository(input)
