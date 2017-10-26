@@ -150,6 +150,7 @@ func main() {
 			Name:   "target",
 			Usage:  "build target",
 			EnvVar: "PLUGIN_TARGET",
+		},
 		cli.StringSliceFlag{
 			Name:   "cache-from",
 			Usage:  "cache from",
@@ -249,7 +250,7 @@ func run(c *cli.Context) error {
 			Target:      c.String("target"),
 			Squash:      c.Bool("squash"),
 			Pull:        c.BoolT("pull-image"),
-			CacheFrom:   c.String("cache-from"),
+			CacheFrom:   c.StringSlice("cache-from"),
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
 			Labels:      c.StringSlice("custom-labels"),
