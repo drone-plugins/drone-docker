@@ -46,7 +46,7 @@ type (
 		ArgsEnv     []string // Docker build args from env
 		Squash      bool     // Docker build squash
 		Pull        bool     // Docker build pull
-		CacheFrom   string   // Docker build cache-from
+		CacheFrom   []string // Docker build cache-from
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
 		LabelSchema []string // Label schema map
@@ -102,8 +102,8 @@ func (p Plugin) Exec() error {
 	}
 
 	// pre-pull cache image
-	if p.Build.CacheFrom != "" {
-		cmd := commandPull(p.Build.CacheFrom)
+	for _, img := range p.Build.CacheFrom {
+		cmd := commandPull(img)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		trace(cmd)
@@ -209,8 +209,8 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Pull {
 		args = append(args, "--pull=true")
 	}
-	if build.CacheFrom != "" {
-		args = append(args, "--cache-from", build.CacheFrom)
+	for _, arg := range build.CacheFrom {
+		args = append(args, "--cache-from", arg)
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)

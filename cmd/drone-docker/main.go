@@ -131,7 +131,7 @@ func main() {
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS_FROM_ENV",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "cache-from",
 			Usage:  "cache from",
 			EnvVar: "PLUGIN_CACHE_FROM",
@@ -208,7 +208,7 @@ func run(c *cli.Context) error {
 			ArgsEnv:     c.StringSlice("args-from-env"),
 			Squash:      c.Bool("squash"),
 			Pull:        c.BoolT("pull-image"),
-			CacheFrom:   c.String("cache-from"),
+			CacheFrom:   c.StringSlice("cache-from"),
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
 			LabelSchema: c.StringSlice("label-schema"),
