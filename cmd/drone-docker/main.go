@@ -131,6 +131,11 @@ func main() {
 			Usage:  "default build tags",
 			EnvVar: "PLUGIN_DEFAULT_TAGS,PLUGIN_AUTO_TAG",
 		},
+		cli.StringFlag{
+			Name:   "tags.suffix",
+			Usage:  "default build tags with suffix",
+			EnvVar: "PLUGIN_DEFAULT_SUFFIX,PLUGIN_AUTO_TAG_SUFFIX",
+		},
 		cli.StringSliceFlag{
 			Name:   "args",
 			Usage:  "build args",
@@ -235,8 +240,9 @@ func run(c *cli.Context) error {
 	}
 
 	if c.Bool("tags.auto") {
-		plugin.Build.Tags = docker.DefaultTags(
+		plugin.Build.Tags = docker.DefaultTagSuffix(
 			c.String("commit.ref"),
+			c.String("tags.suffix"),
 		)
 	}
 

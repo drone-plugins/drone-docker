@@ -7,7 +7,24 @@ import (
 	"github.com/coreos/go-semver/semver"
 )
 
-// Default tags returns a set of default suggested tags based on
+// DefaultTagSuffix returns a set of default suggested tags
+// based on the commit ref with an attached suffix.
+func DefaultTagSuffix(ref, suffix string) []string {
+	tags := DefaultTags(ref)
+	if len(suffix) == 0 {
+		return tags
+	}
+	for i, tag := range tags {
+		if tag == "latest" {
+			tags[i] = suffix
+		} else {
+			tags[i] = fmt.Sprintf("%s-%s", tag, suffix)
+		}
+	}
+	return tags
+}
+
+// DefaultTags returns a set of default suggested tags based on
 // the commit ref.
 func DefaultTags(ref string) []string {
 	if !strings.HasPrefix(ref, "refs/tags/") {
