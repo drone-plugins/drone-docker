@@ -5,7 +5,10 @@ workspace:
 pipeline:
   build:
     image: golang:1.9
-    commands: sh .drone.sh
+    commands:
+      - go get -u github.com/golang/dep/cmd/dep
+      - dep ensure
+      - sh .drone.sh
 
   publish:
     image: plugins/docker
@@ -33,6 +36,16 @@ pipeline:
     tags: [ "latest", "17", "17.05" ]
     secrets: [ docker_username, docker_password ]
     dockerfile: docker/gcr/Dockerfile
+    when:
+      branch: master
+      event: push
+
+  publish_ecr:
+    image: plugins/docker
+    repo: plugins/ecr
+    tags: [ "latest", "17", "17.05" ]
+    secrets: [ docker_username, docker_password ]
+    dockerfile: docker/ecr/Dockerfile
     when:
       branch: master
       event: push
