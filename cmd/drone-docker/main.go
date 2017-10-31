@@ -42,6 +42,11 @@ func main() {
 			Value:  "00000000",
 		},
 		cli.StringFlag{
+			Name:   "commit.ref",
+			Usage:  "git commit ref",
+			EnvVar: "DRONE_COMMIT_REF",
+		},
+		cli.StringFlag{
 			Name:   "daemon.mirror",
 			Usage:  "docker daemon registry mirror",
 			EnvVar: "PLUGIN_MIRROR",
@@ -120,6 +125,11 @@ func main() {
 			Value:    &cli.StringSlice{"latest"},
 			EnvVar:   "PLUGIN_TAG,PLUGIN_TAGS",
 			FilePath: ".tags",
+		},
+		cli.BoolFlag{
+			Name:   "tags.auto",
+			Usage:  "default build tags",
+			EnvVar: "PLUGIN_DEFAULT_TAGS,PLUGIN_AUTO_TAG",
 		},
 		cli.StringSliceFlag{
 			Name:   "args",
@@ -222,6 +232,12 @@ func run(c *cli.Context) error {
 			MTU:           c.String("daemon.mtu"),
 			Experimental:  c.Bool("daemon.experimental"),
 		},
+	}
+
+	if c.Bool("tags.auto") {
+		plugin.Build.Tags = docker.DefaultTags(
+			c.String("commit.ref"),
+		)
 	}
 
 	return plugin.Exec()
