@@ -25,23 +25,30 @@ func Test_stripTagPrefix(t *testing.T) {
 
 func TestDefaultTags(t *testing.T) {
 	var tests = []struct {
-		Before string
-		After  []string
+		Before        string
+		CommitBranch  string
+		DefaultBranch string
+		After         []string
 	}{
-		{"", []string{"latest"}},
-		{"refs/heads/master", []string{"latest"}},
-		{"refs/tags/0.9.0", []string{"0.9", "0.9.0"}},
-		{"refs/tags/1.0.0", []string{"1", "1.0", "1.0.0"}},
-		{"refs/tags/v1.0.0", []string{"1", "1.0", "1.0.0"}},
-		{"refs/tags/v1.0.0-alpha.1", []string{"1.0.0-alpha.1"}},
+		{"", "master", "", []string{"latest"}},
+		{"refs/heads/master", "master", "", []string{"latest"}},
+		{"refs/tags/0.9.0", "master", "", []string{"0.9", "0.9.0"}},
+		{"refs/tags/1.0.0", "master", "", []string{"1", "1.0", "1.0.0"}},
+		{"refs/tags/v1.0.0", "master", "", []string{"1", "1.0", "1.0.0"}},
+		{"refs/tags/v1.0.0-alpha.1", "master", "", []string{"1.0.0-alpha.1"}},
 
 		// malformed or errors
-		{"refs/tags/x1.0.0", []string{"latest"}},
-		{"v1.0.0", []string{"latest"}},
+		{"refs/tags/x1.0.0", "master", "", []string{"latest"}},
+		{"v1.0.0", "master", "", []string{"latest"}},
+
+		// defualt branch
+		{"refs/heads/master", "master", "master", []string{"latest"}},
+		{"refs/heads/test", "test", "master", []string{}},
+		{"refs/tags/v1.0.0", "v1.0.0", "master", []string{"1", "1.0", "1.0.0"}},
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTags(test.Before), test.After
+		got, want := DefaultTags(test.Before, test.CommitBranch, test.DefaultBranch), test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
 		}
@@ -50,16 +57,22 @@ func TestDefaultTags(t *testing.T) {
 
 func TestDefaultTagSuffix(t *testing.T) {
 	var tests = []struct {
-		Before string
-		Suffix string
-		After  []string
+		Before        string
+		CommitBranch  string
+		DefaultBranch string
+		Suffix        string
+		After         []string
 	}{
 		// without suffix
 		{
-			After: []string{"latest"},
+			After:         []string{"latest"},
+			CommitBranch:  "master",
+			DefaultBranch: "",
 		},
 		{
-			Before: "refs/tags/v1.0.0",
+			Before:        "refs/tags/v1.0.0",
+			CommitBranch:  "master",
+			DefaultBranch: "",
 			After: []string{
 				"1",
 				"1.0",
@@ -68,12 +81,16 @@ func TestDefaultTagSuffix(t *testing.T) {
 		},
 		// with suffix
 		{
-			Suffix: "linux-amd64",
-			After:  []string{"linux-amd64"},
+			CommitBranch:  "master",
+			DefaultBranch: "",
+			Suffix:        "linux-amd64",
+			After:         []string{"linux-amd64"},
 		},
 		{
-			Before: "refs/tags/v1.0.0",
-			Suffix: "linux-amd64",
+			CommitBranch:  "master",
+			DefaultBranch: "",
+			Before:        "refs/tags/v1.0.0",
+			Suffix:        "linux-amd64",
 			After: []string{
 				"1-linux-amd64",
 				"1.0-linux-amd64",
@@ -81,12 +98,16 @@ func TestDefaultTagSuffix(t *testing.T) {
 			},
 		},
 		{
-			Suffix: "nanoserver",
-			After:  []string{"nanoserver"},
+			CommitBranch:  "master",
+			DefaultBranch: "",
+			Suffix:        "nanoserver",
+			After:         []string{"nanoserver"},
 		},
 		{
-			Before: "refs/tags/v1.9.2",
-			Suffix: "nanoserver",
+			CommitBranch:  "master",
+			DefaultBranch: "",
+			Before:        "refs/tags/v1.9.2",
+			Suffix:        "nanoserver",
 			After: []string{
 				"1-nanoserver",
 				"1.9-nanoserver",
@@ -96,7 +117,7 @@ func TestDefaultTagSuffix(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTagSuffix(test.Before, test.Suffix), test.After
+		got, want := DefaultTagSuffix(test.Before, test.Suffix, test.CommitBranch, test.DefaultBranch), test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
 		}

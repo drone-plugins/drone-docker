@@ -192,6 +192,17 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "commit.branch",
+			Value:  "master",
+			Usage:  "git commit branch",
+			EnvVar: "DRONE_COMMIT_BRANCH",
+		},
+		cli.StringFlag{
+			Name:   "default.branch",
+			Usage:  "defualt latest branch",
+			EnvVar: "PLUGIN_DEFALUT_BRANCH",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -209,18 +220,20 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 		},
 		Build: docker.Build{
-			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
-			Dockerfile:  c.String("dockerfile"),
-			Context:     c.String("context"),
-			Tags:        c.StringSlice("tags"),
-			Args:        c.StringSlice("args"),
-			ArgsEnv:     c.StringSlice("args-from-env"),
-			Squash:      c.Bool("squash"),
-			Pull:        c.BoolT("pull-image"),
-			Compress:    c.Bool("compress"),
-			Repo:        c.String("repo"),
-			LabelSchema: c.StringSlice("label-schema"),
+			Remote:        c.String("remote.url"),
+			Name:          c.String("commit.sha"),
+			Branch:        c.String("commit.branch"),
+			DefaultBranch: c.String("default.branch"),
+			Dockerfile:    c.String("dockerfile"),
+			Context:       c.String("context"),
+			Tags:          c.StringSlice("tags"),
+			Args:          c.StringSlice("args"),
+			ArgsEnv:       c.StringSlice("args-from-env"),
+			Squash:        c.Bool("squash"),
+			Pull:          c.BoolT("pull-image"),
+			Compress:      c.Bool("compress"),
+			Repo:          c.String("repo"),
+			LabelSchema:   c.StringSlice("label-schema"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -243,6 +256,8 @@ func run(c *cli.Context) error {
 		plugin.Build.Tags = docker.DefaultTagSuffix(
 			c.String("commit.ref"),
 			c.String("tags.suffix"),
+			c.String("commit.branch"),
+			c.String("default.branch"),
 		)
 	}
 
