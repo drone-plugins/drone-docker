@@ -200,7 +200,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "default.branch",
-			Usage:  "defualt repository branch",
+			Usage:  "repository default branch",
 			EnvVar: "DRONE_REPO_BRANCH",
 		},
 	}

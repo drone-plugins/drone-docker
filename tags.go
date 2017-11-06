@@ -28,9 +28,7 @@ func DefaultTagSuffix(ref, suffix, commitBranch, defaultBranch string) []string 
 // the commit ref.
 func DefaultTags(ref, commitBranch, defaultBranch string) []string {
 
-	if defaultBranch != "" &&
-		commitBranch != defaultBranch &&
-		!strings.HasPrefix(ref, "refs/tags/") {
+	if defaultBranch != "" && commitBranch != defaultBranch && !strings.HasPrefix(ref, "refs/tags/") {
 		return []string{}
 	}
 
