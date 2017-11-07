@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
@@ -32,14 +31,14 @@ func main() {
 		region = defaultRegion
 	}
 
-	os.Setenv("AWS_ACCESS_KEY_ID", key)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", secret)
 	os.Setenv("AWS_REGION", region)
 
-	sess, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewEnvCredentials(),
-		Region:      &region,
-	})
+	if key != "" && secret != "" {
+		os.Setenv("AWS_ACCESS_KEY_ID", key)
+		os.Setenv("AWS_SECRET_ACCESS_KEY", secret)
+	}
+
+	sess, err := session.NewSession(&aws.Config{Region: &region})
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
@@ -48,7 +47,7 @@ func main() {
 	svc := ecr.New(sess)
 	username, password, registry, err := getAuthInfo(svc)
 	if err != nil {
-		os.Exit(1)
+		log.Fatal(fmt.Sprintf("error getting ECR auth: %v", err))
 	}
 
 	if !strings.HasPrefix(repo, registry) {
