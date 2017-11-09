@@ -193,13 +193,7 @@ func main() {
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
 		cli.StringFlag{
-			Name:   "commit.branch",
-			Value:  "master",
-			Usage:  "git commit branch",
-			EnvVar: "DRONE_COMMIT_BRANCH",
-		},
-		cli.StringFlag{
-			Name:   "default.branch",
+			Name:   "repo.branch",
 			Usage:  "repository default branch",
 			EnvVar: "DRONE_REPO_BRANCH",
 		},
@@ -222,8 +216,7 @@ func run(c *cli.Context) error {
 		Build: docker.Build{
 			Remote:        c.String("remote.url"),
 			Name:          c.String("commit.sha"),
-			Branch:        c.String("commit.branch"),
-			DefaultBranch: c.String("default.branch"),
+			DefaultBranch: c.String("repo.branch"),
 			Dockerfile:    c.String("dockerfile"),
 			Context:       c.String("context"),
 			Tags:          c.StringSlice("tags"),
@@ -256,8 +249,7 @@ func run(c *cli.Context) error {
 		plugin.Build.Tags = docker.DefaultTagSuffix(
 			c.String("commit.ref"),
 			c.String("tags.suffix"),
-			c.String("commit.branch"),
-			c.String("default.branch"),
+			c.String("repo.branch"),
 		)
 	}
 

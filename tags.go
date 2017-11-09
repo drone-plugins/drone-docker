@@ -9,8 +9,8 @@ import (
 
 // DefaultTagSuffix returns a set of default suggested tags
 // based on the commit ref with an attached suffix.
-func DefaultTagSuffix(ref, suffix, commitBranch, defaultBranch string) []string {
-	tags := DefaultTags(ref, commitBranch, defaultBranch)
+func DefaultTagSuffix(ref, suffix, defaultBranch string) []string {
+	tags := DefaultTags(ref, defaultBranch)
 	if len(suffix) == 0 {
 		return tags
 	}
@@ -26,10 +26,12 @@ func DefaultTagSuffix(ref, suffix, commitBranch, defaultBranch string) []string 
 
 // DefaultTags returns a set of default suggested tags based on
 // the commit ref.
-func DefaultTags(ref, commitBranch, defaultBranch string) []string {
+func DefaultTags(ref, defaultBranch string) []string {
 
-	if defaultBranch != "" && commitBranch != defaultBranch && !strings.HasPrefix(ref, "refs/tags/") {
-		return []string{}
+	if defaultBranch != "" && strings.HasPrefix(ref, "refs/heads/") {
+		if stripHeadPrefix(ref) != defaultBranch {
+			return []string{}
+		}
 	}
 
 	if !strings.HasPrefix(ref, "refs/tags/") {
@@ -62,5 +64,10 @@ func DefaultTags(ref, commitBranch, defaultBranch string) []string {
 func stripTagPrefix(ref string) string {
 	ref = strings.TrimPrefix(ref, "refs/tags/")
 	ref = strings.TrimPrefix(ref, "v")
+	return ref
+}
+
+func stripHeadPrefix(ref string) string {
+	ref = strings.TrimPrefix(ref, "refs/heads/")
 	return ref
 }
