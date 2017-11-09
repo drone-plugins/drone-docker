@@ -37,19 +37,18 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote        string   // Git remote URL
-		Name          string   // Docker build using default named tag
-		Dockerfile    string   // Docker build Dockerfile
-		Context       string   // Docker build context
-		Tags          []string // Docker build tags
-		Args          []string // Docker build args
-		ArgsEnv       []string // Docker build args from env
-		Squash        bool     // Docker build squash
-		Pull          bool     // Docker build pull
-		Compress      bool     // Docker build compress
-		Repo          string   // Docker build repository
-		LabelSchema   []string // Label schema map
-		DefaultBranch string   // Docker latest branch
+		Remote      string   // Git remote URL
+		Name        string   // Docker build using default named tag
+		Dockerfile  string   // Docker build Dockerfile
+		Context     string   // Docker build context
+		Tags        []string // Docker build tags
+		Args        []string // Docker build args
+		ArgsEnv     []string // Docker build args from env
+		Squash      bool     // Docker build squash
+		Pull        bool     // Docker build pull
+		Compress    bool     // Docker build compress
+		Repo        string   // Docker build repository
+		LabelSchema []string // Label schema map
 	}
 
 	// Plugin defines the Docker plugin parameters.
