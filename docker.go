@@ -49,7 +49,6 @@ type (
 		Compress      bool     // Docker build compress
 		Repo          string   // Docker build repository
 		LabelSchema   []string // Label schema map
-		Branch        string   // Docker build branch
 		DefaultBranch string   // Docker latest branch
 	}
 
