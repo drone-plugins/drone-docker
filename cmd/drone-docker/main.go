@@ -245,7 +245,7 @@ func run(c *cli.Context) error {
 	}
 
 	if c.Bool("tags.auto") {
-		if docker.UseDefaultTag( // return true if not default branch, or not tag
+		if docker.UseDefaultTag( // return true if tag event or default branch
 			c.String("commit.ref"),
 			c.String("repo.branch"),
 		) {
