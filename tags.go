@@ -9,7 +9,7 @@ import (
 
 // DefaultTagSuffix returns a set of default suggested tags
 // based on the commit ref with an attached suffix.
-func DefaultTagSuffix(ref, suffix, defaultBranch string) []string {
+func DefaultTagSuffix(ref, defaultBranch, suffix string) []string {
 	tags := DefaultTags(ref, defaultBranch)
 	if len(suffix) == 0 {
 		return tags

@@ -109,7 +109,7 @@ func TestDefaultTagSuffix(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTagSuffix(test.Before, test.Suffix, test.DefaultBranch), test.After
+		got, want := DefaultTagSuffix(test.Before, test.DefaultBranch, test.Suffix), test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
 		}

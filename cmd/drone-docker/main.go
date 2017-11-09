@@ -248,8 +248,8 @@ func run(c *cli.Context) error {
 	if c.Bool("tags.auto") {
 		plugin.Build.Tags = docker.DefaultTagSuffix(
 			c.String("commit.ref"),
-			c.String("tags.suffix"),
 			c.String("repo.branch"),
+			c.String("tags.suffix"),
 		)
 	}
 
