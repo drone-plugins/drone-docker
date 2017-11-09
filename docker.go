@@ -61,6 +61,24 @@ type (
 	}
 )
 
+func stripHeadPrefix(ref string) string {
+	ref = strings.TrimPrefix(ref, "refs/heads/")
+	return ref
+}
+
+// UseDefaultTag for keep only default branch for latest tag
+func UseDefaultTag(ref, defaultBranch string) bool {
+	if strings.HasPrefix(ref, "refs/tags/") {
+		return true
+	}
+
+	if stripHeadPrefix(ref) == defaultBranch {
+		return true
+	}
+
+	return false
+}
+
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
 	// start the Docker daemon server
