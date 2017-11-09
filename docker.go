@@ -53,30 +53,13 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login  Login  // Docker login configuration
-		Build  Build  // Docker build configuration
-		Daemon Daemon // Docker daemon configuration
-		Dryrun bool   // Docker push is skipped
+		Login   Login  // Docker login configuration
+		Build   Build  // Docker build configuration
+		Daemon  Daemon // Docker daemon configuration
+		Dryrun  bool   // Docker push is skipped
+		Cleanup bool   // Docker purge is enabled
 	}
 )
-
-func stripHeadPrefix(ref string) string {
-	ref = strings.TrimPrefix(ref, "refs/heads/")
-	return ref
-}
-
-// UseDefaultTag for keep only default branch for latest tag
-func UseDefaultTag(ref, defaultBranch string) bool {
-	if strings.HasPrefix(ref, "refs/tags/") {
-		return true
-	}
-
-	if stripHeadPrefix(ref) == defaultBranch {
-		return true
-	}
-
-	return false
-}
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
@@ -140,8 +123,10 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-	cmds = append(cmds, commandPrune())           // docker system prune -f
+	if p.Cleanup {
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune())           // docker system prune -f
+	}
 
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {

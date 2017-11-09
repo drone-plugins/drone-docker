@@ -53,6 +53,21 @@ func DefaultTags(ref string) []string {
 	}
 }
 
+// UseDefaultTag for keep only default branch for latest tag
+func UseDefaultTag(ref, defaultBranch string) bool {
+	if strings.HasPrefix(ref, "refs/tags/") {
+		return true
+	}
+	if stripHeadPrefix(ref) == defaultBranch {
+		return true
+	}
+	return false
+}
+
+func stripHeadPrefix(ref string) string {
+	return strings.TrimPrefix(ref, "refs/heads/")
+}
+
 func stripTagPrefix(ref string) string {
 	ref = strings.TrimPrefix(ref, "refs/tags/")
 	ref = strings.TrimPrefix(ref, "v")

@@ -192,6 +192,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.BoolTFlag{
+			Name:   "docker.purge",
+			Usage:  "docker should cleanup images",
+			EnvVar: "PLUGIN_PURGE",
+		},
 		cli.StringFlag{
 			Name:   "repo.branch",
 			Usage:  "repository default branch",
@@ -206,7 +211,8 @@ func main() {
 
 func run(c *cli.Context) error {
 	plugin := docker.Plugin{
-		Dryrun: c.Bool("dry-run"),
+		Dryrun:  c.Bool("dry-run"),
+		Cleanup: c.Bool("purge"),
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
@@ -255,7 +261,6 @@ func run(c *cli.Context) error {
 			)
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
-
 			return nil
 		}
 	}
