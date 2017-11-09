@@ -192,6 +192,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "repo.branch",
+			Usage:  "repository default branch",
+			EnvVar: "DRONE_REPO_BRANCH",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -240,10 +245,19 @@ func run(c *cli.Context) error {
 	}
 
 	if c.Bool("tags.auto") {
-		plugin.Build.Tags = docker.DefaultTagSuffix(
+		if docker.UseDefaultTag( // return true if tag event or default branch
 			c.String("commit.ref"),
-			c.String("tags.suffix"),
-		)
+			c.String("repo.branch"),
+		) {
+			plugin.Build.Tags = docker.DefaultTagSuffix(
+				c.String("commit.ref"),
+				c.String("tags.suffix"),
+			)
+		} else {
+			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
+
+			return nil
+		}
 	}
 
 	return plugin.Exec()
