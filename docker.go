@@ -116,6 +116,10 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
+		if tag == "" { // ignore empty tags
+			continue
+		}
+		
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
