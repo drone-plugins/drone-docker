@@ -204,7 +204,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:   "no-cache",
-			Usage:  "donot use cached itermediate containers",
+			Usage:  "donot use cached intermediate containers",
 			EnvVar: "NO_CACHE",
 		},
 	}
