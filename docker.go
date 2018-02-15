@@ -49,6 +49,7 @@ type (
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
 		LabelSchema []string // Label schema map
+		NoCache     bool     // Docker build no-cache
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -197,6 +198,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Pull {
 		args = append(args, "--pull=true")
+	}
+	if build.NoCache {
+		args = append(args, "--no-cache")
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)

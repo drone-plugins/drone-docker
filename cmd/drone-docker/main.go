@@ -7,8 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
-
-	"github.com/drone-plugins/drone-docker"
+	docker "github.com/viant/drone-docker"
 )
 
 var build = "0" // build number set at compile-time
@@ -202,6 +201,11 @@ func main() {
 			Usage:  "repository default branch",
 			EnvVar: "DRONE_REPO_BRANCH",
 		},
+		cli.BoolFlag{
+			Name:   "no-cache",
+			Usage:  "donot use cached itermediate containers",
+			EnvVar: "NO_CACHE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -232,6 +236,7 @@ func run(c *cli.Context) error {
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
 			LabelSchema: c.StringSlice("label-schema"),
+			NoCache:     c.Bool("no-cache"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
