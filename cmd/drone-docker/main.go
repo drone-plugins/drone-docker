@@ -204,8 +204,8 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:   "no-cache",
-			Usage:  "donot use cached intermediate containers",
-			EnvVar: "NO_CACHE",
+			Usage:  "do not use cached intermediate containers",
+			EnvVar: "PLUGIN_NO_CACHE",
 		},
 	}
 
