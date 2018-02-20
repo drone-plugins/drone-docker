@@ -149,7 +149,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "target",
 			Usage:  "build target",
-			EnvVar: "PLUGIN_BUILD_TARGET",
+			EnvVar: "PLUGIN_TARGET",
 		},
 		cli.BoolFlag{
 			Name:   "squash",
