@@ -146,6 +146,11 @@ func main() {
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS_FROM_ENV",
 		},
+		cli.StringFlag{
+			Name:   "target",
+			Usage:  "build target",
+			EnvVar: "PLUGIN_TARGET",
+		},
 		cli.BoolFlag{
 			Name:   "squash",
 			Usage:  "squash the layers at build time",
@@ -232,6 +237,7 @@ func run(c *cli.Context) error {
 			Tags:        c.StringSlice("tags"),
 			Args:        c.StringSlice("args"),
 			ArgsEnv:     c.StringSlice("args-from-env"),
+			Target:      c.String("target"),
 			Squash:      c.Bool("squash"),
 			Pull:        c.BoolT("pull-image"),
 			Compress:    c.Bool("compress"),
