@@ -55,9 +55,9 @@ func main() {
 	}
 
 	if create {
-		err = ensureRepoExists(svc, strings.TrimPrefix(repo, registry))
+		err = ensureRepoExists(svc, trimHostname(repo, registry))
 		if err != nil {
-			os.Exit(1)
+			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
 		}
 	}
 
@@ -73,6 +73,12 @@ func main() {
 	if err = cmd.Run(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func trimHostname(repo, registry string) string {
+	repo = strings.TrimPrefix(repo, registry)
+	repo = strings.TrimLeft(repo, "/")
+	return repo
 }
 
 func ensureRepoExists(svc *ecr.ECR, name string) (err error) {
