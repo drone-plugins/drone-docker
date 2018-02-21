@@ -202,6 +202,11 @@ func main() {
 			Usage:  "repository default branch",
 			EnvVar: "DRONE_REPO_BRANCH",
 		},
+		cli.BoolFlag{
+			Name:   "no-cache",
+			Usage:  "do not use cached intermediate containers",
+			EnvVar: "PLUGIN_NO_CACHE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -232,6 +237,7 @@ func run(c *cli.Context) error {
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
 			LabelSchema: c.StringSlice("label-schema"),
+			NoCache:     c.Bool("no-cache"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
