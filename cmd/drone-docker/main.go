@@ -214,7 +214,7 @@ func main() {
 			Usage:  "docker should cleanup images",
 			EnvVar: "PLUGIN_PURGE_PRUNE",
 		},
-		cli.BoolFlag{
+		cli.BoolTFlag{
 			Name:   "docker.purge.named-tag",
 			Usage:  "docker should cleanup named tag",
 			EnvVar: "PLUGIN_PURGE_NAMED_TAG",
@@ -241,7 +241,7 @@ func run(c *cli.Context) error {
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: docker.Cleanup {
 			Prune:    c.BoolT("docker.purge") || c.Bool("docker.purge.prune"),
-			NamedTag: c.BoolT("docker.purge") || c.Bool("docker.purge.named-tag"),
+			NamedTag: c.BoolT("docker.purge") || c.BoolT("docker.purge.named-tag"),
 		},
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
