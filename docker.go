@@ -39,6 +39,7 @@ type (
 	Build struct {
 		Remote      string   // Git remote URL
 		Name        string   // Docker build using default named tag
+		Commit      string   // Git commit SHA
 		Dockerfile  string   // Docker build Dockerfile
 		Context     string   // Docker build context
 		Tags        []string // Docker build tags
@@ -53,13 +54,19 @@ type (
 		NoCache     bool     // Docker build no-cache
 	}
 
+	// Cleanup defines Docker cleanup options
+	Cleanup struct {
+		Prune    bool // Docker system prune
+		NamedTag bool // Docker rmi named_tag
+	}
+
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login   Login   // Docker login configuration
+		Build   Build   // Docker build configuration
+		Daemon  Daemon  // Docker daemon configuration
+		Dryrun  bool    // Docker push is skipped
+		Cleanup Cleanup // Docker purge is enabled
 	}
 )
 
@@ -125,8 +132,11 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	if p.Cleanup {
+	if p.Cleanup.NamedTag {
 		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+	}
+
+	if p.Cleanup.Prune {
 		cmds = append(cmds, commandPrune())           // docker system prune -f
 	}
 
@@ -215,7 +225,7 @@ func commandBuild(build Build) *exec.Cmd {
 
 	labelSchema := []string{
 		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
-		fmt.Sprintf("vcs-ref=%s", build.Name),
+		fmt.Sprintf("vcs-ref=%s", build.Commit),
 		fmt.Sprintf("vcs-url=%s", build.Remote),
 	}
 
