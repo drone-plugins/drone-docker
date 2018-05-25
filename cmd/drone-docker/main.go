@@ -140,6 +140,7 @@ func main() {
 			Name:   "args",
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS",
+			FilePath: ".build-args",
 		},
 		cli.StringSliceFlag{
 			Name:   "args-from-env",
