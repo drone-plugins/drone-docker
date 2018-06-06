@@ -172,9 +172,9 @@ func main() {
 			EnvVar: "PLUGIN_REPO",
 		},
 		cli.StringSliceFlag{
-			Name:   "Labels",
-			Usage:  "labels",
-			EnvVar: "PLUGIN_LABELS",
+			Name:   "custom-labels",
+			Usage:  "additional k=v labels",
+			EnvVar: "PLUGIN_CUSTOM_LABELS",
 		},
 		cli.StringSliceFlag{
 			Name:   "label-schema",
@@ -247,7 +247,7 @@ func run(c *cli.Context) error {
 			Pull:        c.BoolT("pull-image"),
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
-			Labels:      c.StringSlice("labels"),
+			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
 		},
