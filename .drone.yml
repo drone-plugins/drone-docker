@@ -15,7 +15,7 @@ pipeline:
   publish:
     image: plugins/docker
     repo: plugins/docker
-    tags: [ "latest", "17", "17.12" ]
+    tags: [ "latest", "18", "18.03" ]
     secrets: [ docker_username, docker_password ]
     dockerfile: docker/Dockerfile
     when:
@@ -25,7 +25,7 @@ pipeline:
   publish_heroku:
     image: plugins/docker
     repo: plugins/heroku
-    tags: [ "latest", "17", "17.12" ]
+    tags: [ "latest", "18", "18.03" ]
     secrets: [ docker_username, docker_password ]
     dockerfile: docker/heroku/Dockerfile
     when:
@@ -35,7 +35,7 @@ pipeline:
   publish_gcr:
     image: plugins/docker
     repo: plugins/gcr
-    tags: [ "latest", "17", "17.10" ]
+    tags: [ "latest", "18", "18.03" ]
     secrets: [ docker_username, docker_password ]
     dockerfile: docker/gcr/Dockerfile
     when:
@@ -45,7 +45,7 @@ pipeline:
   publish_ecr:
     image: plugins/docker
     repo: plugins/ecr
-    tags: [ "latest", "17", "17.10" ]
+    tags: [ "latest", "18", "18.03" ]
     secrets: [ docker_username, docker_password ]
     dockerfile: docker/ecr/Dockerfile
     when:
