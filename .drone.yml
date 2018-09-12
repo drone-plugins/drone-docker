@@ -3,13 +3,42 @@ workspace:
   path: src/github.com/drone-plugins/drone-docker
 
 pipeline:
-  build:
+  dep:
     image: golang:1.11
     commands:
       - go get -u github.com/golang/dep/cmd/dep
       - dep ensure
-      - go vet ./...
+
+  fmt:
+    image: golang:1.11
+    group: validate
+    commands:
+      - GOFILES_NOVENDOR=$(find . -type f -name '*.go' -not -path "./vendor/*")
+      - gofmt -l -s -e $GOFILES_NOVENDOR
+      - exit $(gofmt -l -s -e $GOFILES_NOVENDOR | wc -l)
+
+  lint:
+    image: golang:1.11
+    group: validate
+    commands:
+      - go get -u golang.org/x/lint/golint
+      - golint -set_exit_status
+
+  test:
+    image: golang:1.11
+    group: validate
+    commands:
       - go test -cover ./...
+
+  vet:
+    image: golang:1.11
+    group: validate
+    commands:
+      - go vet ./...
+
+  build:
+    image: golang:1.11
+    commands:
       - sh .drone.sh
 
   publish:
