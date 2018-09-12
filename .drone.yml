@@ -4,7 +4,7 @@ workspace:
 
 pipeline:
   build:
-    image: golang:1.9
+    image: golang:1.11
     commands:
       - go get -u github.com/golang/dep/cmd/dep
       - dep ensure
