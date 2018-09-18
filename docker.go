@@ -117,6 +117,7 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandInfo())    // docker info
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
+	cmds = append(cmds, commandHistory(p.Build)) // docker history
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
@@ -233,6 +234,16 @@ func commandBuild(build Build) *exec.Cmd {
 		for _, label := range build.Labels {
 			args = append(args, "--label", label)
 		}
+	}
+
+	return exec.Command(dockerExe, args...)
+}
+
+// helper function to run docker history command
+func commandHistory(build Build) *exec.Cmd {
+	args := []string{
+		"history",
+		build.Name,
 	}
 
 	return exec.Command(dockerExe, args...)
