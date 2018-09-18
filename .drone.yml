@@ -15,7 +15,7 @@ pipeline:
     commands:
       - GOFILES_NOVENDOR=$(find . -type f -name '*.go' -not -path "./vendor/*")
       - gofmt -l -s -e $GOFILES_NOVENDOR
-      - exit $(gofmt -l -s -e $GOFILES_NOVENDOR | wc -l)
+      - test -z $(gofmt -l -s -e $GOFILES_NOVENDOR)
 
   lint:
     image: golang:1.11
