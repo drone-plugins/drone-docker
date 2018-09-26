@@ -49,7 +49,8 @@ type (
 		Pull        bool     // Docker build pull
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
-		LabelSchema []string // Label schema map
+		LabelSchema []string // label-schema Label map
+		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
 	}
 
@@ -214,6 +215,7 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 
 	labelSchema := []string{
+		"schema-version=1.0",
 		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
 		fmt.Sprintf("vcs-ref=%s", build.Name),
 		fmt.Sprintf("vcs-url=%s", build.Remote),
@@ -225,6 +227,12 @@ func commandBuild(build Build) *exec.Cmd {
 
 	for _, label := range labelSchema {
 		args = append(args, "--label", fmt.Sprintf("org.label-schema.%s", label))
+	}
+
+	if len(build.Labels) > 0 {
+		for _, label := range build.Labels {
+			args = append(args, "--label", label)
+		}
 	}
 
 	return exec.Command(dockerExe, args...)
