@@ -27,9 +27,18 @@ func main() {
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
+		region = getenv("PLUGIN_AWS_REGION")
 	)
 
-	client := ssm.New(session.New())
+	if region == "" {
+		region = "us-east-1"
+	}
+
+	conf := &aws.Config{
+		Region: aws.String(region),
+	}
+
+	client := ssm.New(session.New(), conf)
 
 	if password == "" {
 		token, err := getParameter(client, path.Join(defaultSsmPath, "gcp_json_key"))
