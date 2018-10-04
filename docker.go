@@ -52,6 +52,7 @@ type (
 		LabelSchema []string // label-schema Label map
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
+		Number      string   // Drone Build Number
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -233,6 +234,14 @@ func commandBuild(build Build) *exec.Cmd {
 		for _, label := range build.Labels {
 			args = append(args, "--label", label)
 		}
+	}
+
+	droneLabel := []string{
+		fmt.Sprintf("build-number=%s", build.Number),
+	}
+
+	for _, label := range droneLabel {
+		args = append(args, "--label", fmt.Sprintf("io.drone.%s", label))
 	}
 
 	return exec.Command(dockerExe, args...)
