@@ -217,6 +217,11 @@ func main() {
 			Usage:  "do not use cached intermediate containers",
 			EnvVar: "PLUGIN_NO_CACHE",
 		},
+		cli.StringFlag{
+			Name:   "cache-from",
+			Usage:  "images to consider as cache sources",
+			EnvVar: "PLUGIN_CACHE_FROM",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -250,6 +255,7 @@ func run(c *cli.Context) error {
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
+			CacheFrom:   c.String("cache-from"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

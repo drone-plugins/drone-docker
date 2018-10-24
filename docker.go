@@ -52,6 +52,7 @@ type (
 		LabelSchema []string // label-schema Label map
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
+		CacheFrom   string   // Docker build cache-from
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -116,6 +117,10 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
+	if p.Build.CacheFrom != "" {
+		cmds = append(cmds, commandPullImage(p.Build.CacheFrom)) // docker pull
+	}
+
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -172,6 +177,10 @@ func commandLoginEmail(login Login) *exec.Cmd {
 	)
 }
 
+func commandPullImage(image string) *exec.Cmd {
+	return exec.Command(dockerExe, "pull", image)
+}
+
 // helper function to create the docker info command.
 func commandVersion() *exec.Cmd {
 	return exec.Command(dockerExe, "version")
@@ -212,6 +221,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
+	}
+	if build.CacheFrom != "" {
+		args = append(args, "--cache-from", build.CacheFrom)
 	}
 
 	labelSchema := []string{
