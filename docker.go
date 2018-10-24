@@ -105,15 +105,6 @@ func (p Plugin) Exec() error {
 		fmt.Println("Registry credentials not provided. Guest mode enabled.")
 	}
 
-	// pre-pull cache image
-	for _, img := range p.Build.CacheFrom {
-		cmd := commandPull(img)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-		cmd.Run()
-	}
-
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false
@@ -125,6 +116,11 @@ func (p Plugin) Exec() error {
 	var cmds []*exec.Cmd
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
+
+	// pre-pull cache images
+	for _, img := range p.Build.CacheFrom {
+		cmds = append(cmds, commandPull(img))
+	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
@@ -148,7 +144,9 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
-		if err != nil {
+		if err != nil && cmd.Args[1] == "pull" {
+			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil {
 			return err
 		}
 	}

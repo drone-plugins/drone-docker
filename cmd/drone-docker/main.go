@@ -153,7 +153,7 @@ func main() {
 		},
 		cli.StringSliceFlag{
 			Name:   "cache-from",
-			Usage:  "cache from",
+			Usage:  "images to consider as cache sources",
 			EnvVar: "PLUGIN_CACHE_FROM",
 		},
 		cli.BoolFlag{
