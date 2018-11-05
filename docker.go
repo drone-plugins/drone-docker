@@ -144,7 +144,7 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
-		if err != nil && cmd.Args[1] == "pull" {
+		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
@@ -168,6 +168,11 @@ func commandLogin(login Login) *exec.Cmd {
 		"-p", login.Password,
 		login.Registry,
 	)
+}
+
+// helper to check if args match "docker pull <image>"
+func isCommandPull(args []string) bool {
+        return len(args) > 2 && args[1] == "pull"
 }
 
 func commandPull(repo string) *exec.Cmd {
