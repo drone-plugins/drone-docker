@@ -47,6 +47,7 @@ type (
 		Target      string   // Docker build target
 		Squash      bool     // Docker build squash
 		Pull        bool     // Docker build pull
+		CacheFrom   []string // Docker build cache-from
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
 		LabelSchema []string // label-schema Label map
@@ -116,6 +117,11 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
+	// pre-pull cache images
+	for _, img := range p.Build.CacheFrom {
+		cmds = append(cmds, commandPull(img))
+	}
+
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -138,7 +144,9 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
-		if err != nil {
+		if err != nil && isCommandPull(cmd.Args) {
+			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil {
 			return err
 		}
 	}
@@ -160,6 +168,15 @@ func commandLogin(login Login) *exec.Cmd {
 		"-p", login.Password,
 		login.Registry,
 	)
+}
+
+// helper to check if args match "docker pull <image>"
+func isCommandPull(args []string) bool {
+        return len(args) > 2 && args[1] == "pull"
+}
+
+func commandPull(repo string) *exec.Cmd {
+	return exec.Command(dockerExe, "pull", repo)
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -203,6 +220,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.NoCache {
 		args = append(args, "--no-cache")
+	}
+	for _, arg := range build.CacheFrom {
+		args = append(args, "--cache-from", arg)
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
