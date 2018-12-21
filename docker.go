@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -96,8 +98,7 @@ func (p Plugin) Exec() error {
 
 	// login to the Docker registry
 	if p.Login.Password != "" {
-		cmd := commandLogin(p.Login)
-		err := cmd.Run()
+		err := commandLogin(p.Login)
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)
 		}
@@ -158,35 +159,40 @@ const dockerExe = "/usr/local/bin/docker"
 const dockerdExe = "/usr/local/bin/dockerd"
 
 // helper function to create the docker login command.
-func commandLogin(login Login) *exec.Cmd {
+// returns a error code or message when an error occures.
+func commandLogin(login Login) error {
+	var args = []string{"login", login.Registry, "-u", login.Username, "--password-stdin"}
+
 	if login.Email != "" {
-		return commandLoginEmail(login)
+		args = append(args, "-e", login.Email)
 	}
-	return exec.Command(
-		dockerExe, "login",
-		"-u", login.Username,
-		"-p", login.Password,
-		login.Registry,
-	)
+
+	// Setup a command pipe to write the password more securely
+	password := exec.Command("echo", login.Password)
+	authenticate := exec.Command(dockerExe, args...)
+
+	var stderr bytes.Buffer
+	authenticate.Stderr = &stderr
+	authenticate.Stdin, _ = password.StdoutPipe()
+
+	authenticate.Start()
+	password.Run()
+
+	err := authenticate.Wait()
+	if err != nil {
+		return errors.New(stderr.String())
+	}
+
+	return nil
 }
 
 // helper to check if args match "docker pull <image>"
 func isCommandPull(args []string) bool {
-        return len(args) > 2 && args[1] == "pull"
+	return len(args) > 2 && args[1] == "pull"
 }
 
 func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
-}
-
-func commandLoginEmail(login Login) *exec.Cmd {
-	return exec.Command(
-		dockerExe, "login",
-		"-u", login.Username,
-		"-p", login.Password,
-		"-e", login.Email,
-		login.Registry,
-	)
 }
 
 // helper function to create the docker info command.
