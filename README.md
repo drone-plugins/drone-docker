@@ -2,6 +2,10 @@
 
 Drone plugin to build and publish Docker images to a container registry.
 
+### Special privilieges
+
+This docker image is specified in Drone to run with Privilieged mode. If you fork this repository to run it on your own, you need to specify your docker image in the `DRONE_ESCALATE`, as the container needs to run in privilieged mode, otherwise it will not work! https://github.com/drone/drone/blob/master/cmd/drone-server/server.go
+
 ## Build
 
 Build the binary with the following commands:
