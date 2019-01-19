@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
+	"github.com/satori/go.uuid"
 
 	"github.com/drone-plugins/drone-docker"
 )
@@ -119,6 +120,12 @@ func main() {
 			Value:  ".",
 			EnvVar: "PLUGIN_CONTEXT",
 		},
+		cli.StringFlag{
+			Name:     "named.tag",
+			Usage:    "build name:tag",
+			Value:    uuid.Must(uuid.NewV4()).String(),
+			EnvVar:   "PLUGIN_NAMED_TAG",
+		},
 		cli.StringSliceFlag{
 			Name:     "tags",
 			Usage:    "build tags",
@@ -209,8 +216,18 @@ func main() {
 		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
-			Usage:  "docker should cleanup images",
+			Usage:  "docker should cleanup named tag and images",
 			EnvVar: "PLUGIN_PURGE",
+		},
+		cli.BoolFlag{
+			Name:   "docker.purge.prune",
+			Usage:  "docker should cleanup images",
+			EnvVar: "PLUGIN_PURGE_PRUNE",
+		},
+		cli.BoolTFlag{
+			Name:   "docker.purge.named-tag",
+			Usage:  "docker should cleanup named tag",
+			EnvVar: "PLUGIN_PURGE_NAMED_TAG",
 		},
 		cli.StringFlag{
 			Name:   "repo.branch",
@@ -232,7 +249,10 @@ func main() {
 func run(c *cli.Context) error {
 	plugin := docker.Plugin{
 		Dryrun:  c.Bool("dry-run"),
-		Cleanup: c.BoolT("docker.purge"),
+		Cleanup: docker.Cleanup {
+			Prune:    c.BoolT("docker.purge") || c.Bool("docker.purge.prune"),
+			NamedTag: c.BoolT("docker.purge") || c.BoolT("docker.purge.named-tag"),
+		},
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
@@ -241,7 +261,8 @@ func run(c *cli.Context) error {
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
+			Name:        c.String("named.tag"),
+			Commit:      c.String("commit.sha"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
