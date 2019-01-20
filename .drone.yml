@@ -1,53 +1,867 @@
-workspace:
-  base: /go
-  path: src/github.com/drone-plugins/drone-docker
+---
+kind: pipeline
+name: testing
 
-pipeline:
-  build:
-    image: golang:1.9
-    commands:
-      - go get -u github.com/golang/dep/cmd/dep
-      - dep ensure
-      - go vet ./...
-      - go test -cover ./...
-      - sh .drone.sh
+platform:
+  os: linux
+  arch: amd64
 
-  publish:
-    image: plugins/docker
+steps:
+- name: vet
+  pull: always
+  image: golang:1.11
+  commands:
+  - go vet ./...
+  environment:
+    GO111MODULE: on
+
+- name: test
+  pull: always
+  image: golang:1.11
+  commands:
+  - go test -cover ./...
+  environment:
+    GO111MODULE: on
+
+trigger:
+  branch:
+  - master
+
+---
+kind: pipeline
+name: linux-amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-docker
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    dockerfile: docker/docker/Dockerfile.linux.amd64
+    dry_run: true
+    password:
+      from_secret: docker_password
     repo: plugins/docker
-    tags: [ "latest", "17", "17.12" ]
-    secrets: [ docker_username, docker_password ]
-    dockerfile: docker/Dockerfile
-    when:
-      branch: master
-      event: push
+    tags: linux-amd64
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
 
-  publish_heroku:
-    image: plugins/docker
+- name: publish-docker
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    dockerfile: docker/docker/Dockerfile.linux.amd64
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-heroku
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    dry_run: true
+    herokufile: docker/heroku/Dockerfile.linux.amd64
+    password:
+      from_secret: heroku_password
     repo: plugins/heroku
-    tags: [ "latest", "17", "17.12" ]
-    secrets: [ docker_username, docker_password ]
-    dockerfile: docker/heroku/Dockerfile
-    when:
-      branch: master
-      event: push
+    tags: linux-amd64
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - pull_request
 
-  publish_gcr:
-    image: plugins/docker
+- name: publish-heroku
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    herokufile: docker/heroku/Dockerfile.linux.amd64
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-gcr
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    dry_run: true
+    gcrfile: docker/gcr/Dockerfile.linux.amd64
+    password:
+      from_secret: gcr_password
     repo: plugins/gcr
-    tags: [ "latest", "17", "17.10" ]
-    secrets: [ docker_username, docker_password ]
-    dockerfile: docker/gcr/Dockerfile
-    when:
-      branch: master
-      event: push
+    tags: linux-amd64
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - pull_request
 
-  publish_ecr:
-    image: plugins/docker
+- name: publish-gcr
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    gcrfile: docker/gcr/Dockerfile.linux.amd64
+    password:
+      from_secret: gcr_password
+    repo: plugins/gcr
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-ecr
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    dockerfile: docker/ecr/Dockerfile.linux.amd64
+    dry_run: true
+    password:
+      from_secret: ecr_password
     repo: plugins/ecr
-    tags: [ "latest", "17", "17.10" ]
-    secrets: [ docker_username, docker_password ]
-    dockerfile: docker/ecr/Dockerfile
-    when:
-      branch: master
-      event: push
+    tags: linux-amd64
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-ecr
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    dockerfile: docker/ecr/Dockerfile.linux.amd64
+    password:
+      from_secret: ecr_password
+    repo: plugins/ecr
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - push
+    - tag
+
+trigger:
+  branch:
+  - master
+
+depends_on:
+- testing
+
+---
+kind: pipeline
+name: linux-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-docker
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    dockerfile: docker/docker/Dockerfile.linux.arm64
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    tags: linux-arm64
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-docker
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    dockerfile: docker/docker/Dockerfile.linux.arm64
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-heroku
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    dry_run: true
+    herokufile: docker/heroku/Dockerfile.linux.arm64
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    tags: linux-arm64
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-heroku
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    herokufile: docker/heroku/Dockerfile.linux.arm64
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-gcr
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    dry_run: true
+    gcrfile: docker/gcr/Dockerfile.linux.arm64
+    password:
+      from_secret: gcr_password
+    repo: plugins/gcr
+    tags: linux-arm64
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-gcr
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    gcrfile: docker/gcr/Dockerfile.linux.arm64
+    password:
+      from_secret: gcr_password
+    repo: plugins/gcr
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-ecr
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    dockerfile: docker/ecr/Dockerfile.linux.arm64
+    dry_run: true
+    password:
+      from_secret: ecr_password
+    repo: plugins/ecr
+    tags: linux-arm64
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-ecr
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    dockerfile: docker/ecr/Dockerfile.linux.arm64
+    password:
+      from_secret: ecr_password
+    repo: plugins/ecr
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - push
+    - tag
+
+trigger:
+  branch:
+  - master
+
+depends_on:
+- testing
+
+---
+kind: pipeline
+name: linux-arm
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-docker
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-docker
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    dockerfile: docker/docker/Dockerfile.linux.arm
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    tags: linux-arm
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-docker
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    dockerfile: docker/docker/Dockerfile.linux.arm
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-heroku
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-heroku
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    dry_run: true
+    herokufile: docker/heroku/Dockerfile.linux.arm
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    tags: linux-arm
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-heroku
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    herokufile: docker/heroku/Dockerfile.linux.arm
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-gcr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-gcr
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    dry_run: true
+    gcrfile: docker/gcr/Dockerfile.linux.arm
+    password:
+      from_secret: gcr_password
+    repo: plugins/gcr
+    tags: linux-arm
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-gcr
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    gcrfile: docker/gcr/Dockerfile.linux.arm
+    password:
+      from_secret: gcr_password
+    repo: plugins/gcr
+    username:
+      from_secret: gcr_username
+  when:
+    event:
+    - push
+    - tag
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-ecr
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun-ecr
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    dockerfile: docker/ecr/Dockerfile.linux.arm
+    dry_run: true
+    password:
+      from_secret: ecr_password
+    repo: plugins/ecr
+    tags: linux-arm
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - pull_request
+
+- name: publish-ecr
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    dockerfile: docker/ecr/Dockerfile.linux.arm
+    password:
+      from_secret: ecr_password
+    repo: plugins/ecr
+    username:
+      from_secret: ecr_username
+  when:
+    event:
+    - push
+    - tag
+
+trigger:
+  branch:
+  - master
+
+depends_on:
+- testing
+
+---
+kind: pipeline
+name: notifications
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest-docker
+  pull: always
+  image: plugins/manifest:1
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/docker/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger-docker
+  pull: always
+  image: plugins/webhook:1
+  settings:
+    url:
+      from_secret: microbadger_docker
+
+- name: manifest-heroku
+  pull: always
+  image: plugins/manifest:1
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: heroku_password
+    spec: docker/heroku/manifest.tmpl
+    username:
+      from_secret: heroku_username
+
+- name: microbadger-heroku
+  pull: always
+  image: plugins/webhook:1
+  settings:
+    url:
+      from_secret: microbadger_heroku
+
+- name: manifest-gcr
+  pull: always
+  image: plugins/manifest:1
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: gcr_password
+    spec: docker/gcr/manifest.tmpl
+    username:
+      from_secret: gcr_username
+
+- name: microbadger-gcr
+  pull: always
+  image: plugins/webhook:1
+  settings:
+    url:
+      from_secret: microbadger_gcr
+
+- name: manifest-ecr
+  pull: always
+  image: plugins/manifest:1
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: ecr_password
+    spec: docker/ecr/manifest.tmpl
+    username:
+      from_secret: ecr_username
+
+- name: microbadger-ecr
+  pull: always
+  image: plugins/webhook:1
+  settings:
+    url:
+      from_secret: microbadger_ecr
+
+trigger:
+  branch:
+  - master
+  event:
+  - push
+  - tag
+
+depends_on:
+- linux-amd64
+- linux-arm64
+- linux-arm
+
+...
