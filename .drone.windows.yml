@@ -1,17 +1,17 @@
 ---
 kind: pipeline
-name: linux-amd64
+name: windows-amd64-docker
 
 platform:
-  os: linux
+  os: windows
   arch: amd64
 
 steps:
-- name: build-docker
+- name: build-push
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -20,11 +20,11 @@ steps:
     - push
     - pull_request
 
-- name: build-docker
+- name: build-tag
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -32,29 +32,29 @@ steps:
     event:
     - tag
 
-- name: dryrun-docker
+- name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
-    dockerfile: docker/docker/Dockerfile.linux.amd64
+    dockerfile: docker/docker/Dockerfile.windows.amd64
     dry_run: true
     password:
       from_secret: docker_password
     repo: plugins/docker
-    tags: linux-amd64
+    tags: windows-amd64
     username:
       from_secret: docker_username
   when:
     event:
     - pull_request
 
-- name: publish-docker
+- name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
     auto_tag: true
-    auto_tag_suffix: linux-amd64
-    dockerfile: docker/docker/Dockerfile.linux.amd64
+    auto_tag_suffix: windows-amd64
+    dockerfile: docker/docker/Dockerfile.windows.amd64
     password:
       from_secret: docker_password
     repo: plugins/docker
@@ -65,11 +65,24 @@ steps:
     - push
     - tag
 
-- name: build-heroku
+trigger:
+  branch:
+  - master
+
+---
+kind: pipeline
+name: windows-amd64-gcr
+
+platform:
+  os: windows
+  arch: amd64
+
+steps:
+- name: build-push
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -78,11 +91,11 @@ steps:
     - push
     - pull_request
 
-- name: build-heroku
+- name: build-tag
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -90,87 +103,29 @@ steps:
     event:
     - tag
 
-- name: dryrun-heroku
+- name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
     dry_run: true
-    herokufile: docker/heroku/Dockerfile.linux.amd64
-    password:
-      from_secret: heroku_password
-    repo: plugins/heroku
-    tags: linux-amd64
-    username:
-      from_secret: heroku_username
-  when:
-    event:
-    - pull_request
-
-- name: publish-heroku
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-amd64
-    herokufile: docker/heroku/Dockerfile.linux.amd64
-    password:
-      from_secret: heroku_password
-    repo: plugins/heroku
-    username:
-      from_secret: heroku_username
-  when:
-    event:
-    - push
-    - tag
-
-- name: build-gcr
-  pull: always
-  image: golang:1.11
-  commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - push
-    - pull_request
-
-- name: build-gcr
-  pull: always
-  image: golang:1.11
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: dryrun-gcr
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    dry_run: true
-    gcrfile: docker/gcr/Dockerfile.linux.amd64
+    gcrfile: docker/gcr/Dockerfile.windows.amd64
     password:
       from_secret: gcr_password
     repo: plugins/gcr
-    tags: linux-amd64
+    tags: windows-amd64
     username:
       from_secret: gcr_username
   when:
     event:
     - pull_request
 
-- name: publish-gcr
+- name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
     auto_tag: true
-    auto_tag_suffix: linux-amd64
-    gcrfile: docker/gcr/Dockerfile.linux.amd64
+    auto_tag_suffix: windows-amd64
+    gcrfile: docker/gcr/Dockerfile.windows.amd64
     password:
       from_secret: gcr_password
     repo: plugins/gcr
@@ -181,11 +136,27 @@ steps:
     - push
     - tag
 
-- name: build-ecr
+trigger:
+  branch:
+  - master
+
+depends_on:
+- windows-amd64-docker
+
+---
+kind: pipeline
+name: windows-amd64-ecr
+
+platform:
+  os: windows
+  arch: amd64
+
+steps:
+- name: build-push
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -194,11 +165,11 @@ steps:
     - push
     - pull_request
 
-- name: build-ecr
+- name: build-tag
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -206,29 +177,29 @@ steps:
     event:
     - tag
 
-- name: dryrun-ecr
+- name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
-    dockerfile: docker/ecr/Dockerfile.linux.amd64
+    dockerfile: docker/ecr/Dockerfile.windows.amd64
     dry_run: true
     password:
       from_secret: ecr_password
     repo: plugins/ecr
-    tags: linux-amd64
+    tags: windows-amd64
     username:
       from_secret: ecr_username
   when:
     event:
     - pull_request
 
-- name: publish-ecr
+- name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:windows-amd64
   settings:
     auto_tag: true
-    auto_tag_suffix: linux-amd64
-    dockerfile: docker/ecr/Dockerfile.linux.amd64
+    auto_tag_suffix: windows-amd64
+    dockerfile: docker/ecr/Dockerfile.windows.amd64
     password:
       from_secret: ecr_password
     repo: plugins/ecr
@@ -242,3 +213,80 @@ steps:
 trigger:
   branch:
   - master
+
+depends_on:
+- windows-amd64-docker
+
+---
+kind: pipeline
+name: windows-amd64-heroku
+
+platform:
+  os: windows
+  arch: amd64
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: build-tag
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-heroku ./cmd/drone-heroku"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:windows-amd64
+  settings:
+    dry_run: true
+    herokufile: docker/heroku/Dockerfile.windows.amd64
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    tags: windows-amd64
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:windows-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-amd64
+    herokufile: docker/heroku/Dockerfile.windows.amd64
+    password:
+      from_secret: heroku_password
+    repo: plugins/heroku
+    username:
+      from_secret: heroku_username
+  when:
+    event:
+    - push
+    - tag
+
+trigger:
+  branch:
+  - master
+
+depends_on:
+- windows-amd64-docker
