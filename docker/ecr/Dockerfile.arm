@@ -1,4 +1,0 @@
-FROM plugins/docker:linux-arm
-
-ADD release/linux/arm64/drone-docker-ecr /bin/
-ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker-ecr"]
