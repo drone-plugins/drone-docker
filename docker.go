@@ -172,7 +172,7 @@ func commandLogin(login Login) *exec.Cmd {
 
 // helper to check if args match "docker pull <image>"
 func isCommandPull(args []string) bool {
-        return len(args) > 2 && args[1] == "pull"
+	return len(args) > 2 && args[1] == "pull"
 }
 
 func commandPull(repo string) *exec.Cmd {
