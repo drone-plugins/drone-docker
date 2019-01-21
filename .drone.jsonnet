@@ -137,7 +137,7 @@ local PipelineNotifications(binary="docker") = {
       image: "plugins/webhook:1",
       pull: "always",
       settings: {
-        url: { "from_secret": "microbadger_docker" },
+        url: { "from_secret": "microbadger_" + binary },
       },
     },
   ],
