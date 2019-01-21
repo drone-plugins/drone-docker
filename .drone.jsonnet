@@ -106,7 +106,7 @@ local PipelineBuild(binary="docker", os="linux", arch="amd64") = {
     },
   ],
   depends_on: [
-    "testing",
+    if binary == "docker" then "testing" else os + "-" + arch + "-docker",
   ],
   trigger: {
     branch: [ "master" ],
@@ -144,6 +144,7 @@ local PipelineNotifications(binary="docker") = {
   depends_on: [
     "linux-amd64-" + binary,
     "linux-arm64-" + binary,
+    "linux-arm-" + binary,
   ],
   trigger: {
     branch: [ "master" ],
@@ -155,12 +156,16 @@ local PipelineNotifications(binary="docker") = {
   PipelineTesting,
   PipelineBuild("docker", "linux", "amd64"),
   PipelineBuild("docker", "linux", "arm64"),
+  PipelineBuild("docker", "linux", "arm"),
   PipelineBuild("gcr", "linux", "amd64"),
   PipelineBuild("gcr", "linux", "arm64"),
+  PipelineBuild("gcr", "linux", "arm"),
   PipelineBuild("ecr", "linux", "amd64"),
   PipelineBuild("ecr", "linux", "arm64"),
+  PipelineBuild("ecr", "linux", "arm"),
   PipelineBuild("heroku", "linux", "amd64"),
   PipelineBuild("heroku", "linux", "arm64"),
+  PipelineBuild("heroku", "linux", "arm"),
   PipelineNotifications("docker"),
   PipelineNotifications("gcr"),
   PipelineNotifications("ecr"),
