@@ -10,3 +10,5 @@ require (
 	golang.org/x/text v0.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
+
+replace github.com/urfave/cli => github.com/bradrydzewski/cli v0.0.0-20190108225652-0d51abd87c77
