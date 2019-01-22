@@ -12,18 +12,41 @@ Drone plugin to build and publish Docker images to a container registry.
 
 ## Build
 
-Build the binary with the following commands:
+Build the binaries with the following commands:
 
 ```
-sh .drone.sh
+go test -cover ./...
+
+go build -v -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
+go build -v -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
+go build -v -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr
+go build -v -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku
 ```
 
 ## Docker
 
-Build the Docker image with the following commands:
+Build the Docker images with the following commands:
 
 ```
-docker build --rm=true -f docker/Dockerfile -t plugins/docker .
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/docker/Dockerfile.linux.amd64 --tag plugins/docker .
+
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/gcr/Dockerfile.linux.amd64 --tag plugins/gcr .
+
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/ecr/Dockerfile.linux.amd64 --tag plugins/ecr .
+
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/heroku/Dockerfile.linux.amd64 --tag plugins/heroku .
 ```
 
 ## Usage
