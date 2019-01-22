@@ -72,6 +72,14 @@ local PipelineBuild(binary="docker", os="linux", arch="amd64") = {
         event: [ "tag" ],
       },
     },
+    if binary == "docker" then {
+      name: "executable",
+      image: "golang:1.11",
+      pull: "always",
+      commands: [
+        "./release/" + os + "/" + arch + "/drone-" + binary + " --help",
+      ],
+    },
     {
       name: "dryrun",
       image: "plugins/docker:" + os + "-" + arch,
