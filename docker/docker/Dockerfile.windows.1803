@@ -21,5 +21,5 @@ RUN /innoextract.exe dockertoolbox.exe
 FROM plugins/base:windows-1803
 COPY --from=download /windows/system32/netapi32.dll /windows/system32/netapi32.dll
 COPY --from=download /app/docker.exe C:/bin/docker.exe
-ADD release/windows/amd64/drone-docker.exe c:/bin/drone-docker.exe
+ADD release/windows/amd64/drone-docker.exe C:/bin/drone-docker.exe
 ENTRYPOINT [ "C:\\bin\\drone-docker.exe" ]
