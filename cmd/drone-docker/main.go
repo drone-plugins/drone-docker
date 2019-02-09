@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	"github.com/drone-plugins/drone-docker"
@@ -40,6 +40,11 @@ func main() {
 			Usage:  "git commit sha",
 			EnvVar: "DRONE_COMMIT_SHA",
 			Value:  "00000000",
+		},
+		cli.StringFlag{
+			Name:   "commit.ref",
+			Usage:  "git commit ref",
+			EnvVar: "DRONE_COMMIT_REF",
 		},
 		cli.StringFlag{
 			Name:   "daemon.mirror",
@@ -121,6 +126,16 @@ func main() {
 			EnvVar:   "PLUGIN_TAG,PLUGIN_TAGS",
 			FilePath: ".tags",
 		},
+		cli.BoolFlag{
+			Name:   "tags.auto",
+			Usage:  "default build tags",
+			EnvVar: "PLUGIN_DEFAULT_TAGS,PLUGIN_AUTO_TAG",
+		},
+		cli.StringFlag{
+			Name:   "tags.suffix",
+			Usage:  "default build tags with suffix",
+			EnvVar: "PLUGIN_DEFAULT_SUFFIX,PLUGIN_AUTO_TAG_SUFFIX",
+		},
 		cli.StringSliceFlag{
 			Name:   "args",
 			Usage:  "build args",
@@ -130,6 +145,16 @@ func main() {
 			Name:   "args-from-env",
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS_FROM_ENV",
+		},
+		cli.StringFlag{
+			Name:   "target",
+			Usage:  "build target",
+			EnvVar: "PLUGIN_TARGET",
+		},
+		cli.StringSliceFlag{
+			Name:   "cache-from",
+			Usage:  "images to consider as cache sources",
+			EnvVar: "PLUGIN_CACHE_FROM",
 		},
 		cli.BoolFlag{
 			Name:   "squash",
@@ -150,6 +175,11 @@ func main() {
 			Name:   "repo",
 			Usage:  "docker repository",
 			EnvVar: "PLUGIN_REPO",
+		},
+		cli.StringSliceFlag{
+			Name:   "custom-labels",
+			Usage:  "additional k=v labels",
+			EnvVar: "PLUGIN_CUSTOM_LABELS",
 		},
 		cli.StringSliceFlag{
 			Name:   "label-schema",
@@ -177,6 +207,21 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.BoolTFlag{
+			Name:   "docker.purge",
+			Usage:  "docker should cleanup images",
+			EnvVar: "PLUGIN_PURGE",
+		},
+		cli.StringFlag{
+			Name:   "repo.branch",
+			Usage:  "repository default branch",
+			EnvVar: "DRONE_REPO_BRANCH",
+		},
+		cli.BoolFlag{
+			Name:   "no-cache",
+			Usage:  "do not use cached intermediate containers",
+			EnvVar: "PLUGIN_NO_CACHE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -186,7 +231,8 @@ func main() {
 
 func run(c *cli.Context) error {
 	plugin := docker.Plugin{
-		Dryrun: c.Bool("dry-run"),
+		Dryrun:  c.Bool("dry-run"),
+		Cleanup: c.BoolT("docker.purge"),
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
@@ -201,11 +247,15 @@ func run(c *cli.Context) error {
 			Tags:        c.StringSlice("tags"),
 			Args:        c.StringSlice("args"),
 			ArgsEnv:     c.StringSlice("args-from-env"),
+			Target:      c.String("target"),
 			Squash:      c.Bool("squash"),
 			Pull:        c.BoolT("pull-image"),
+			CacheFrom:   c.StringSlice("cache-from"),
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
+			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
+			NoCache:     c.Bool("no-cache"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -222,6 +272,21 @@ func run(c *cli.Context) error {
 			MTU:           c.String("daemon.mtu"),
 			Experimental:  c.Bool("daemon.experimental"),
 		},
+	}
+
+	if c.Bool("tags.auto") {
+		if docker.UseDefaultTag( // return true if tag event or default branch
+			c.String("commit.ref"),
+			c.String("repo.branch"),
+		) {
+			plugin.Build.Tags = docker.DefaultTagSuffix(
+				c.String("commit.ref"),
+				c.String("tags.suffix"),
+			)
+		} else {
+			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
+			return nil
+		}
 	}
 
 	return plugin.Exec()

@@ -44,19 +44,24 @@ type (
 		Tags        []string // Docker build tags
 		Args        []string // Docker build args
 		ArgsEnv     []string // Docker build args from env
+		Target      string   // Docker build target
 		Squash      bool     // Docker build squash
 		Pull        bool     // Docker build pull
+		CacheFrom   []string // Docker build cache-from
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
-		LabelSchema []string // Label schema map
+		LabelSchema []string // label-schema Label map
+		Labels      []string // Label map
+		NoCache     bool     // Docker build no-cache
 	}
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login  Login  // Docker login configuration
-		Build  Build  // Docker build configuration
-		Daemon Daemon // Docker daemon configuration
-		Dryrun bool   // Docker push is skipped
+		Login   Login  // Docker login configuration
+		Build   Build  // Docker build configuration
+		Daemon  Daemon // Docker daemon configuration
+		Dryrun  bool   // Docker push is skipped
+		Cleanup bool   // Docker purge is enabled
 	}
 )
 
@@ -112,6 +117,11 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
+	// pre-pull cache images
+	for _, img := range p.Build.CacheFrom {
+		cmds = append(cmds, commandPull(img))
+	}
+
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -122,8 +132,10 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-	cmds = append(cmds, commandPrune())           // docker system prune -f
+	if p.Cleanup {
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune())           // docker system prune -f
+	}
 
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
@@ -132,7 +144,9 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
-		if err != nil {
+		if err != nil && isCommandPull(cmd.Args) {
+			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil {
 			return err
 		}
 	}
@@ -154,6 +168,15 @@ func commandLogin(login Login) *exec.Cmd {
 		"-p", login.Password,
 		login.Registry,
 	)
+}
+
+// helper to check if args match "docker pull <image>"
+func isCommandPull(args []string) bool {
+	return len(args) > 2 && args[1] == "pull"
+}
+
+func commandPull(repo string) *exec.Cmd {
+	return exec.Command(dockerExe, "pull", repo)
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -195,14 +218,24 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Pull {
 		args = append(args, "--pull=true")
 	}
+	if build.NoCache {
+		args = append(args, "--no-cache")
+	}
+	for _, arg := range build.CacheFrom {
+		args = append(args, "--cache-from", arg)
+	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
 	}
 	for _, arg := range build.Args {
 		args = append(args, "--build-arg", arg)
 	}
+	if build.Target != "" {
+		args = append(args, "--target", build.Target)
+	}
 
 	labelSchema := []string{
+		"schema-version=1.0",
 		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
 		fmt.Sprintf("vcs-ref=%s", build.Name),
 		fmt.Sprintf("vcs-url=%s", build.Remote),
@@ -214,6 +247,12 @@ func commandBuild(build Build) *exec.Cmd {
 
 	for _, label := range labelSchema {
 		args = append(args, "--label", fmt.Sprintf("org.label-schema.%s", label))
+	}
+
+	if len(build.Labels) > 0 {
+		for _, label := range build.Labels {
+			args = append(args, "--label", label)
+		}
 	}
 
 	return exec.Command(dockerExe, args...)
