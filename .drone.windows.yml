@@ -32,6 +32,12 @@ steps:
     event:
     - tag
 
+- name: executable
+  pull: always
+  image: golang:1.11
+  commands:
+  - ./release/windows/amd64/drone-docker --help
+
 - name: dryrun
   pull: always
   image: plugins/docker:windows-amd64

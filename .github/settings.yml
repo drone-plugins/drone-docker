@@ -58,7 +58,6 @@ branches:
         dismissal_restrictions:
           teams:
             - Admins
-            - Captain
       required_status_checks:
         strict: true
         contexts:
@@ -66,4 +65,5 @@ branches:
       enforce_admins: false
       restrictions:
         users: []
-        teams: []
+        teams:
+          - Admins
