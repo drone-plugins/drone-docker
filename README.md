@@ -23,7 +23,7 @@ sh .drone.sh
 Build the Docker image with the following commands:
 
 ```
-docker build --rm=true -f docker/Dockerfile -t plugins/docker .
+docker build --rm=true -f docker/docker/Dockerfile.linux.amd64 -t plugins/docker .
 ```
 
 ## Usage
