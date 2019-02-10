@@ -14,6 +14,9 @@ steps:
   - go vet ./...
   environment:
     GO111MODULE: on
+  volumes:
+  - name: gopath
+    path: /go
 
 - name: test
   pull: always
@@ -22,10 +25,19 @@ steps:
   - go test -cover ./...
   environment:
     GO111MODULE: on
+  volumes:
+  - name: gopath
+    path: /go
+
+volumes:
+- name: gopath
+  temp: {}
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 ---
 kind: pipeline
@@ -46,8 +58,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -71,6 +83,7 @@ steps:
   pull: always
   image: plugins/docker:linux-amd64
   settings:
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.amd64
     dry_run: true
     password:
@@ -89,6 +102,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.amd64
     password:
       from_secret: docker_password
@@ -97,12 +111,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - testing
@@ -126,8 +142,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -151,6 +167,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm64
   settings:
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm64
     dry_run: true
     password:
@@ -169,6 +186,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm64
     password:
       from_secret: docker_password
@@ -177,12 +195,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - testing
@@ -206,8 +226,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -231,6 +251,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm
   settings:
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm
     dry_run: true
     password:
@@ -249,6 +270,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
+    daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm
     password:
       from_secret: docker_password
@@ -257,15 +279,54 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - testing
+
+---
+kind: pipeline
+name: notifications-docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/docker/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_docker
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- linux-amd64-docker
+- linux-arm64-docker
+- linux-arm-docker
 
 ---
 kind: pipeline
@@ -286,8 +347,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -305,6 +366,7 @@ steps:
   pull: always
   image: plugins/docker:linux-amd64
   settings:
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.amd64
     dry_run: true
     password:
@@ -323,6 +385,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.amd64
     password:
       from_secret: docker_password
@@ -331,12 +394,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-amd64-docker
@@ -360,8 +425,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -379,6 +444,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm64
   settings:
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm64
     dry_run: true
     password:
@@ -397,6 +463,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm64
     password:
       from_secret: docker_password
@@ -405,12 +472,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm64-docker
@@ -434,8 +503,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -453,6 +522,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm
   settings:
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm
     dry_run: true
     password:
@@ -471,6 +541,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
+    daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm
     password:
       from_secret: docker_password
@@ -479,15 +550,54 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm-docker
+
+---
+kind: pipeline
+name: notifications-gcr
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/gcr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_gcr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- linux-amd64-gcr
+- linux-arm64-gcr
+- linux-arm-gcr
 
 ---
 kind: pipeline
@@ -508,8 +618,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -527,6 +637,7 @@ steps:
   pull: always
   image: plugins/docker:linux-amd64
   settings:
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.amd64
     dry_run: true
     password:
@@ -545,6 +656,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.amd64
     password:
       from_secret: docker_password
@@ -553,12 +665,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-amd64-docker
@@ -582,8 +696,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -601,6 +715,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm64
   settings:
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm64
     dry_run: true
     password:
@@ -619,6 +734,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm64
     password:
       from_secret: docker_password
@@ -627,12 +743,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm64-docker
@@ -656,8 +774,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -675,6 +793,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm
   settings:
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm
     dry_run: true
     password:
@@ -693,6 +812,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
+    daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm
     password:
       from_secret: docker_password
@@ -701,15 +821,54 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm-docker
+
+---
+kind: pipeline
+name: notifications-ecr
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/ecr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_ecr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- linux-amd64-ecr
+- linux-arm64-ecr
+- linux-arm-ecr
 
 ---
 kind: pipeline
@@ -730,8 +889,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -749,6 +908,7 @@ steps:
   pull: always
   image: plugins/docker:linux-amd64
   settings:
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.amd64
     dry_run: true
     password:
@@ -767,6 +927,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.amd64
     password:
       from_secret: docker_password
@@ -775,12 +936,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-amd64-docker
@@ -804,8 +967,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -823,6 +986,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm64
   settings:
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm64
     dry_run: true
     password:
@@ -841,6 +1005,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm64
     password:
       from_secret: docker_password
@@ -849,12 +1014,14 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm64-docker
@@ -878,8 +1045,8 @@ steps:
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
@@ -897,6 +1064,7 @@ steps:
   pull: always
   image: plugins/docker:linux-arm
   settings:
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm
     dry_run: true
     password:
@@ -915,6 +1083,7 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
+    daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm
     password:
       from_secret: docker_password
@@ -923,132 +1092,17 @@ steps:
       from_secret: docker_username
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
 - linux-arm-docker
-
----
-kind: pipeline
-name: notifications-docker
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: manifest
-  pull: always
-  image: plugins/manifest:1
-  settings:
-    ignore_missing: true
-    password:
-      from_secret: docker_password
-    spec: docker/docker/manifest.tmpl
-    username:
-      from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook:1
-  settings:
-    url:
-      from_secret: microbadger_docker
-
-trigger:
-  branch:
-  - master
-  event:
-  - push
-  - tag
-
-depends_on:
-- linux-amd64-docker
-- linux-arm64-docker
-- linux-arm-docker
-
----
-kind: pipeline
-name: notifications-gcr
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: manifest
-  pull: always
-  image: plugins/manifest:1
-  settings:
-    ignore_missing: true
-    password:
-      from_secret: docker_password
-    spec: docker/gcr/manifest.tmpl
-    username:
-      from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook:1
-  settings:
-    url:
-      from_secret: microbadger_gcr
-
-trigger:
-  branch:
-  - master
-  event:
-  - push
-  - tag
-
-depends_on:
-- linux-amd64-gcr
-- linux-arm64-gcr
-- linux-arm-gcr
-
----
-kind: pipeline
-name: notifications-ecr
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: manifest
-  pull: always
-  image: plugins/manifest:1
-  settings:
-    ignore_missing: true
-    password:
-      from_secret: docker_password
-    spec: docker/ecr/manifest.tmpl
-    username:
-      from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook:1
-  settings:
-    url:
-      from_secret: microbadger_ecr
-
-trigger:
-  branch:
-  - master
-  event:
-  - push
-  - tag
-
-depends_on:
-- linux-amd64-ecr
-- linux-arm64-ecr
-- linux-arm-ecr
 
 ---
 kind: pipeline
@@ -1061,7 +1115,7 @@ platform:
 steps:
 - name: manifest
   pull: always
-  image: plugins/manifest:1
+  image: plugins/manifest
   settings:
     ignore_missing: true
     password:
@@ -1072,17 +1126,15 @@ steps:
 
 - name: microbadger
   pull: always
-  image: plugins/webhook:1
+  image: plugins/webhook
   settings:
     url:
       from_secret: microbadger_heroku
 
 trigger:
-  branch:
-  - master
-  event:
-  - push
-  - tag
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
 
 depends_on:
 - linux-amd64-heroku
