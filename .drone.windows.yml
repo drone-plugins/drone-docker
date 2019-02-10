@@ -1,30 +1,73 @@
 ---
 kind: pipeline
-name: windows-amd64-docker
+name: testing
 
 platform:
   os: windows
   arch: amd64
+  version: 1803
+
+steps:
+- name: vet
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - go vet ./...
+  environment:
+    GO111MODULE: on
+  volumes:
+  - name: gopath
+    path: C:\\gopath
+
+- name: test
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - go test -cover ./...
+  environment:
+    GO111MODULE: on
+  volumes:
+  - name: gopath
+    path: C:\\gopath
+
+volumes:
+- name: gopath
+  temp: {}
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+---
+kind: pipeline
+name: windows-1803-docker
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1803
 
 steps:
 - name: build-push
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -34,74 +77,226 @@ steps:
 
 - name: executable
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1803
   commands:
-  - ./release/windows/amd64/drone-docker --help
+  - ./release/windows/amd64/drone-docker.exe --help
 
 - name: dryrun
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
-    dockerfile: docker/docker/Dockerfile.windows.amd64
+    daemon_off: true
+    dockerfile: docker/docker/Dockerfile.windows.1803
     dry_run: true
     password:
       from_secret: docker_password
     repo: plugins/docker
-    tags: windows-amd64
+    tags: windows-1803
     username:
       from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
     - pull_request
 
 - name: publish
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
     auto_tag: true
-    auto_tag_suffix: windows-amd64
-    dockerfile: docker/docker/Dockerfile.windows.amd64
+    auto_tag_suffix: windows-1803
+    daemon_off: true
+    dockerfile: docker/docker/Dockerfile.windows.1803
     password:
       from_secret: docker_password
     repo: plugins/docker
     username:
       from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- testing
 
 ---
 kind: pipeline
-name: windows-amd64-gcr
+name: windows-1809-docker
 
 platform:
   os: windows
   arch: amd64
+  version: 1809
 
 steps:
 - name: build-push
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: executable
+  pull: always
+  image: golang:1.11-windowsservercore-1809
+  commands:
+  - ./release/windows/amd64/drone-docker.exe --help
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    daemon_off: true
+    dockerfile: docker/docker/Dockerfile.windows.1809
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    tags: windows-1809
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-1809
+    daemon_off: true
+    dockerfile: docker/docker/Dockerfile.windows.1809
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- testing
+
+---
+kind: pipeline
+name: notifications-docker
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1809
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/docker/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_docker
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- windows-1803-docker
+- windows-1809-docker
+
+---
+kind: pipeline
+name: windows-1803-gcr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1803
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -111,71 +306,87 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
+    daemon_off: true
+    dockerfile: docker/gcr/Dockerfile.windows.1803
     dry_run: true
-    gcrfile: docker/gcr/Dockerfile.windows.amd64
     password:
-      from_secret: gcr_password
+      from_secret: docker_password
     repo: plugins/gcr
-    tags: windows-amd64
+    tags: windows-1803
     username:
-      from_secret: gcr_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
     - pull_request
 
 - name: publish
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
     auto_tag: true
-    auto_tag_suffix: windows-amd64
-    gcrfile: docker/gcr/Dockerfile.windows.amd64
+    auto_tag_suffix: windows-1803
+    daemon_off: true
+    dockerfile: docker/gcr/Dockerfile.windows.1803
     password:
-      from_secret: gcr_password
+      from_secret: docker_password
     repo: plugins/gcr
     username:
-      from_secret: gcr_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
-- windows-amd64-docker
+- windows-1803-docker
 
 ---
 kind: pipeline
-name: windows-amd64-ecr
+name: windows-1809-gcr
 
 platform:
   os: windows
   arch: amd64
+  version: 1809
 
 steps:
 - name: build-push
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -185,71 +396,124 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1809
   settings:
-    dockerfile: docker/ecr/Dockerfile.windows.amd64
+    daemon_off: true
+    dockerfile: docker/gcr/Dockerfile.windows.1809
     dry_run: true
     password:
-      from_secret: ecr_password
-    repo: plugins/ecr
-    tags: windows-amd64
+      from_secret: docker_password
+    repo: plugins/gcr
+    tags: windows-1809
     username:
-      from_secret: ecr_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
     - pull_request
 
 - name: publish
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1809
   settings:
     auto_tag: true
-    auto_tag_suffix: windows-amd64
-    dockerfile: docker/ecr/Dockerfile.windows.amd64
+    auto_tag_suffix: windows-1809
+    daemon_off: true
+    dockerfile: docker/gcr/Dockerfile.windows.1809
     password:
-      from_secret: ecr_password
-    repo: plugins/ecr
+      from_secret: docker_password
+    repo: plugins/gcr
     username:
-      from_secret: ecr_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
-- windows-amd64-docker
+- windows-1809-docker
 
 ---
 kind: pipeline
-name: windows-amd64-heroku
+name: notifications-gcr
 
 platform:
   os: windows
   arch: amd64
+  version: 1809
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/gcr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_gcr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- windows-1803-gcr
+- windows-1809-gcr
+
+---
+kind: pipeline
+name: windows-1803-ecr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1803
 
 steps:
 - name: build-push
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
   when:
     event:
-    - push
-    - pull_request
+      exclude:
+      - tag
 
 - name: build-tag
   pull: always
-  image: golang:1.11
+  image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -259,40 +523,184 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
+    daemon_off: true
+    dockerfile: docker/ecr/Dockerfile.windows.1803
     dry_run: true
-    herokufile: docker/heroku/Dockerfile.windows.amd64
     password:
-      from_secret: heroku_password
-    repo: plugins/heroku
-    tags: windows-amd64
+      from_secret: docker_password
+    repo: plugins/ecr
+    tags: windows-1803
     username:
-      from_secret: heroku_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
     - pull_request
 
 - name: publish
   pull: always
-  image: plugins/docker:windows-amd64
+  image: plugins/docker:windows-1803
   settings:
     auto_tag: true
-    auto_tag_suffix: windows-amd64
-    herokufile: docker/heroku/Dockerfile.windows.amd64
+    auto_tag_suffix: windows-1803
+    daemon_off: true
+    dockerfile: docker/ecr/Dockerfile.windows.1803
     password:
-      from_secret: heroku_password
-    repo: plugins/heroku
+      from_secret: docker_password
+    repo: plugins/ecr
     username:
-      from_secret: heroku_username
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
   when:
     event:
-    - push
-    - tag
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
 
 trigger:
-  branch:
-  - master
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
 
 depends_on:
-- windows-amd64-docker
+- windows-1803-docker
+
+---
+kind: pipeline
+name: windows-1809-ecr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1809
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11-windowsservercore-1809
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11-windowsservercore-1809
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    daemon_off: true
+    dockerfile: docker/ecr/Dockerfile.windows.1809
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/ecr
+    tags: windows-1809
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-1809
+    daemon_off: true
+    dockerfile: docker/ecr/Dockerfile.windows.1809
+    password:
+      from_secret: docker_password
+    repo: plugins/ecr
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- windows-1809-docker
+
+---
+kind: pipeline
+name: notifications-ecr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1809
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/ecr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_ecr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- windows-1803-ecr
+- windows-1809-ecr
+
+...
