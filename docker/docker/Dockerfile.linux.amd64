@@ -1,4 +1,4 @@
-FROM amd64/docker:18.06-dind
+FROM docker:18.06-dind
 
 ADD release/linux/amd64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
