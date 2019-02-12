@@ -24,6 +24,16 @@ func DefaultTagSuffix(ref, suffix string) []string {
 	return tags
 }
 
+func splitOff(input string, delim string) string {
+	parts := strings.SplitN(input, delim, 2)
+
+	if len(parts) == 2 {
+		return parts[0]
+	}
+
+	return input
+}
+
 // DefaultTags returns a set of default suggested tags based on
 // the commit ref.
 func DefaultTags(ref string) []string {
@@ -40,16 +50,21 @@ func DefaultTags(ref string) []string {
 			version.String(),
 		}
 	}
+
+	v = stripTagPrefix(ref)
+	v = splitOff(splitOff(v, "+"), "-")
+	dotParts := strings.SplitN(v, ".", 3)
+
 	if version.Major == 0 {
 		return []string{
-			fmt.Sprintf("%d.%d", version.Major, version.Minor),
-			fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch),
+			fmt.Sprintf("%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor),
+			fmt.Sprintf("%0*d.%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor, len(dotParts[2]), version.Patch),
 		}
 	}
 	return []string{
-		fmt.Sprint(version.Major),
-		fmt.Sprintf("%d.%d", version.Major, version.Minor),
-		fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch),
+		fmt.Sprintf("%0*d", len(dotParts[0]), version.Major),
+		fmt.Sprintf("%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor),
+		fmt.Sprintf("%0*d.%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor, len(dotParts[2]), version.Patch),
 	}
 }
 

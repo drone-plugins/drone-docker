@@ -93,6 +93,15 @@ func TestDefaultTagSuffix(t *testing.T) {
 				"1.9.2-nanoserver",
 			},
 		},
+		{
+			Before: "refs/tags/v18.06.0",
+			Suffix: "nanoserver",
+			After: []string{
+				"18-nanoserver",
+				"18.06-nanoserver",
+				"18.06.0-nanoserver",
+			},
+		},
 	}
 
 	for _, test := range tests {
