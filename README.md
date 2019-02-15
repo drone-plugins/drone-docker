@@ -14,13 +14,11 @@ Drone plugin to build and publish Docker images to a container registry. For the
 
 Build the binaries with the following commands:
 
-```
+```console
 export GOOS=linux
 export GOARCH=amd64
 export CGO_ENABLED=0
 export GO111MODULE=on
-
-go test -cover ./...
 
 go build -v -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
 go build -v -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
@@ -32,7 +30,7 @@ go build -v -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-herok
 
 Build the Docker images with the following commands:
 
-```
+```console
 docker build \
   --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
   --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
@@ -56,9 +54,9 @@ docker build \
 
 ## Usage
 
-Execute from the working directory:
+> Notice: Be aware that the Docker plugin currently requires privileged capabilities, otherwise the integrated Docker daemon is not able to start.
 
-```
+```console
 docker run --rm \
   -e PLUGIN_TAG=latest \
   -e PLUGIN_REPO=octocat/hello-world \
