@@ -11,7 +11,9 @@ import (
 	"github.com/drone-plugins/drone-docker"
 )
 
-var build = "0" // build number set at compile-time
+var (
+	version = "unknown"
+)
 
 func main() {
 	// Load env-file if it exists first
@@ -23,7 +25,7 @@ func main() {
 	app.Name = "docker plugin"
 	app.Usage = "docker plugin"
 	app.Action = run
-	app.Version = fmt.Sprintf("1.0.%s", build)
+	app.Version = version
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:   "dry-run",
