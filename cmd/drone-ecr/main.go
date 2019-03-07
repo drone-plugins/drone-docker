@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -19,11 +20,13 @@ const defaultRegion = "us-east-1"
 
 func main() {
 	var (
-		repo   = getenv("PLUGIN_REPO")
-		region = getenv("PLUGIN_REGION", "ECR_REGION", "AWS_REGION")
-		key    = getenv("PLUGIN_ACCESS_KEY", "ECR_ACCESS_KEY", "AWS_ACCESS_KEY_ID")
-		secret = getenv("PLUGIN_SECRET_KEY", "ECR_SECRET_KEY", "AWS_SECRET_ACCESS_KEY")
-		create = parseBoolOrDefault(false, getenv("PLUGIN_CREATE_REPOSITORY", "ECR_CREATE_REPOSITORY"))
+		repo             = getenv("PLUGIN_REPO")
+		region           = getenv("PLUGIN_REGION", "ECR_REGION", "AWS_REGION")
+		key              = getenv("PLUGIN_ACCESS_KEY", "ECR_ACCESS_KEY", "AWS_ACCESS_KEY_ID")
+		secret           = getenv("PLUGIN_SECRET_KEY", "ECR_SECRET_KEY", "AWS_SECRET_ACCESS_KEY")
+		create           = parseBoolOrDefault(false, getenv("PLUGIN_CREATE_REPOSITORY", "ECR_CREATE_REPOSITORY"))
+		lifecyclePolicy  = getenv("PLUGIN_LIFECYCLE_POLICY")
+		repositoryPolicy = getenv("PLUGIN_REPOSITORY_POLICY")
 	)
 
 	// set the region
@@ -61,6 +64,26 @@ func main() {
 		}
 	}
 
+	if lifecyclePolicy != "" {
+		p, err := ioutil.ReadFile(lifecyclePolicy)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := uploadLifeCyclePolicy(svc, string(p), trimHostname(repo, registry)); err != nil {
+			log.Fatal(fmt.Sprintf("error uploading ECR lifecycle policy: %v", err))
+		}
+	}
+
+	if repositoryPolicy != "" {
+		p, err := ioutil.ReadFile(repositoryPolicy)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := uploadRepositoryPolicy(svc, string(p), trimHostname(repo, registry)); err != nil {
+			log.Fatal(fmt.Sprintf("error uploading ECR repository policy. %v", err))
+		}
+	}
+
 	os.Setenv("PLUGIN_REPO", repo)
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
@@ -93,6 +116,24 @@ func ensureRepoExists(svc *ecr.ECR, name string) (err error) {
 	}
 
 	return
+}
+
+func uploadLifeCyclePolicy(svc *ecr.ECR, lifecyclePolicy string, name string) (err error) {
+	input := &ecr.PutLifecyclePolicyInput{}
+	input.SetLifecyclePolicyText(lifecyclePolicy)
+	input.SetRepositoryName(name)
+	_, err = svc.PutLifecyclePolicy(input)
+
+	return err
+}
+
+func uploadRepositoryPolicy(svc *ecr.ECR, repositoryPolicy string, name string) (err error) {
+	input := &ecr.SetRepositoryPolicyInput{}
+	input.SetPolicyText(repositoryPolicy)
+	input.SetRepositoryName(name)
+	_, err = svc.SetRepositoryPolicy(input)
+
+	return err
 }
 
 func getAuthInfo(svc *ecr.ECR) (username, password, registry string, err error) {
