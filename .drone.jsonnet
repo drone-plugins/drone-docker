@@ -21,6 +21,15 @@ local pipeline = import 'pipeline.libsonnet';
     'linux-arm',
   ]),
 
+  pipeline.build('acr', 'linux', 'amd64'),
+  pipeline.build('acr', 'linux', 'arm64'),
+  pipeline.build('acr', 'linux', 'arm'),
+  pipeline.notifications('acr', depends_on=[
+    'linux-amd64',
+    'linux-arm64',
+    'linux-arm',
+  ]),
+
   pipeline.build('ecr', 'linux', 'amd64'),
   pipeline.build('ecr', 'linux', 'arm64'),
   pipeline.build('ecr', 'linux', 'arm'),

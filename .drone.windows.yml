@@ -703,4 +703,221 @@ depends_on:
 - windows-1803-ecr
 - windows-1809-ecr
 
+---
+kind: pipeline
+name: windows-1803-acr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1803
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11-windowsservercore-1803
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:windows-1803
+  settings:
+    daemon_off: true
+    dockerfile: docker/acr/Dockerfile.windows.1803
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    tags: windows-1803
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:windows-1803
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-1803
+    daemon_off: true
+    dockerfile: docker/acr/Dockerfile.windows.1803
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- windows-1803-docker
+
+---
+kind: pipeline
+name: windows-1809-acr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1809
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11-windowsservercore-1809
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11-windowsservercore-1809
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    daemon_off: true
+    dockerfile: docker/acr/Dockerfile.windows.1809
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    tags: windows-1809
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:windows-1809
+  settings:
+    auto_tag: true
+    auto_tag_suffix: windows-1809
+    daemon_off: true
+    dockerfile: docker/acr/Dockerfile.windows.1809
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    username:
+      from_secret: docker_username
+  volumes:
+  - name: docker_pipe
+    path: \\\\.\\pipe\\docker_engine
+  when:
+    event:
+      exclude:
+      - pull_request
+
+volumes:
+- name: docker_pipe
+  host:
+    path: \\\\.\\pipe\\docker_engine
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- windows-1809-docker
+
+---
+kind: pipeline
+name: notifications-acr
+
+platform:
+  os: windows
+  arch: amd64
+  version: 1809
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/acr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_acr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- windows-1803-acr
+- windows-1809-acr
+
 ...
