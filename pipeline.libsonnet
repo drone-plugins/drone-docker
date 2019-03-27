@@ -190,7 +190,7 @@ local golang_image(os, version) =
           image: 'plugins/webhook',
           pull: 'always',
           settings: {
-            url: { from_secret: 'microbadger_' + name },
+            urls: { from_secret: 'microbadger_' + name },
           },
         },
       ],

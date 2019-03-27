@@ -257,7 +257,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_docker
 
 trigger:
@@ -474,7 +474,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_gcr
 
 trigger:
@@ -691,7 +691,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_ecr
 
 trigger:
