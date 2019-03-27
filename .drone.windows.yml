@@ -54,7 +54,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -67,7 +67,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -150,7 +150,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -163,7 +163,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -283,7 +283,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -296,7 +296,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -373,7 +373,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -386,7 +386,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -500,7 +500,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -513,7 +513,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1803
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -590,7 +590,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -603,7 +603,7 @@ steps:
   pull: always
   image: golang:1.11-windowsservercore-1809
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
