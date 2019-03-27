@@ -183,6 +183,7 @@ local golang_image(os, version) =
             password: { from_secret: 'docker_password' },
             spec: 'docker/' + name + '/manifest.tmpl',
             ignore_missing: true,
+            auto_tag: true,
           },
         },
         {
