@@ -183,6 +183,7 @@ local golang_image(os, version) =
             password: { from_secret: 'docker_password' },
             spec: 'docker/' + name + '/manifest.tmpl',
             ignore_missing: true,
+            auto_tag: true,
           },
         },
         {
@@ -190,7 +191,7 @@ local golang_image(os, version) =
           image: 'plugins/webhook',
           pull: 'always',
           settings: {
-            url: { from_secret: 'microbadger_' + name },
+            urls: { from_secret: 'microbadger_' + name },
           },
         },
       ],

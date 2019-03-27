@@ -246,6 +246,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -257,7 +258,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_docker
 
 trigger:
@@ -463,6 +464,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -474,7 +476,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_gcr
 
 trigger:
@@ -680,6 +682,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -691,7 +694,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_ecr
 
 trigger:
