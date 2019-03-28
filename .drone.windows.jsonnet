@@ -17,6 +17,13 @@ local pipeline = import 'pipeline.libsonnet';
     'windows-1809'
   ]),
 
+  pipeline.build('acr', 'windows', 'amd64', '1803'),
+  pipeline.build('acr', 'windows', 'amd64', '1809'),
+  pipeline.notifications('acr', 'windows', 'amd64', '1809', [
+    'windows-1803',
+    'windows-1809'
+  ]),
+
   pipeline.build('ecr', 'windows', 'amd64', '1803'),
   pipeline.build('ecr', 'windows', 'amd64', '1809'),
   pipeline.notifications('ecr', 'windows', 'amd64', '1809', [

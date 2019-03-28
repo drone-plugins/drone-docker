@@ -23,6 +23,7 @@ export GO111MODULE=on
 go build -v -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
 go build -v -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
 go build -v -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr
+go build -v -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr
 go build -v -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku
 ```
 
@@ -45,6 +46,11 @@ docker build \
   --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
   --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
   --file docker/ecr/Dockerfile.linux.amd64 --tag plugins/ecr .
+
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/acr/Dockerfile.linux.amd64 --tag plugins/acr .
 
 docker build \
   --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \

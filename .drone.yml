@@ -1145,4 +1145,276 @@ depends_on:
 - linux-arm64-heroku
 - linux-arm-heroku
 
+---
+kind: pipeline
+name: linux-amd64-acr
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.amd64
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    tags: linux-amd64
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:linux-amd64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.amd64
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-amd64-docker
+
+---
+kind: pipeline
+name: linux-arm64-acr
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.arm64
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    tags: linux-arm64
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:linux-arm64
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.arm64
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-arm64-docker
+
+---
+kind: pipeline
+name: linux-arm-acr
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: build-push
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  pull: always
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: dryrun
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.arm
+    dry_run: true
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    tags: linux-arm
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - pull_request
+
+- name: publish
+  pull: always
+  image: plugins/docker:linux-arm
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    daemon_off: false
+    dockerfile: docker/acr/Dockerfile.linux.arm
+    password:
+      from_secret: docker_password
+    repo: plugins/acr
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-arm-docker
+
+---
+kind: pipeline
+name: notifications-acr
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  pull: always
+  image: plugins/manifest
+  settings:
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/acr/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+- name: microbadger
+  pull: always
+  image: plugins/webhook
+  settings:
+    url:
+      from_secret: microbadger_acr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- linux-amd64-acr
+- linux-arm64-acr
+- linux-arm-acr
+
+
 ...
