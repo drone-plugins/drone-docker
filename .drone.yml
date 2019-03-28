@@ -52,7 +52,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -65,7 +65,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -136,7 +136,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -149,7 +149,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -220,7 +220,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -233,7 +233,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -304,6 +304,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -315,7 +316,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_docker
 
 trigger:
@@ -341,7 +342,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -354,7 +355,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -419,7 +420,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -432,7 +433,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -497,7 +498,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -510,7 +511,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -575,6 +576,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -586,7 +588,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_gcr
 
 trigger:
@@ -612,7 +614,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -625,7 +627,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -690,7 +692,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -703,7 +705,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -768,7 +770,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -781,7 +783,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -846,6 +848,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -857,7 +860,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_ecr
 
 trigger:
@@ -883,7 +886,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -896,7 +899,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -961,7 +964,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -974,7 +977,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -1039,7 +1042,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -1052,7 +1055,7 @@ steps:
   pull: always
   image: golang:1.11
   commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
   environment:
     CGO_ENABLED: 0
     GO111MODULE: on
@@ -1117,6 +1120,7 @@ steps:
   pull: always
   image: plugins/manifest
   settings:
+    auto_tag: true
     ignore_missing: true
     password:
       from_secret: docker_password
@@ -1128,7 +1132,7 @@ steps:
   pull: always
   image: plugins/webhook
   settings:
-    url:
+    urls:
       from_secret: microbadger_heroku
 
 trigger:
