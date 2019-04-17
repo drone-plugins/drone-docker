@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/dchest/uniuri"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -11,7 +12,8 @@ import (
 )
 
 var (
-	version = "unknown"
+	version  = "unknown"
+	hexChars = []byte("abcdef0123456789")
 )
 
 func main() {
@@ -242,6 +244,7 @@ func run(c *cli.Context) error {
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
+			Ref:         c.String("commit.sha"),
 			Name:        c.String("commit.sha"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
@@ -288,6 +291,14 @@ func run(c *cli.Context) error {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
 		}
+	}
+
+	// Make sure we always have a name when commit.sha is not available.
+	// See https://github.com/drone-plugins/drone-docker/issues/229
+	if plugin.Build.Name == "" {
+		// Use hex encoding as docker requires lowercase.
+		// Note: we can't use 64 characters as it conflicts with sha256 image hashes.
+		plugin.Build.Name = uniuri.NewLenChars(40, hexChars)
 	}
 
 	return plugin.Exec()
