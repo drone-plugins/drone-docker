@@ -253,6 +253,11 @@ func main() {
 			Usage:  "stream the build context",
 			EnvVar: "PLUGIN_STREAM",
 		},
+		cli.BoolFlag{
+			Name:   "push-target",
+			Usage:  "push the target image along the final image",
+			EnvVar: "PLUGIN_PUSH_TARGET",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -293,6 +298,7 @@ func run(c *cli.Context) error {
 			AddHost:       c.StringSlice("add-host"),
 			Quiet:         c.Bool("quiet"),
 			Stream:        c.Bool("stream"),
+			PushTarget:    c.Bool("push-target"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

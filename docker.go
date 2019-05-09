@@ -60,6 +60,7 @@ type (
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
 		Stream      bool     // Docker build stream
+		PushTarget  bool     // build final image and push built target
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -140,6 +141,11 @@ func (p Plugin) Exec() error {
 		p.Build.Stream = false
 	}
 
+	if p.Build.PushTarget && p.Build.Target == "" {
+		fmt.Println("Push target is only available when target is also set. Ignoring...")
+		p.Build.PushTarget = false
+	}
+
 	// add proxy build args
 	addProxyBuildArgs(&p.Build)
 
@@ -153,6 +159,20 @@ func (p Plugin) Exec() error {
 	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
+
+	// push the target if requested
+	if p.Build.PushTarget {
+		target := p.Build.Target
+		cmds = append(cmds, commandTag(p.Build, target)) // docker tag
+
+		// clear the target so a normal build can be done
+		p.Build.Target = ""
+		cmds = append(cmds, commandBuild(p.Build)) // docker build
+
+		if p.Dryrun == false {
+			cmds = append(cmds, commandPush(p.Build, target)) // docker push
+		}
+	}
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
