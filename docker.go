@@ -59,6 +59,7 @@ type (
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
+		Stream      bool     // Docker build stream
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -132,6 +133,11 @@ func (p Plugin) Exec() error {
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false
+	}
+
+	if p.Build.Stream && !p.Daemon.Experimental {
+		fmt.Println("Stream build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
+		p.Build.Stream = false
 	}
 
 	// add proxy build args
@@ -236,6 +242,9 @@ func commandBuild(build Build) *exec.Cmd {
 	args = append(args, build.Context)
 	if build.Squash {
 		args = append(args, "--squash")
+	}
+	if build.Stream {
+		args = append(args, "--stream")
 	}
 	if build.Compress {
 		args = append(args, "--compress")

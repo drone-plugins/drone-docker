@@ -248,6 +248,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.BoolFlag{
+			Name:   "stream",
+			Usage:  "stream the build context",
+			EnvVar: "PLUGIN_STREAM",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -287,6 +292,7 @@ func run(c *cli.Context) error {
 			NoCache:       c.Bool("no-cache"),
 			AddHost:       c.StringSlice("add-host"),
 			Quiet:         c.Bool("quiet"),
+			Stream:        c.Bool("stream"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
