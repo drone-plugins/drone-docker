@@ -53,6 +53,7 @@ type (
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
+		ShmSize     string   // Docker build shm-size
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -206,6 +207,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.NoCache {
 		args = append(args, "--no-cache")
+	}
+	if build.ShmSize != "" {
+		args = append(args, "--shm-size", build.ShmSize)
 	}
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
