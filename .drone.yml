@@ -81,7 +81,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.amd64
@@ -98,7 +98,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -165,7 +165,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm64
@@ -182,7 +182,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
@@ -249,7 +249,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/docker/Dockerfile.linux.arm
@@ -266,7 +266,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
@@ -365,7 +365,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.amd64
@@ -382,7 +382,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -443,7 +443,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm64
@@ -460,7 +460,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
@@ -521,7 +521,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/gcr/Dockerfile.linux.arm
@@ -538,7 +538,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
@@ -637,7 +637,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.amd64
@@ -654,7 +654,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -715,7 +715,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm64
@@ -732,7 +732,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
@@ -793,7 +793,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/ecr/Dockerfile.linux.arm
@@ -810,7 +810,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
@@ -909,7 +909,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.amd64
@@ -926,7 +926,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -987,7 +987,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm64
@@ -1004,7 +1004,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
@@ -1065,7 +1065,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/heroku/Dockerfile.linux.arm
@@ -1082,7 +1082,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
@@ -1181,7 +1181,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/acr/Dockerfile.linux.amd64
@@ -1198,7 +1198,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-amd64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -1259,7 +1259,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/acr/Dockerfile.linux.arm64
@@ -1276,7 +1276,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm64
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm64
@@ -1337,7 +1337,7 @@ steps:
 
 - name: dryrun
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     daemon_off: false
     dockerfile: docker/acr/Dockerfile.linux.arm
@@ -1354,7 +1354,7 @@ steps:
 
 - name: publish
   pull: always
-  image: plugins/docker:linux-arm
+  image: plugins/docker:18
   settings:
     auto_tag: true
     auto_tag_suffix: linux-arm
