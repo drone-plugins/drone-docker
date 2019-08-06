@@ -315,6 +315,7 @@ steps:
 - name: microbadger
   pull: always
   image: plugins/webhook
+  failure: ignore
   settings:
     urls:
       from_secret: microbadger_docker
@@ -587,6 +588,7 @@ steps:
 - name: microbadger
   pull: always
   image: plugins/webhook
+  failure: ignore
   settings:
     urls:
       from_secret: microbadger_gcr
@@ -859,6 +861,7 @@ steps:
 - name: microbadger
   pull: always
   image: plugins/webhook
+  failure: ignore
   settings:
     urls:
       from_secret: microbadger_ecr
@@ -1131,6 +1134,7 @@ steps:
 - name: microbadger
   pull: always
   image: plugins/webhook
+  failure: ignore
   settings:
     urls:
       from_secret: microbadger_heroku
@@ -1402,6 +1406,7 @@ steps:
 - name: microbadger
   pull: always
   image: plugins/webhook
+  failure: ignore
   settings:
     url:
       from_secret: microbadger_acr
