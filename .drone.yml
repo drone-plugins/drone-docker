@@ -364,7 +364,7 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-- windows-amd64-docker
+- windows-1809-amd64-docker
 - linux-amd64-docker
 - linux-arm64-docker
 - linux-arm-docker
