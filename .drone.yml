@@ -61,7 +61,7 @@ steps:
   # publish docker images for tag events.
   - go build -o release/windows/amd64/drone-docker.exe
   - docker login -u $env:USERNAME -p $env:PASSWORD
-  - docker build -f docker/Dockerfile.windows.1809 -t plugins/docker:windows-1809-amd64 .
+  - docker build -f docker/docker/Dockerfile.windows.1809 -t plugins/docker:windows-1809-amd64 .
   - docker push plugins/docker:windows-1809-amd64
   environment:
     CGO_ENABLED: "0"
@@ -99,7 +99,7 @@ steps:
   # publish docker images for tag events.
   - go build -o release/windows/amd64/drone-docker.exe
   - docker login -u $env:USERNAME -p $env:PASSWORD
-  - docker build -f docker/Dockerfile.windows.1903 -t plugins/docker:windows-1903-amd64 .
+  - docker build -f docker/docker/Dockerfile.windows.1903 -t plugins/docker:windows-1903-amd64 .
   - docker push plugins/docker:windows-1903-amd64
   environment:
     CGO_ENABLED: "0"
