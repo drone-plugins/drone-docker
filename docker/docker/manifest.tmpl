@@ -24,7 +24,7 @@ manifests:
       os: linux
       variant: v7
   -
-    image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-1803
+    image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-1803-amd64
     platform:
       architecture: amd64
       os: windows
