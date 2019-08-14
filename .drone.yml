@@ -59,7 +59,7 @@ steps:
   commands:
   # TODO use the new DRONE_SEMVER_SHORT environment variables to
   # publish docker images for tag events.
-  - go build -o release/windows/amd64/drone-docker.exe
+  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - docker login -u $env:USERNAME -p $env:PASSWORD
   - docker build -f docker/docker/Dockerfile.windows.1809 -t plugins/docker:windows-1809-amd64 .
   - docker push plugins/docker:windows-1809-amd64
@@ -97,7 +97,7 @@ steps:
   commands:
   # TODO use the new DRONE_SEMVER_SHORT environment variables to
   # publish docker images for tag events.
-  - go build -o release/windows/amd64/drone-docker.exe
+  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - docker login -u $env:USERNAME -p $env:PASSWORD
   - docker build -f docker/docker/Dockerfile.windows.1903 -t plugins/docker:windows-1903-amd64 .
   - docker push plugins/docker:windows-1903-amd64
