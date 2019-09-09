@@ -20,7 +20,7 @@ func (p Plugin) startDaemon() {
 		cmd.Stderr = ioutil.Discard
 	}
 	go func() {
-		trace(cmd)
+		trace(os.Stdout, cmd)
 		cmd.Run()
 	}()
 }

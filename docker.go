@@ -2,8 +2,10 @@ package docker
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -129,7 +131,7 @@ func (p Plugin) Exec() error {
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		trace(cmd)
+		trace(os.Stdout, cmd)
 
 		err := cmd.Run()
 		if err != nil && isCommandPull(cmd.Args) {
@@ -345,8 +347,12 @@ func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
 }
 
+
 // trace writes each command to stdout with the command wrapped in an xml
 // tag so that it can be extracted and displayed in the logs.
-func trace(cmd *exec.Cmd) {
-	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
+func trace(out io.Writer, cmd *exec.Cmd) {
+	line := strings.Join(cmd.Args, " ")
+	re := regexp.MustCompile(`(--build-arg ([a-zA-z_])*=)(\S*)`)
+	line = re.ReplaceAllString(line, "$1{redacted}")
+	fmt.Fprintf(out, "+ %s\n",line)
 }
