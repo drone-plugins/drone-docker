@@ -44,7 +44,6 @@ func main() {
 	}
 
 	sess, err := session.NewSession(&aws.Config{Region: &region})
-	
 	if err != nil {
 		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
 	}
@@ -185,6 +184,7 @@ func getECRClient(sess *session.Session, role string) *ecr.ECR {
 	if role == "" {
 		return ecr.New(sess)
 	}
-	creds := stscreds.NewCredentials(sess, role)
-	return ecr.New(sess, &aws.Config{Credentials: creds})
+	return ecr.New(sess, &aws.Config{
+		Credentials: stscreds.NewCredentials(sess, role),
+	})
 }
