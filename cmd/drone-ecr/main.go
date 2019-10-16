@@ -22,6 +22,7 @@ const defaultRegion = "us-east-1"
 func main() {
 	var (
 		repo             = getenv("PLUGIN_REPO")
+		registry         = getenv("PLUGIN_REGISTRY")
 		region           = getenv("PLUGIN_REGION", "ECR_REGION", "AWS_REGION")
 		key              = getenv("PLUGIN_ACCESS_KEY", "ECR_ACCESS_KEY", "AWS_ACCESS_KEY_ID")
 		secret           = getenv("PLUGIN_SECRET_KEY", "ECR_SECRET_KEY", "AWS_SECRET_ACCESS_KEY")
@@ -49,7 +50,12 @@ func main() {
 	}
 
 	svc := getECRClient(sess, assumeRole)
-	username, password, registry, err := getAuthInfo(svc)
+	username, password, defaultRegistry, err := getAuthInfo(svc)
+
+	if registry == "" {
+		registry = defaultRegistry
+	}
+
 	if err != nil {
 		log.Fatal(fmt.Sprintf("error getting ECR auth: %v", err))
 	}
