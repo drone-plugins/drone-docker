@@ -48,6 +48,11 @@ func main() {
 			EnvVar: "DRONE_COMMIT_REF",
 		},
 		cli.StringFlag{
+			Name:   "build.number",
+			Usage:  "drone build number",
+			EnvVar: "DRONE_BUILD_NUMBER",
+		},
+		cli.StringFlag{
 			Name:   "daemon.mirror",
 			Usage:  "docker daemon registry mirror",
 			EnvVar: "PLUGIN_MIRROR",
@@ -257,6 +262,7 @@ func run(c *cli.Context) error {
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
+			Number:      c.String("build.number"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
