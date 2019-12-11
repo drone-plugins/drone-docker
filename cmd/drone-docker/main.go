@@ -223,6 +223,11 @@ func main() {
 			Usage:  "do not use cached intermediate containers",
 			EnvVar: "PLUGIN_NO_CACHE",
 		},
+		cli.StringFlag{
+			Name:   "network",
+			Usage:  "networking mode during build",
+			EnvVar: "PLUGIN_NETWORK",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -257,6 +262,7 @@ func run(c *cli.Context) error {
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
+			Network:     c.String("network"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

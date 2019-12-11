@@ -52,6 +52,7 @@ type (
 		LabelSchema []string // label-schema Label map
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
+		Network     string   // Docker build networking mode
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -217,6 +218,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
+	}
+	if build.Network != "" {
+		args = append(args, "--network", build.Network)
 	}
 
 	labelSchema := []string{
