@@ -223,6 +223,11 @@ func main() {
 			Usage:  "do not use cached intermediate containers",
 			EnvVar: "PLUGIN_NO_CACHE",
 		},
+		cli.StringSliceFlag{
+			Name:   "add-host",
+			Usage:  "additional host:IP mapping",
+			EnvVar: "PLUGIN_ADD_HOST",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -257,6 +262,7 @@ func run(c *cli.Context) error {
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
+			AddHost:     c.StringSlice("add-host"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
