@@ -11,6 +11,4 @@ require (
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
 
-replace github.com/urfave/cli => github.com/bradrydzewski/cli v1.19.1
-
 go 1.13
