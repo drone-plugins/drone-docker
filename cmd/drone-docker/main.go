@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/drone-plugins/drone-docker"
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -92,6 +92,21 @@ func main() {
 			Name:   "daemon.ipv6",
 			Usage:  "docker daemon IPv6 networking",
 			EnvVar: "PLUGIN_IPV6",
+		},
+		cli.StringSliceFlag{
+			Name:   "daemon.http_proxy",
+			Usage:  "docker daemon http proxy server",
+			EnvVar: "PLUGIN_HTTP_PROXY",
+		},
+		cli.StringSliceFlag{
+			Name:   "daemon.https_proxy",
+			Usage:  "docker daemon https proxy server",
+			EnvVar: "PLUGIN_HTTPS_PROXY",
+		},
+		cli.StringSliceFlag{
+			Name:   "daemon.noproxy",
+			Usage:  "docker daemon noproxy settings",
+			EnvVar: "PLUGIN_NOPROXY",
 		},
 		cli.BoolFlag{
 			Name:   "daemon.experimental",
@@ -265,6 +280,7 @@ func run(c *cli.Context) error {
 			AddHost:     c.StringSlice("add-host"),
 		},
 		Daemon: docker.Daemon{
+			//Name:   "daemon.http_proxy",
 			Registry:      c.String("docker.registry"),
 			Mirror:        c.String("daemon.mirror"),
 			StorageDriver: c.String("daemon.storage-driver"),
@@ -277,6 +293,9 @@ func run(c *cli.Context) error {
 			DNS:           c.StringSlice("daemon.dns"),
 			DNSSearch:     c.StringSlice("daemon.dns-search"),
 			MTU:           c.String("daemon.mtu"),
+			HTTPProxy:     c.String("docker.http_proxy"),
+			HTTPSProxy:    c.String("docker.https_proxy"),
+			NoProxy:       c.String("docker.noproxy"),
 			Experimental:  c.Bool("daemon.experimental"),
 		},
 	}

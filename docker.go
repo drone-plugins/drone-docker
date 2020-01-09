@@ -24,6 +24,9 @@ type (
 		MTU           string   // Docker daemon mtu setting
 		IPv6          bool     // Docker daemon IPv6 networking
 		Experimental  bool     // Docker daemon enable experimental mode
+		HTTPProxy     string   // Docker daemon http proxy
+		HTTPSProxy    string   // Docker daemon https proxy
+		NoProxy       string   // Docker daemon noproxy settings
 	}
 
 	// Login defines Docker login parameters.
@@ -69,6 +72,7 @@ type (
 func (p Plugin) Exec() error {
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
+		p.setProxyConfig()
 		p.startDaemon()
 	}
 
