@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/drone-plugins/drone-docker"
+	"github.com/jlehtimaki/drone-docker"
 )
 
 var (
@@ -121,11 +121,10 @@ func main() {
 			EnvVar: "PLUGIN_CONTEXT",
 		},
 		cli.StringSliceFlag{
-			Name:     "tags",
-			Usage:    "build tags",
-			Value:    &cli.StringSlice{"latest"},
-			EnvVar:   "PLUGIN_TAG,PLUGIN_TAGS",
-			FilePath: ".tags",
+			Name:   "tags",
+			Usage:  "build tags",
+			Value:  &cli.StringSlice{"latest"},
+			EnvVar: "PLUGIN_TAG,PLUGIN_TAGS",
 		},
 		cli.BoolFlag{
 			Name:   "tags.auto",
@@ -228,6 +227,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringFlag{
+			Name:   "git.url",
+			Usage:  "git repository to fetch",
+			EnvVar: "PLUGIN_GITURL",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -263,6 +267,7 @@ func run(c *cli.Context) error {
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
+			GitUrl:      c.String("git.url"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

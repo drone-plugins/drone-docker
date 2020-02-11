@@ -1,4 +1,4 @@
-module github.com/drone-plugins/drone-docker
+module github.com/jlehtimaki/drone-docker
 
 require (
 	github.com/aws/aws-sdk-go v1.16.15
@@ -11,4 +11,4 @@ require (
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
 
-replace github.com/urfave/cli => github.com/bradrydzewski/cli v0.0.0-20190108225652-0d51abd87c77
+go 1.13

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 )
@@ -53,6 +54,7 @@ type (
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
+		GitUrl      string   // Git URL to fetch external REPO
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -111,6 +113,12 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
+	// fetch remote git repository and set dockerfile
+	if p.Build.GitUrl != "" {
+		cmds = append(cmds, commandGit(p.Build))
+	}
+
+	//cmds = append(cmds, exec.Command("cd",trimGitUrl(p.Build.GitUrl)))
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
@@ -126,12 +134,15 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPrune())           // docker system prune -f
 	}
 
+
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		trace(cmd)
 
+		if strings.Contains(cmd.String(), "build") && p.Build.GitUrl != "" {
+			cmd.Dir = trimGitUrl(p.Build.GitUrl)
+		}
 		err := cmd.Run()
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
@@ -154,6 +165,10 @@ func commandLogin(login Login) *exec.Cmd {
 		"-p", login.Password,
 		login.Registry,
 	)
+}
+
+func commandGit(build Build) *exec.Cmd {
+	return exec.Command("git","clone", build.GitUrl)
 }
 
 // helper to check if args match "docker pull <image>"
@@ -347,6 +362,10 @@ func commandPrune() *exec.Cmd {
 
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
+}
+
+func trimGitUrl(gitUrl string) string {
+	return strings.TrimRight(path.Base(gitUrl), ".git")
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
