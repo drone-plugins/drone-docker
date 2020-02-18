@@ -228,7 +228,7 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "secret",
 			Usage:  "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret",
 			EnvVar: "PLUGIN_SECRET",
@@ -268,7 +268,7 @@ func run(c *cli.Context) error {
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
-			Secret:      c.String("secret"),
+			Secrets:     c.StringSlice("secret"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

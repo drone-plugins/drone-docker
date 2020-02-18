@@ -53,7 +53,7 @@ type (
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
-		Secret      string   // Docker build secret
+		Secrets     []string // Docker build secret
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -223,8 +223,8 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
 	}
-	if build.Secret != "" {
-		args = append(args, "--secret", build.Secret)
+	for _, secret := range build.Secrets {
+		args = append(args, "--secret", secret)
 	}
 
 	labelSchema := []string{
