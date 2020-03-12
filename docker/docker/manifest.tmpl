@@ -41,3 +41,9 @@ manifests:
       architecture: amd64
       os: windows
       version: 1903
+  -
+    image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-1909-amd64
+    platform:
+      architecture: amd64
+      os: windows
+      version: 1909
