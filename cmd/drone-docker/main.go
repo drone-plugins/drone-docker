@@ -208,6 +208,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "docker.authconfig",
+			Usage:  "docker json authconfig content",
+			EnvVar: "PLUGIN_AUTHCONFIG,DOCKER_AUTHCONFIG",
+		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
 			Usage:  "docker should cleanup images",
@@ -240,10 +245,11 @@ func run(c *cli.Context) error {
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: c.BoolT("docker.purge"),
 		Login: docker.Login{
-			Registry: c.String("docker.registry"),
-			Username: c.String("docker.username"),
-			Password: c.String("docker.password"),
-			Email:    c.String("docker.email"),
+			Registry:   c.String("docker.registry"),
+			Username:   c.String("docker.username"),
+			Password:   c.String("docker.password"),
+			Email:      c.String("docker.email"),
+			AuthConfig: c.String("docker.authconfig"),
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),

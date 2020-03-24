@@ -28,10 +28,11 @@ type (
 
 	// Login defines Docker login parameters.
 	Login struct {
-		Registry string // Docker registry address
-		Username string // Docker registry username
-		Password string // Docker registry password
-		Email    string // Docker registry email
+		Registry   string // Docker registry address
+		Username   string // Docker registry username
+		Password   string // Docker registry password
+		Email      string // Docker registry email
+		AuthConfig string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
@@ -83,6 +84,35 @@ func (p Plugin) Exec() error {
 		time.Sleep(time.Second * 1)
 	}
 
+	// Create Auth Config File
+	if p.Login.AuthConfig != "" {
+		fmt.Println("AuthConfig provided.")
+		err_mkdir := os.MkdirAll("/root/.docker", 0600)
+		if err_mkdir != nil {
+			fmt.Println("Error creating root's docker auth config directory: ")
+			fmt.Println(err_mkdir)
+		}
+		cfile, err_create := os.Create("/root/.docker/config.json")
+		if err_create != nil {
+			fmt.Println("Error creating root's docker auth config file: ")
+			fmt.Println(err_create)
+			cfile.Close()
+		}
+		err_chmod := os.Chmod("/root/.docker/config.json", 0600)
+		if err_chmod != nil {
+			fmt.Println("Error setting permissions on root's docker auth config file: ")
+			fmt.Println(err_chmod)
+		}
+		_, err_str := cfile.WriteString(p.Login.AuthConfig)
+		if err_str != nil {
+			fmt.Println("Error filling root's docker auth config file: ")
+			fmt.Println(err_str)
+		} else {
+			cfile.Close()
+		}
+
+	}
+
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
@@ -93,7 +123,7 @@ func (p Plugin) Exec() error {
 	} else {
 		fmt.Println("Registry credentials not provided. Guest mode enabled.")
 	}
-
+	
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false
