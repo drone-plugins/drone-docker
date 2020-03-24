@@ -209,9 +209,9 @@ func main() {
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
 		cli.StringFlag{
-			Name:   "docker.docker_config",
+			Name:   "docker.config",
 			Usage:  "docker json dockerconfig content",
-			EnvVar: "PLUGIN_DOCKER_CONFIG,DOCKER_CONFIG",
+			EnvVar: "PLUGIN_CONFIG",
 		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
@@ -249,7 +249,7 @@ func run(c *cli.Context) error {
 			Username:   c.String("docker.username"),
 			Password:   c.String("docker.password"),
 			Email:      c.String("docker.email"),
-			DockerConfig: c.String("docker.docker_config"),
+			DockerConfig: c.String("docker.config"),
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
