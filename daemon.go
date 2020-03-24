@@ -9,6 +9,7 @@ import (
 
 const dockerExe = "/usr/local/bin/docker"
 const dockerdExe = "/usr/local/bin/dockerd"
+const dockerrootconfdir = "/root/.docker/"
 
 func (p Plugin) startDaemon() {
 	cmd := commandDaemon(p.Daemon)
