@@ -2,11 +2,12 @@ package docker
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
-	"io/ioutil"
 )
 
 type (
@@ -29,11 +30,11 @@ type (
 
 	// Login defines Docker login parameters.
 	Login struct {
-		Registry   string // Docker registry address
-		Username   string // Docker registry username
-		Password   string // Docker registry password
-		Email      string // Docker registry email
-		DockerConfig string // Docker Auth Config
+		Registry string // Docker registry address
+		Username string // Docker registry username
+		Password string // Docker registry password
+		Email    string // Docker registry email
+		Config   string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
@@ -86,18 +87,13 @@ func (p Plugin) Exec() error {
 	}
 
 	// Create Auth Config File
-	if p.Login.DockerConfig != "" {
-		fmt.Println("DockerConfig provided.")
-		err_mkdir := os.MkdirAll(dockerrootconfdir, 0600)
-		if err_mkdir != nil {
-			fmt.Println("Error creating root's docker auth config directory: ")
-			fmt.Println(err_mkdir)
-		}
-		conffile := fmt.Sprintf("%s%s", dockerrootconfdir, "config.json")
-		err_mkconf := ioutil.WriteFile(conffile, []byte(p.Login.DockerConfig), 0600)
-		if err_mkconf != nil {
-			fmt.Println("Error creating root's docker auth configuration: ")
-			fmt.Println(err_mkconf)
+	if p.Login.Config != "" {
+		os.MkdirAll(dockerHome, 0600)
+
+		path := filepath.Join(dockerHome, "config.json")
+		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
+		if err != nil {
+			return fmt.Errorf("Error writeing config.json: %s", err)
 		}
 	}
 
@@ -108,12 +104,17 @@ func (p Plugin) Exec() error {
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)
 		}
-	} 
+	}
 
-	if p.Login.Password != "" && p.Login.DockerConfig != "" {
+	switch {
+	case p.Login.Password != "":
+		fmt.Println("Detected registry credentials")
+	case p.Login.Config != "":
+		fmt.Println("Detected registry credentials file")
+	default:
 		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
-	
+
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false

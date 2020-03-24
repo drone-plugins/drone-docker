@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/drone-plugins/drone-docker"
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -245,11 +245,11 @@ func run(c *cli.Context) error {
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: c.BoolT("docker.purge"),
 		Login: docker.Login{
-			Registry:   c.String("docker.registry"),
-			Username:   c.String("docker.username"),
-			Password:   c.String("docker.password"),
-			Email:      c.String("docker.email"),
-			DockerConfig: c.String("docker.config"),
+			Registry: c.String("docker.registry"),
+			Username: c.String("docker.username"),
+			Password: c.String("docker.password"),
+			Email:    c.String("docker.email"),
+			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
