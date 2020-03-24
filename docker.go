@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"io/ioutil"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 		Username   string // Docker registry username
 		Password   string // Docker registry password
 		Email      string // Docker registry email
-		AuthConfig string // Docker Auth Config
+		DockerConfig string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
@@ -85,32 +86,19 @@ func (p Plugin) Exec() error {
 	}
 
 	// Create Auth Config File
-	if p.Login.AuthConfig != "" {
-		fmt.Println("AuthConfig provided.")
-		err_mkdir := os.MkdirAll("/root/.docker", 0600)
+	if p.Login.DockerConfig != "" {
+		fmt.Println("DockerConfig provided.")
+		err_mkdir := os.MkdirAll(dockerrootconfdir, 0600)
 		if err_mkdir != nil {
 			fmt.Println("Error creating root's docker auth config directory: ")
 			fmt.Println(err_mkdir)
 		}
-		cfile, err_create := os.Create("/root/.docker/config.json")
-		if err_create != nil {
-			fmt.Println("Error creating root's docker auth config file: ")
-			fmt.Println(err_create)
-			cfile.Close()
+		conffile := fmt.Sprintf("%s%s", dockerrootconfdir, "config.json")
+		err_mkconf := ioutil.WriteFile(conffile, []byte(p.Login.DockerConfig), 0600)
+		if err_mkconf != nil {
+			fmt.Println("Error creating root's docker auth configuration: ")
+			fmt.Println(err_mkconf)
 		}
-		err_chmod := os.Chmod("/root/.docker/config.json", 0600)
-		if err_chmod != nil {
-			fmt.Println("Error setting permissions on root's docker auth config file: ")
-			fmt.Println(err_chmod)
-		}
-		_, err_str := cfile.WriteString(p.Login.AuthConfig)
-		if err_str != nil {
-			fmt.Println("Error filling root's docker auth config file: ")
-			fmt.Println(err_str)
-		} else {
-			cfile.Close()
-		}
-
 	}
 
 	// login to the Docker registry
@@ -120,8 +108,10 @@ func (p Plugin) Exec() error {
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)
 		}
-	} else {
-		fmt.Println("Registry credentials not provided. Guest mode enabled.")
+	} 
+
+	if p.Login.Password != "" && p.Login.DockerConfig != "" {
+		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
 	
 	if p.Build.Squash && !p.Daemon.Experimental {
