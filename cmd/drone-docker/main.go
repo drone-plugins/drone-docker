@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/drone-plugins/drone-docker"
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -208,6 +208,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "docker.config",
+			Usage:  "docker json dockerconfig content",
+			EnvVar: "PLUGIN_CONFIG",
+		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
 			Usage:  "docker should cleanup images",
@@ -244,6 +249,7 @@ func run(c *cli.Context) error {
 			Username: c.String("docker.username"),
 			Password: c.String("docker.password"),
 			Email:    c.String("docker.email"),
+			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),

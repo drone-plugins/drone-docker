@@ -2,8 +2,10 @@ package docker
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -32,6 +34,7 @@ type (
 		Username string // Docker registry username
 		Password string // Docker registry password
 		Email    string // Docker registry email
+		Config   string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
@@ -83,6 +86,17 @@ func (p Plugin) Exec() error {
 		time.Sleep(time.Second * 1)
 	}
 
+	// Create Auth Config File
+	if p.Login.Config != "" {
+		os.MkdirAll(dockerHome, 0600)
+
+		path := filepath.Join(dockerHome, "config.json")
+		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
+		if err != nil {
+			return fmt.Errorf("Error writeing config.json: %s", err)
+		}
+	}
+
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
@@ -90,8 +104,15 @@ func (p Plugin) Exec() error {
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)
 		}
-	} else {
-		fmt.Println("Registry credentials not provided. Guest mode enabled.")
+	}
+
+	switch {
+	case p.Login.Password != "":
+		fmt.Println("Detected registry credentials")
+	case p.Login.Config != "":
+		fmt.Println("Detected registry credentials file")
+	default:
+		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
 
 	if p.Build.Squash && !p.Daemon.Experimental {
