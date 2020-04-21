@@ -251,7 +251,7 @@ func normalizeTags(originalTags []string) []string {
 	for _, tag := range originalTags {
 		normalizedTag := tag
 		for _, char := range disallowedCharacters {
-			normalizedTag = strings.ReplaceAll(normalizedTag, char, "-")
+			normalizedTag = strings.Replace(normalizedTag, char, "-", -1)
 		}
 		tags = append(tags, normalizedTag)
 	}
