@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -137,6 +138,11 @@ func main() {
 			Usage:  "default build tags with suffix",
 			EnvVar: "PLUGIN_DEFAULT_SUFFIX,PLUGIN_AUTO_TAG_SUFFIX",
 		},
+		cli.BoolFlag{
+			Name:        "tags.normalize",
+			Usage:       "replace invalid docker tag characters with -",
+			EnvVar:      "PLUGIN_TAGS.NORMALIZE",
+		},
 		cli.StringSliceFlag{
 			Name:   "args",
 			Usage:  "build args",
@@ -236,6 +242,27 @@ func main() {
 }
 
 func run(c *cli.Context) error {
+
+	var tags []string
+	if c.Bool("tags.normalize") {
+		logrus.Print("Normalizing tags")
+		disallowedCharacters := []string{
+			"!", "\"", "#", "$", "%", "&", "'", "(", ")",
+			"*", "+", ",", "/", ":", ";", "<", "=", ">",
+			"?", "@", "[", "]", "\\", "^", "`", "{", "|",
+			"}", "~"}
+		for _, tag := range c.StringSlice("tags") {
+			normalizedTag := tag
+			for _, char := range disallowedCharacters {
+				normalizedTag = strings.ReplaceAll(normalizedTag, char, "-")
+			}
+			logrus.Printf("normalizing %s to %s", tag, normalizedTag)
+			tags = append(tags, normalizedTag)
+		}
+	} else {
+		tags = c.StringSlice("tags")
+	}
+
 	plugin := docker.Plugin{
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: c.BoolT("docker.purge"),
@@ -250,7 +277,7 @@ func run(c *cli.Context) error {
 			Name:        c.String("commit.sha"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
-			Tags:        c.StringSlice("tags"),
+			Tags:        tags,
 			Args:        c.StringSlice("args"),
 			ArgsEnv:     c.StringSlice("args-from-env"),
 			Target:      c.String("target"),
