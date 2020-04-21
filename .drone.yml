@@ -101,6 +101,7 @@ steps:
 - name: publish
   pull: always
   image: plugins/docker:linux-amd64
+  privileged: true
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -179,6 +180,7 @@ steps:
 - name: publish
   pull: always
   image: plugins/docker:linux-amd64
+  privileged: true
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
