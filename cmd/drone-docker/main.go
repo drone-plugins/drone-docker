@@ -241,24 +241,28 @@ func main() {
 	}
 }
 
+func normalizeTags(originalTags []string) []string {
+	disallowedCharacters := []string{
+		"!", "\"", "#", "$", "%", "&", "'", "(", ")",
+		"*", "+", ",", "/", ":", ";", "<", "=", ">",
+		"?", "@", "[", "]", "\\", "^", "`", "{", "|",
+		"}", "~"}
+	var tags []string
+	for _, tag := range originalTags {
+		normalizedTag := tag
+		for _, char := range disallowedCharacters {
+			normalizedTag = strings.ReplaceAll(normalizedTag, char, "-")
+		}
+		tags = append(tags, normalizedTag)
+	}
+	return tags
+}
+
 func run(c *cli.Context) error {
 
 	var tags []string
 	if c.Bool("tags.normalize") {
-		logrus.Print("Normalizing tags")
-		disallowedCharacters := []string{
-			"!", "\"", "#", "$", "%", "&", "'", "(", ")",
-			"*", "+", ",", "/", ":", ";", "<", "=", ">",
-			"?", "@", "[", "]", "\\", "^", "`", "{", "|",
-			"}", "~"}
-		for _, tag := range c.StringSlice("tags") {
-			normalizedTag := tag
-			for _, char := range disallowedCharacters {
-				normalizedTag = strings.ReplaceAll(normalizedTag, char, "-")
-			}
-			logrus.Printf("normalizing %s to %s", tag, normalizedTag)
-			tags = append(tags, normalizedTag)
-		}
+		tags = normalizeTags(c.StringSlice("tags"))
 	} else {
 		tags = c.StringSlice("tags")
 	}
