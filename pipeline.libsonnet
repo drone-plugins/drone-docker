@@ -14,12 +14,8 @@ local golang_image(os, version) =
     local volumes = if is_windows then [{name: 'gopath', path: 'C:\\\\gopath'}] else [{name: 'gopath', path: '/go',}];
     {
       kind: 'pipeline',
+      type: 'kubernetes',
       name: test_pipeline_name,
-      platform: {
-        os: os,
-        arch: arch,
-        version: if std.length(version) > 0 then version,
-      },
       steps: [
         {
           name: 'vet',
@@ -67,12 +63,8 @@ local golang_image(os, version) =
     local depends_on = if name == 'docker' then [test_pipeline_name] else [tag + '-docker'];
     {
       kind: 'pipeline',
+      type: 'kubernetes',
       name: tag + '-' + name,
-      platform: {
-        os: os,
-        arch: arch,
-        version: if std.length(version) > 0 then version,
-      },
       steps: [
         {
           name: 'build-push',

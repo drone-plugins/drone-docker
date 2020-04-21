@@ -1,5 +1,6 @@
 ---
 kind: pipeline
+type: kubernetes
 name: testing
 
 platform:
@@ -41,6 +42,7 @@ trigger:
 
 ---
 kind: pipeline
+type: kubernetes
 name: linux-amd64-docker
 
 platform:
@@ -124,6 +126,7 @@ depends_on:
 
 ---
 kind: pipeline
+type: kubernetes
 name: linux-amd64-gcr
 
 platform:
