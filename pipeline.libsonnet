@@ -142,7 +142,7 @@ local golang_image(os, version) =
             daemon_off: if is_windows then 'true' else 'false',
             dockerfile: 'docker/' + name + '/Dockerfile.' + file_suffix,
             repo: plugin_repo,
-            username: _json_key,
+            username: "_json_key",
             password: { from_secret: 'dockerconfigjson' },
           },
           volumes: if std.length(volumes) > 0 then volumes,
