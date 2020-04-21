@@ -90,6 +90,7 @@ steps:
     dry_run: true
     password:
       from_secret: docker_password
+    registry: gcr.io
     repo: gcr.io/cyrus-containers/drone-plugins/docker
     tags: linux-amd64
     username:
@@ -101,7 +102,6 @@ steps:
 - name: publish
   pull: always
   image: plugins/docker:linux-amd64
-  privileged: true
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -109,8 +109,10 @@ steps:
     dockerfile: docker/docker/Dockerfile.linux.amd64
     password:
       from_secret: dockerconfigjson
+    registry: gcr.io
     repo: gcr.io/cyrus-containers/drone-plugins/docker
     username: _json_key
+  privileged: true
   when:
     event:
       exclude:
@@ -169,6 +171,7 @@ steps:
     dry_run: true
     password:
       from_secret: docker_password
+    registry: gcr.io
     repo: gcr.io/cyrus-containers/drone-plugins/gcr
     tags: linux-amd64
     username:
@@ -180,7 +183,6 @@ steps:
 - name: publish
   pull: always
   image: plugins/docker:linux-amd64
-  privileged: true
   settings:
     auto_tag: true
     auto_tag_suffix: linux-amd64
@@ -188,8 +190,10 @@ steps:
     dockerfile: docker/gcr/Dockerfile.linux.amd64
     password:
       from_secret: dockerconfigjson
+    registry: gcr.io
     repo: gcr.io/cyrus-containers/drone-plugins/gcr
     username: _json_key
+  privileged: true
   when:
     event:
       exclude:

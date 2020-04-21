@@ -113,6 +113,7 @@ local golang_image(os, version) =
           settings: {
             dry_run: true,
             tags: tag,
+            registry: 'gcr.io',
             dockerfile: 'docker/'+ name +'/Dockerfile.' + file_suffix,
             daemon_off: if is_windows then 'true' else 'false',
             repo: plugin_repo,
@@ -128,9 +129,11 @@ local golang_image(os, version) =
           name: 'publish',
           image: 'plugins/docker:' + tag,
           pull: 'always',
+          privileged: true,
           settings: {
             auto_tag: true,
             auto_tag_suffix: tag,
+            registry: "gcr.io",
             daemon_off: if is_windows then 'true' else 'false',
             dockerfile: 'docker/' + name + '/Dockerfile.' + file_suffix,
             repo: plugin_repo,
