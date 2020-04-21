@@ -14,12 +14,8 @@ local golang_image(os, version) =
     local volumes = if is_windows then [{name: 'gopath', path: 'C:\\\\gopath'}] else [{name: 'gopath', path: '/go',}];
     {
       kind: 'pipeline',
+      type: 'kubernetes',
       name: test_pipeline_name,
-      platform: {
-        os: os,
-        arch: arch,
-        version: if std.length(version) > 0 then version,
-      },
       steps: [
         {
           name: 'vet',
@@ -62,17 +58,13 @@ local golang_image(os, version) =
     local file_suffix = std.strReplace(tag, '-', '.');
     local volumes = if is_windows then [{ name: windows_pipe_volume, path: windows_pipe }] else [];
     local golang = golang_image(os, version);
-    local plugin_repo = 'plugins/' + name;
+    local plugin_repo = 'gcr.io/cyrus-containers/drone-plugins/' + name;
     local extension = if is_windows then '.exe' else '';
     local depends_on = if name == 'docker' then [test_pipeline_name] else [tag + '-docker'];
     {
       kind: 'pipeline',
+      type: 'kubernetes',
       name: tag + '-' + name,
-      platform: {
-        os: os,
-        arch: arch,
-        version: if std.length(version) > 0 then version,
-      },
       steps: [
         {
           name: 'build-push',
@@ -142,8 +134,8 @@ local golang_image(os, version) =
             daemon_off: if is_windows then 'true' else 'false',
             dockerfile: 'docker/' + name + '/Dockerfile.' + file_suffix,
             repo: plugin_repo,
-            username: { from_secret: 'docker_username' },
-            password: { from_secret: 'docker_password' },
+            username: "_json_key",
+            password: { from_secret: 'dockerconfigjson' },
           },
           volumes: if std.length(volumes) > 0 then volumes,
           when: {
@@ -162,45 +154,5 @@ local golang_image(os, version) =
       },
       depends_on: depends_on,
       volumes: if is_windows then [{ name: windows_pipe_volume, host: { path: windows_pipe } }],
-    },
-
-  notifications(name, os='linux', arch='amd64', version='', depends_on=[])::
-    {
-      kind: 'pipeline',
-      name: 'notifications-' + name,
-      platform: {
-        os: os,
-        arch: arch,
-        version: if std.length(version) > 0 then version,
-      },
-      steps: [
-        {
-          name: 'manifest',
-          image: 'plugins/manifest',
-          pull: 'always',
-          settings: {
-            username: { from_secret: 'docker_username' },
-            password: { from_secret: 'docker_password' },
-            spec: 'docker/' + name + '/manifest.tmpl',
-            ignore_missing: true,
-            auto_tag: true,
-          },
-        },
-        {
-          name: 'microbadger',
-          image: 'plugins/webhook',
-          pull: 'always',
-          settings: {
-            urls: { from_secret: 'microbadger_' + name },
-          },
-        },
-      ],
-      depends_on: [x + '-' + name for x in depends_on],
-      trigger: {
-        ref: [
-          'refs/heads/master',
-          'refs/tags/**',
-        ],
-      },
     },
 }

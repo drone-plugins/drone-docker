@@ -1,7 +1,7 @@
 github.com/aws/aws-sdk-go v1.16.15 h1:kQyxfRyjAwIYjf0225sn/pn+WAlncKyI8dmT3+ItMFE=
 github.com/aws/aws-sdk-go v1.16.15/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/bradrydzewski/cli v0.0.0-20190108225652-0d51abd87c77 h1:bXc5tB7PFVzIHUfTECDt0Orw6mIAzHePWBmemvtnfiU=
-github.com/bradrydzewski/cli v0.0.0-20190108225652-0d51abd87c77/go.mod h1:4SmsVk3pOgYeJlG54e23Ztd/HucXeH5RmH5bNO+uOpk=
+github.com/bradrydzewski/cli v1.19.2-0.20170424184348-0d51abd87c77 h1:38VJKGwm92bV8yDakHjG9t076W3JuGO2Jk7hzCEUbGY=
+github.com/bradrydzewski/cli v1.19.2-0.20170424184348-0d51abd87c77/go.mod h1:4SmsVk3pOgYeJlG54e23Ztd/HucXeH5RmH5bNO+uOpk=
 github.com/coreos/go-semver v0.2.0 h1:3Jm3tLmsgAYcjC+4Up7hJrFBPr+n7rAqYeSw/SZazuY=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -19,8 +19,6 @@ github.com/sirupsen/logrus v1.3.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPx
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
-github.com/urfave/cli v1.20.0 h1:fDqGv3UG/4jbVl/QkFwEdddtEDjh/5Ov6X+0B/3bPaw=
-github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793 h1:u+LnwYTOOW7Ukr/fppxEb1Nwz0AtPflrblfvUudpo+I=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/net v0.0.0-20190108225652-1e06a53dbb7e h1:bRhVy7zSSasaqNksaRZiA5EEI+Ei4I1nO5Jh72wfHlg=
