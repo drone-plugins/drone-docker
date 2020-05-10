@@ -233,6 +233,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringFlag{
+			Name:   "shm-size",
+			Usage:  "set the shm-size",
+			EnvVar: "PLUGIN_SHM_SIZE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -269,6 +274,7 @@ func run(c *cli.Context) error {
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
+			ShmSize:     c.String("shm-size"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
