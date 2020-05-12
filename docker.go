@@ -134,17 +134,14 @@ func (p Plugin) Exec() error {
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
-	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
-
-		if p.Dryrun == false {
+	if p.Dryrun == false {
+		for _, tag := range p.Build.Tags {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
 
 	if p.Cleanup {
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
+		cmds = append(cmds, commandPrune()) // docker system prune -f
 	}
 
 	// execute all commands in batch mode.
@@ -212,7 +209,10 @@ func commandBuild(build Build) *exec.Cmd {
 		"build",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", build.Name,
+	}
+
+	for _, tag := range build.Tags {
+		args = append(args, "-t", fmt.Sprintf("%s:%s", build.Repo, tag))
 	}
 
 	args = append(args, build.Context)
@@ -311,17 +311,6 @@ func hasProxyBuildArg(build *Build, key string) bool {
 	return false
 }
 
-// helper function to create the docker tag command.
-func commandTag(build Build, tag string) *exec.Cmd {
-	var (
-		source = build.Name
-		target = fmt.Sprintf("%s:%s", build.Repo, tag)
-	)
-	return exec.Command(
-		dockerExe, "tag", source, target,
-	)
-}
-
 // helper function to create the docker push command.
 func commandPush(build Build, tag string) *exec.Cmd {
 	target := fmt.Sprintf("%s:%s", build.Repo, tag)
@@ -364,10 +353,6 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 
 func commandPrune() *exec.Cmd {
 	return exec.Command(dockerExe, "system", "prune", "-f")
-}
-
-func commandRmi(tag string) *exec.Cmd {
-	return exec.Command(dockerExe, "rmi", tag)
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
