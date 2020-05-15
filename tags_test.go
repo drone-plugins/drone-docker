@@ -35,8 +35,11 @@ func TestDefaultTags(t *testing.T) {
 		{"refs/tags/v1.0.0", []string{"1", "1.0", "1.0.0"}},
 		{"refs/tags/v1.0.0-alpha.1", []string{"1.0.0-alpha.1"}},
 
+		// not semver tags as-is
+		{"refs/tags/x1.0.0", []string{"x1.0.0"}},
+		{"refs/tags/local_test", []string{"local_test"}},
+
 		// malformed or errors
-		{"refs/tags/x1.0.0", []string{"latest"}},
 		{"v1.0.0", []string{"latest"}},
 	}
 

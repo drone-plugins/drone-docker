@@ -43,7 +43,7 @@ func DefaultTags(ref string) []string {
 	v := stripTagPrefix(ref)
 	version, err := semver.NewVersion(v)
 	if err != nil {
-		return []string{"latest"}
+		return []string{v}
 	}
 	if version.PreRelease != "" || version.Metadata != "" {
 		return []string{
