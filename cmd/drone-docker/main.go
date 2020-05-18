@@ -147,6 +147,11 @@ func main() {
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS_FROM_ENV",
 		},
+		cli.BoolFlag{
+			Name:   "quiet",
+			Usage:  "quiet docker build",
+			EnvVar: "PLUGIN_QUIET",
+		},
 		cli.StringFlag{
 			Name:   "target",
 			Usage:  "build target",
@@ -269,6 +274,7 @@ func run(c *cli.Context) error {
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
+			Quiet:       c.Bool("quiet"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
