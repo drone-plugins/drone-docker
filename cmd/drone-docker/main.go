@@ -137,10 +137,9 @@ func main() {
 			Usage:  "default build tags with suffix",
 			EnvVar: "PLUGIN_DEFAULT_SUFFIX,PLUGIN_AUTO_TAG_SUFFIX",
 		},
-		cli.BoolFlag{
+		cli.BoolTFlag{
 			Name:   "tags.semver",
 			Usage:  "semver tags",
-			Value:  true,
 			EnvVar: "PLUGIN_DEFAULT_SEMVER_TAGS,PLUGIN_AUTO_TAG_SEMVER_ONLY",
 		},
 		cli.StringSliceFlag{
