@@ -56,6 +56,7 @@ type (
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
+		Quiet       bool     // Docker build quiet
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -242,6 +243,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
+	}
+	if build.Quiet {
+		args = append(args, "--quiet")
 	}
 
 	labelSchema := []string{
