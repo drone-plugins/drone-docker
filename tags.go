@@ -9,8 +9,7 @@ import (
 
 // DefaultTagSuffix returns a set of default suggested tags
 // based on the commit ref with an attached suffix.
-func DefaultTagSuffix(ref, suffix string) []string {
-	tags := DefaultTags(ref)
+func DefaultTagSuffix(tags []string, suffix string) []string {
 	if len(suffix) == 0 {
 		return tags
 	}
@@ -34,16 +33,23 @@ func splitOff(input string, delim string) string {
 	return input
 }
 
-// DefaultTags returns a set of default suggested tags based on
+func DefaultLiteralTag(ref string) []string {
+	if !strings.HasPrefix(ref, "refs/tags/") {
+		return []string{"latest"}
+	}
+	return []string{stripTagPrefix(ref)}
+}
+
+// DefaultSemverTags returns a set of default suggested tags based on
 // the commit ref.
-func DefaultTags(ref string) []string {
+func DefaultSemverTags(ref string) []string {
 	if !strings.HasPrefix(ref, "refs/tags/") {
 		return []string{"latest"}
 	}
 	v := stripTagPrefix(ref)
 	version, err := semver.NewVersion(v)
 	if err != nil {
-		return []string{v}
+		return nil
 	}
 	if version.PreRelease != "" || version.Metadata != "" {
 		return []string{
