@@ -310,7 +310,8 @@ func run(c *cli.Context) error {
 			}
 			plugin.Build.Tags = docker.DefaultTagSuffix(
 				tags,
-				c.String("tags.suffix"))
+				c.String("tags.suffix"),
+			)
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
