@@ -157,6 +157,10 @@ func (p Plugin) Exec() error {
 		err := cmd.Run()
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil && isCommandPrune(cmd.Args) {
+			fmt.Printf("Could not prune system containers. Ignoring...\n")
+		} else if err != nil && isCommandRmi(cmd.Args) {
+			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
 		}
@@ -366,8 +370,19 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	return exec.Command(dockerdExe, args...)
 }
 
+
+// helper to check if args match "docker prune"
+func isCommandPrune(args []string) bool {
+	return len(args) > 2 && args[1] == "prune"
+}
+
 func commandPrune() *exec.Cmd {
 	return exec.Command(dockerExe, "system", "prune", "-f")
+}
+
+// helper to check if args match "docker rmi"
+func isCommandRmi(args []string) bool {
+	return len(args) > 2 && args[1] == "rmi"
 }
 
 func commandRmi(tag string) *exec.Cmd {
