@@ -27,6 +27,11 @@ func main() {
 	app.Version = version
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
+			Name:   "nethost",
+			Usage:  "use --nethost to build",
+			EnvVar: "PLUGIN_NETHOST",
+		},
+		cli.BoolFlag{
 			Name:   "dry-run",
 			Usage:  "dry run disables docker push",
 			EnvVar: "PLUGIN_DRY_RUN",
@@ -275,6 +280,7 @@ func run(c *cli.Context) error {
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
+			NetHost:     c.Bool("nethost"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
