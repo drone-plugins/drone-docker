@@ -137,6 +137,11 @@ func main() {
 			Usage:  "default build tags with suffix",
 			EnvVar: "PLUGIN_DEFAULT_SUFFIX,PLUGIN_AUTO_TAG_SUFFIX",
 		},
+		cli.BoolTFlag{
+			Name:   "tags.semver",
+			Usage:  "semver tags",
+			EnvVar: "PLUGIN_DEFAULT_SEMVER_TAGS,PLUGIN_AUTO_TAG_SEMVER_ONLY",
+		},
 		cli.StringSliceFlag{
 			Name:   "args",
 			Usage:  "build args",
@@ -298,8 +303,18 @@ func run(c *cli.Context) error {
 			c.String("commit.ref"),
 			c.String("repo.branch"),
 		) {
+			var tags = docker.DefaultSemverTags(c.String("commit.ref"))
+			if tags == nil {
+				if c.Bool("tags.semver") {
+					logrus.Printf("skipping automated docker build for %s due to invalid semver tag",
+						c.String("commit.ref"))
+					return nil
+				} else {
+					tags = docker.DefaultLiteralTag(c.String("commit.ref"))
+				}
+			}
 			plugin.Build.Tags = docker.DefaultTagSuffix(
-				c.String("commit.ref"),
+				tags,
 				c.String("tags.suffix"),
 			)
 		} else {

@@ -23,7 +23,7 @@ func Test_stripTagPrefix(t *testing.T) {
 	}
 }
 
-func TestDefaultTags(t *testing.T) {
+func TestDefaultSemverTags(t *testing.T) {
 	var tests = []struct {
 		Before string
 		After  []string
@@ -35,13 +35,38 @@ func TestDefaultTags(t *testing.T) {
 		{"refs/tags/v1.0.0", []string{"1", "1.0", "1.0.0"}},
 		{"refs/tags/v1.0.0-alpha.1", []string{"1.0.0-alpha.1"}},
 
+		// not semver tags
+		{"refs/tags/x1.0.0", nil},
+		{"refs/tags/local_test", nil},
+
 		// malformed or errors
-		{"refs/tags/x1.0.0", []string{"latest"}},
 		{"v1.0.0", []string{"latest"}},
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTags(test.Before), test.After
+		got, want := DefaultSemverTags(test.Before), test.After
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Got tag %v, want %v", got, want)
+		}
+	}
+}
+
+func TestDefaultLiteralTag(t *testing.T) {
+	var tests = []struct {
+		Before string
+		After  []string
+	}{
+		{"", []string{"latest"}},
+		{"refs/heads/master", []string{"latest"}},
+		{"refs/tags/x1.0.0", []string{"x1.0.0"}},
+		{"refs/tags/local_test", []string{"local_test"}},
+
+		// malformed or errors
+		{"v1.0.0", []string{"latest"}},
+	}
+
+	for _, test := range tests {
+		got, want := DefaultLiteralTag(test.Before), test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
 		}
@@ -50,16 +75,17 @@ func TestDefaultTags(t *testing.T) {
 
 func TestDefaultTagSuffix(t *testing.T) {
 	var tests = []struct {
-		Before string
+		Before []string
 		Suffix string
 		After  []string
 	}{
-		// without suffix
+		// without suffix - get the same
 		{
-			After: []string{"latest"},
-		},
-		{
-			Before: "refs/tags/v1.0.0",
+			Before: []string{
+				"1",
+				"1.0",
+				"1.0.0",
+			},
 			After: []string{
 				"1",
 				"1.0",
@@ -68,11 +94,16 @@ func TestDefaultTagSuffix(t *testing.T) {
 		},
 		// with suffix
 		{
-			Suffix: "linux-amd64",
-			After:  []string{"linux-amd64"},
+			Before: []string{"single"},
+			Suffix: "nanoserver",
+			After:  []string{"single-nanoserver"},
 		},
 		{
-			Before: "refs/tags/v1.0.0",
+			Before: []string{
+				"1",
+				"1.0",
+				"1.0.0",
+			},
 			Suffix: "linux-amd64",
 			After: []string{
 				"1-linux-amd64",
@@ -81,25 +112,16 @@ func TestDefaultTagSuffix(t *testing.T) {
 			},
 		},
 		{
-			Suffix: "nanoserver",
-			After:  []string{"nanoserver"},
-		},
-		{
-			Before: "refs/tags/v1.9.2",
+			Before: []string{
+				"1",
+				"1.9",
+				"1.9.2",
+			},
 			Suffix: "nanoserver",
 			After: []string{
 				"1-nanoserver",
 				"1.9-nanoserver",
 				"1.9.2-nanoserver",
-			},
-		},
-		{
-			Before: "refs/tags/v18.06.0",
-			Suffix: "nanoserver",
-			After: []string{
-				"18-nanoserver",
-				"18.06-nanoserver",
-				"18.06.0-nanoserver",
 			},
 		},
 	}
