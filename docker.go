@@ -376,7 +376,7 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 
 // helper to check if args match "docker prune"
 func isCommandPrune(args []string) bool {
-	return len(args) > 2 && args[1] == "prune"
+	return len(args) > 3 && args[2] == "prune"
 }
 
 func commandPrune() *exec.Cmd {
