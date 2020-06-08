@@ -9,10 +9,13 @@ import (
 
 // DefaultTagSuffix returns a set of default suggested tags
 // based on the commit ref with an attached suffix.
-func DefaultTagSuffix(ref, suffix string) []string {
-	tags := DefaultTags(ref)
+func DefaultTagSuffix(ref, suffix string) ([]string, error) {
+	tags, err := DefaultTags(ref)
+	if err != nil {
+		return nil, err
+	}
 	if len(suffix) == 0 {
-		return tags
+		return tags, nil
 	}
 	for i, tag := range tags {
 		if tag == "latest" {
@@ -21,7 +24,7 @@ func DefaultTagSuffix(ref, suffix string) []string {
 			tags[i] = fmt.Sprintf("%s-%s", tag, suffix)
 		}
 	}
-	return tags
+	return tags, nil
 }
 
 func splitOff(input string, delim string) string {
@@ -36,19 +39,19 @@ func splitOff(input string, delim string) string {
 
 // DefaultTags returns a set of default suggested tags based on
 // the commit ref.
-func DefaultTags(ref string) []string {
+func DefaultTags(ref string) ([]string, error) {
 	if !strings.HasPrefix(ref, "refs/tags/") {
-		return []string{"latest"}
+		return []string{"latest"}, nil
 	}
 	v := stripTagPrefix(ref)
 	version, err := semver.NewVersion(v)
 	if err != nil {
-		return []string{"latest"}
+		return []string{"latest"}, err
 	}
 	if version.PreRelease != "" || version.Metadata != "" {
 		return []string{
 			version.String(),
-		}
+		}, nil
 	}
 
 	v = stripTagPrefix(ref)
@@ -59,13 +62,13 @@ func DefaultTags(ref string) []string {
 		return []string{
 			fmt.Sprintf("%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor),
 			fmt.Sprintf("%0*d.%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor, len(dotParts[2]), version.Patch),
-		}
+		}, nil
 	}
 	return []string{
 		fmt.Sprintf("%0*d", len(dotParts[0]), version.Major),
 		fmt.Sprintf("%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor),
 		fmt.Sprintf("%0*d.%0*d.%0*d", len(dotParts[0]), version.Major, len(dotParts[1]), version.Minor, len(dotParts[2]), version.Patch),
-	}
+	}, nil
 }
 
 // UseDefaultTag for keep only default branch for latest tag

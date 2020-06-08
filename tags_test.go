@@ -34,16 +34,31 @@ func TestDefaultTags(t *testing.T) {
 		{"refs/tags/1.0.0", []string{"1", "1.0", "1.0.0"}},
 		{"refs/tags/v1.0.0", []string{"1", "1.0", "1.0.0"}},
 		{"refs/tags/v1.0.0-alpha.1", []string{"1.0.0-alpha.1"}},
-
-		// malformed or errors
-		{"refs/tags/x1.0.0", []string{"latest"}},
-		{"v1.0.0", []string{"latest"}},
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTags(test.Before), test.After
+		tags, err := DefaultTags(test.Before)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		got, want := tags, test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
+		}
+	}
+}
+
+func TestDefaultTagsError(t *testing.T) {
+	var tests = []string{
+		"refs/tags/x1.0.0",
+		"refs/tags/20190203",
+	}
+
+	for _, test := range tests {
+		_, err := DefaultTags(test)
+		if err == nil {
+			t.Errorf("Expect tag error for %s", test)
 		}
 	}
 }
@@ -105,7 +120,12 @@ func TestDefaultTagSuffix(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, want := DefaultTagSuffix(test.Before, test.Suffix), test.After
+		tag, err := DefaultTagSuffix(test.Before, test.Suffix)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		got, want := tag, test.After
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Got tag %v, want %v", got, want)
 		}

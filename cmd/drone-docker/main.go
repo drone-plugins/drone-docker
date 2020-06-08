@@ -298,10 +298,15 @@ func run(c *cli.Context) error {
 			c.String("commit.ref"),
 			c.String("repo.branch"),
 		) {
-			plugin.Build.Tags = docker.DefaultTagSuffix(
+			tag, err := docker.DefaultTagSuffix(
 				c.String("commit.ref"),
 				c.String("tags.suffix"),
 			)
+			if err != nil {
+				logrus.Printf("cannot build docker image for %s, invalid semantic version", c.String("commit.ref"))
+				return err
+			}
+			plugin.Build.Tags = tag
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
