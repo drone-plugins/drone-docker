@@ -238,6 +238,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringSliceFlag{
+			Name:   "local.image.name",
+			Usage:  "local image name",
+			EnvVar: "PLUGIN_LOCAL_IMAGE_NAME,DRONE_COMMIT_SHA",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -258,7 +263,7 @@ func run(c *cli.Context) error {
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
+			Name:        c.String("local.image.name"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
