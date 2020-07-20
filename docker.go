@@ -338,7 +338,10 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{"--data-root", daemon.StoragePath}
+	args := []string{
+		"--data-root", daemon.StoragePath,
+		"--host=unix:///var/run/docker.sock",
+	}
 
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
@@ -373,7 +376,7 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 
 // helper to check if args match "docker prune"
 func isCommandPrune(args []string) bool {
-	return len(args) > 2 && args[1] == "prune"
+	return len(args) > 3 && args[2] == "prune"
 }
 
 func commandPrune() *exec.Cmd {
