@@ -136,6 +136,8 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
+		tag = strings.ReplaceAll(tag, "/", "-")
+
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
@@ -372,7 +374,6 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	return exec.Command(dockerdExe, args...)
 }
-
 
 // helper to check if args match "docker prune"
 func isCommandPrune(args []string) bool {
