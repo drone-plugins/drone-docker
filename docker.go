@@ -136,7 +136,7 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 	for _, tag := range p.Build.Tags {
-		tag = strings.ReplaceAll(tag, "/", "-")
+		tag = strings.Replace(tag, "/", "-", -1)
 
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
