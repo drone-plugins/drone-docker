@@ -238,6 +238,21 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.BoolFlag{
+			Name:   "load-image",
+			Usage:  "load image from a file instead of building it",
+			EnvVar: "PLUGIN_LOAD_IMAGE",
+		},
+		cli.StringFlag{
+			Name:   "loaded-image-tag",
+			Usage:  "the tag of the loaded image",
+			EnvVar: "PLUGIN_LOAD_IMAGE_TAG",
+		},
+		cli.StringFlag{
+			Name:   "loaded-image-location",
+			Usage:  "the location of image file",
+			EnvVar: "PLUGIN_LOAD_IMAGE_LOCATION",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -247,7 +262,10 @@ func main() {
 
 func run(c *cli.Context) error {
 	plugin := docker.Plugin{
-		Dryrun:  c.Bool("dry-run"),
+		Dryrun:            c.Bool("dry-run"),
+		Loadimage:         c.Bool("load-image"),
+		Loadedimagetag:    c.String("loaded-image-tag"),
+		Loadedimagelocation: c.String("loaded-image-location"),
 		Cleanup: c.BoolT("docker.purge"),
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),

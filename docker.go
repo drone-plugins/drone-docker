@@ -61,11 +61,15 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login   Login         // Docker login configuration
+		Build   Build         // Docker build configuration
+		Daemon  Daemon        // Docker daemon configuration
+		Dryrun  bool          // Docker push is skipped
+		Cleanup bool          // Docker purge is enabled
+		Loadimage bool        // Docker load image is enabled
+		// TODO: extract this from the loading and remove references
+		Loadedimagetag string // the tag of the loaded image
+		Loadedimagelocation string // the location of image file
 	}
 )
 
@@ -133,7 +137,12 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
-	cmds = append(cmds, commandBuild(p.Build)) // docker build
+    if p.Loadimage == false {
+        cmds = append(cmds, commandBuild(p.Build)) // docker build
+    } else {
+        cmds = append(cmds, commandLoad(p.Loadedimagelocation)) // docker load
+        p.Build.Name = p.Loadedimagetag
+    }
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
@@ -271,6 +280,15 @@ func commandBuild(build Build) *exec.Cmd {
 		for _, label := range build.Labels {
 			args = append(args, "--label", label)
 		}
+	}
+
+	return exec.Command(dockerExe, args...)
+}
+
+func commandLoad(location string) *exec.Cmd {
+	args := []string{
+		"load",
+		fmt.Sprintf("--input=%s", location),
 	}
 
 	return exec.Command(dockerExe, args...)
