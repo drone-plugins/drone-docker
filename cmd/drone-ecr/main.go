@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -20,6 +22,11 @@ import (
 const defaultRegion = "us-east-1"
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	var (
 		repo             = getenv("PLUGIN_REPO")
 		registry         = getenv("PLUGIN_REGISTRY")

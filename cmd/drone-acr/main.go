@@ -5,9 +5,16 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	var (
 		repo     = getenv("PLUGIN_REPO")
 		registry = getenv("PLUGIN_REGISTRY")
