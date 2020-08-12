@@ -254,9 +254,9 @@ func commandBuild(build Build) *exec.Cmd {
 
 	labelSchema := []string{
 		"schema-version=1.0",
-		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
 		fmt.Sprintf("vcs-ref=%s", build.Name),
 		fmt.Sprintf("vcs-url=%s", build.Remote),
+		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
 	}
 
 	if len(build.LabelSchema) > 0 {
