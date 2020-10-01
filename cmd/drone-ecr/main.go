@@ -77,6 +77,10 @@ func main() {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
 		}
+		err = updateImageScannningConfig(svc, trimHostname(repo, registry), scanOnPush)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("error updating scan on push for ECR repo: %v", err))
+		}
 	}
 
 	if lifecyclePolicy != "" {
@@ -132,6 +136,15 @@ func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
 	}
 
 	return
+}
+
+func updateImageScannningConfig(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
+	input := &ecr.PutImageScanningConfigurationInput{}
+	input.SetRepositoryName(name)
+	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
+	_, err = svc.PutImageScanningConfiguration(input)
+
+	return err
 }
 
 func uploadLifeCyclePolicy(svc *ecr.ECR, lifecyclePolicy string, name string) (err error) {
