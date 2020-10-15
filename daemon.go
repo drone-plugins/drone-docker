@@ -5,6 +5,7 @@ package docker
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 const dockerExe = "/usr/local/bin/docker"
