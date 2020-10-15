@@ -78,11 +78,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-docker
-  image: golang:1.15
-  commands:
-  - ./release/linux/amd64/drone-docker --help
-
 - name: docker-docker
   pull: always
   image: plugins/docker
@@ -102,11 +97,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
-
-- name: executable-acr
-  image: golang:1.15
-  commands:
-  - ./release/linux/amd64/drone-acr --help
 
 - name: docker-acr
   pull: always
@@ -128,11 +118,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-ecr
-  image: golang:1.15
-  commands:
-  - ./release/linux/amd64/drone-ecr --help
-
 - name: docker-ecr
   pull: always
   image: plugins/docker
@@ -153,11 +138,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-gcr
-  image: golang:1.15
-  commands:
-  - ./release/linux/amd64/drone-gcr --help
-
 - name: docker-gcr
   pull: always
   image: plugins/docker
@@ -177,11 +157,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
-
-- name: executable-heroku
-  image: golang:1.15
-  commands:
-  - ./release/linux/amd64/drone-heroku --help
 
 - name: docker-heroku
   pull: always
@@ -231,11 +206,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-docker
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm64/drone-docker --help
-
 - name: docker-docker
   pull: always
   image: plugins/docker
@@ -255,11 +225,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
-
-- name: executable-acr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm64/drone-acr --help
 
 - name: docker-acr
   pull: always
@@ -281,11 +246,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-ecr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm64/drone-ecr --help
-
 - name: docker-ecr
   pull: always
   image: plugins/docker
@@ -306,11 +266,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-gcr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm64/drone-gcr --help
-
 - name: docker-gcr
   pull: always
   image: plugins/docker
@@ -330,11 +285,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
-
-- name: executable-heroku
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm64/drone-heroku --help
 
 - name: docker-heroku
   pull: always
@@ -384,11 +334,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-docker
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm/drone-docker --help
-
 - name: docker-docker
   pull: always
   image: plugins/docker
@@ -408,11 +353,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
-
-- name: executable-acr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm/drone-acr --help
 
 - name: docker-acr
   pull: always
@@ -434,11 +374,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-ecr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm/drone-ecr --help
-
 - name: docker-ecr
   pull: always
   image: plugins/docker
@@ -459,11 +394,6 @@ steps:
   environment:
     CGO_ENABLED: 0
 
-- name: executable-gcr
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm/drone-gcr --help
-
 - name: docker-gcr
   pull: always
   image: plugins/docker
@@ -483,11 +413,6 @@ steps:
   - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
-
-- name: executable-heroku
-  image: golang:1.15
-  commands:
-  - ./release/linux/arm/drone-heroku --help
 
 - name: docker-heroku
   pull: always

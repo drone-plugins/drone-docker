@@ -173,13 +173,6 @@ def linux_build(ctx, arch, name):
             "commands": build,
         },
         {
-            "name": "executable-%s" % (name),
-            "image": golang_image,
-            "commands": [
-                "./release/linux/%s/drone-%s --help" % (arch, name),
-            ],
-        },
-        {
             "name": "docker-%s" % (name),
             "image": "plugins/docker",
             "pull": "always",
