@@ -74,7 +74,7 @@ steps:
 - name: build-docker
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
   environment:
     CGO_ENABLED: 0
 
@@ -99,7 +99,7 @@ steps:
 - name: build-acr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
 
@@ -124,7 +124,7 @@ steps:
 - name: build-ecr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr
   environment:
     CGO_ENABLED: 0
 
@@ -149,7 +149,7 @@ steps:
 - name: build-gcr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
   environment:
     CGO_ENABLED: 0
 
@@ -174,7 +174,7 @@ steps:
 - name: build-heroku
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
 
@@ -227,7 +227,7 @@ steps:
 - name: build-docker
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker
   environment:
     CGO_ENABLED: 0
 
@@ -252,7 +252,7 @@ steps:
 - name: build-acr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
 
@@ -277,7 +277,7 @@ steps:
 - name: build-ecr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr
   environment:
     CGO_ENABLED: 0
 
@@ -302,7 +302,7 @@ steps:
 - name: build-gcr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr
   environment:
     CGO_ENABLED: 0
 
@@ -327,7 +327,7 @@ steps:
 - name: build-heroku
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
 
@@ -380,7 +380,7 @@ steps:
 - name: build-docker
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker
   environment:
     CGO_ENABLED: 0
 
@@ -405,7 +405,7 @@ steps:
 - name: build-acr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr
   environment:
     CGO_ENABLED: 0
 
@@ -430,7 +430,7 @@ steps:
 - name: build-ecr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr
   environment:
     CGO_ENABLED: 0
 
@@ -455,7 +455,7 @@ steps:
 - name: build-gcr
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr
   environment:
     CGO_ENABLED: 0
 
@@ -480,7 +480,7 @@ steps:
 - name: build-heroku
   image: golang:1.15
   commands:
-  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-npm ./cmd/drone-npm
+  - go build -v -ldflags "-X main.version=" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku
   environment:
     CGO_ENABLED: 0
 
