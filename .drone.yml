@@ -55,11 +55,9 @@ server:
     from_secret: windows_username
 
 steps:
-- name: build
+- name: build-push
   commands:
-  # TODO use the new DRONE_SEMVER_SHORT environment variables to
-  # publish docker images for tag events.
-  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_COMMIT_SHA.Substring(0, 8)) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - docker login -u $env:USERNAME -p $env:PASSWORD
   - docker build -f docker/docker/Dockerfile.windows.1809 -t plugins/docker:windows-1809-amd64 .
   - docker push plugins/docker:windows-1809-amd64
@@ -69,10 +67,31 @@ steps:
       from_secret: docker_username
     PASSWORD:
       from_secret: docker_password
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  commands:
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_SEMVER_SHORT) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - docker login -u $env:USERNAME -p $env:PASSWORD
+  - docker build -f docker/docker/Dockerfile.windows.1809 -t ('plugins/docker:{0}-windows-1809-amd64' -f $env:DRONE_SEMVER_SHORT) .
+  - docker push ('plugins/docker:{0}-windows-1809-amd64' -t $env:DRONE_SEMVER_SHORT)
+  environment:
+    CGO_ENABLED: "0"
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+    - tag
 
 trigger:
-  event:
-  - push
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
 
 depends_on:
 - testing
@@ -93,11 +112,9 @@ server:
     from_secret: windows_username
 
 steps:
-- name: build
+- name: build-push
   commands:
-  # TODO use the new DRONE_SEMVER_SHORT environment variables to
-  # publish docker images for tag events.
-  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_COMMIT_SHA.Substring(0, 8)) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - docker login -u $env:USERNAME -p $env:PASSWORD
   - docker build -f docker/docker/Dockerfile.windows.1903 -t plugins/docker:windows-1903-amd64 .
   - docker push plugins/docker:windows-1903-amd64
@@ -107,10 +124,31 @@ steps:
       from_secret: docker_username
     PASSWORD:
       from_secret: docker_password
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  commands:
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_SEMVER_SHORT) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - docker login -u $env:USERNAME -p $env:PASSWORD
+  - docker build -f docker/docker/Dockerfile.windows.1903 -t ('plugins/docker:{0}-windows-1903-amd64' -f $env:DRONE_SEMVER_SHORT) .
+  - docker push ('plugins/docker:{0}-windows-1903-amd64' -t $env:DRONE_SEMVER_SHORT)
+  environment:
+    CGO_ENABLED: "0"
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+    - tag
 
 trigger:
-  event:
-  - push
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
 
 depends_on:
 - testing
@@ -131,24 +169,43 @@ server:
     from_secret: windows_username
 
 steps:
-  - name: build
-    commands:
-      # TODO use the new DRONE_SEMVER_SHORT environment variables to
-      # publish docker images for tag events.
-      - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-      - docker login -u $env:USERNAME -p $env:PASSWORD
-      - docker build -f docker/docker/Dockerfile.windows.1909 -t plugins/docker:windows-1909-amd64 .
-      - docker push plugins/docker:windows-1909-amd64
-    environment:
-      CGO_ENABLED: "0"
-      USERNAME:
-        from_secret: docker_username
-      PASSWORD:
-        from_secret: docker_password
+- name: build-push
+  commands:
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_COMMIT_SHA.Substring(0, 8)) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - docker login -u $env:USERNAME -p $env:PASSWORD
+  - docker build -f docker/docker/Dockerfile.windows.1909 -t plugins/docker:windows-1909-amd64 .
+  - docker push plugins/docker:windows-1909-amd64
+  environment:
+    CGO_ENABLED: "0"
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  commands:
+  - go build -v -ldflags ('-X main.version={0}' -f $env:DRONE_SEMVER_SHORT) -a -tags netgo -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+  - docker login -u $env:USERNAME -p $env:PASSWORD
+  - docker build -f docker/docker/Dockerfile.windows.1909 -t ('plugins/docker:{0}-windows-1909-amd64' -f $env:DRONE_SEMVER_SHORT) .
+  - docker push ('plugins/docker:{0}-windows-1909-amd64' -t $env:DRONE_SEMVER_SHORT)
+  environment:
+    CGO_ENABLED: "0"
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+    - tag
 
 trigger:
-  event:
-    - push
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
 
 depends_on:
   - testing
