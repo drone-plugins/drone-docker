@@ -52,6 +52,7 @@ type (
 		CacheFrom   []string // Docker build cache-from
 		Compress    bool     // Docker build compress
 		Repo        string   // Docker build repository
+		Repos       []string // Docker build repositories
 		LabelSchema []string // label-schema Label map
 		Labels      []string // Label map
 		NoCache     bool     // Docker build no-cache
@@ -121,6 +122,11 @@ func (p Plugin) Exec() error {
 		p.Build.Squash = false
 	}
 
+	// convert repo into repos
+	if p.Build.Repo != "" && len(p.Build.Repos) > 0 {
+		fmt.Println("Multiple repositories specified in different flags. Using repositories from the 'repos' flag.")
+	}
+
 	// add proxy build args
 	addProxyBuildArgs(&p.Build)
 
@@ -135,11 +141,15 @@ func (p Plugin) Exec() error {
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
-	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
+	// docker tag and push for all repos
+	for _, repo := range p.Build.Repos {
+		p.Build.Repo = repo
+		for _, tag := range p.Build.Tags {
+			cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
-		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+			if p.Dryrun == false {
+				cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+			}
 		}
 	}
 

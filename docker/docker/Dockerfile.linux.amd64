@@ -2,5 +2,13 @@ FROM docker:19.03.8-dind
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
+RUN wget https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v2.0.2/docker-credential-gcr_linux_amd64-2.0.2.tar.gz && \
+    tar xvzf docker-credential-gcr_linux_amd64-2.0.2.tar.gz && \
+    mv docker-credential-gcr /usr/bin/
+
+RUN wget https://amazon-ecr-credential-helper-releases.s3.us-east-2.amazonaws.com/0.4.0/linux-amd64/docker-credential-ecr-login && \
+    chmod +x docker-credential-ecr-login && \
+    mv docker-credential-ecr-login /usr/bin
+
 ADD release/linux/amd64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
