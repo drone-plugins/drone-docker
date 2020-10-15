@@ -94,7 +94,7 @@ func (p Plugin) Exec() error {
 		path := filepath.Join(dockerHome, "config.json")
 		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
 		if err != nil {
-			return fmt.Errorf("Error writeing config.json: %s", err)
+			return fmt.Errorf("error writing config.json: %w", err)
 		}
 	}
 
@@ -103,7 +103,7 @@ func (p Plugin) Exec() error {
 		cmd := commandLogin(p.Login)
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Errorf("Error authenticating: %s", err)
+			return fmt.Errorf("error authenticating: %w", err)
 		}
 	}
 
@@ -138,7 +138,7 @@ func (p Plugin) Exec() error {
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
-		if p.Dryrun == false {
+		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
@@ -335,44 +335,6 @@ func commandPush(build Build, tag string) *exec.Cmd {
 	target := fmt.Sprintf("%s:%s", build.Repo, tag)
 	return exec.Command(dockerExe, "push", target)
 }
-
-// helper function to create the docker daemon command.
-func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{
-		"--data-root", daemon.StoragePath,
-		"--host=unix:///var/run/docker.sock",
-	}
-
-	if daemon.StorageDriver != "" {
-		args = append(args, "-s", daemon.StorageDriver)
-	}
-	if daemon.Insecure && daemon.Registry != "" {
-		args = append(args, "--insecure-registry", daemon.Registry)
-	}
-	if daemon.IPv6 {
-		args = append(args, "--ipv6")
-	}
-	if len(daemon.Mirror) != 0 {
-		args = append(args, "--registry-mirror", daemon.Mirror)
-	}
-	if len(daemon.Bip) != 0 {
-		args = append(args, "--bip", daemon.Bip)
-	}
-	for _, dns := range daemon.DNS {
-		args = append(args, "--dns", dns)
-	}
-	for _, dnsSearch := range daemon.DNSSearch {
-		args = append(args, "--dns-search", dnsSearch)
-	}
-	if len(daemon.MTU) != 0 {
-		args = append(args, "--mtu", daemon.MTU)
-	}
-	if daemon.Experimental {
-		args = append(args, "--experimental")
-	}
-	return exec.Command(dockerdExe, args...)
-}
-
 
 // helper to check if args match "docker prune"
 func isCommandPrune(args []string) bool {
