@@ -94,7 +94,7 @@ func (p Plugin) Exec() error {
 		path := filepath.Join(dockerHome, "config.json")
 		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
 		if err != nil {
-			return fmt.Errorf("Error writeing config.json: %s", err)
+			return fmt.Errorf("Error writing config.json: %s", err)
 		}
 	}
 
@@ -372,7 +372,6 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	return exec.Command(dockerdExe, args...)
 }
-
 
 // helper to check if args match "docker prune"
 func isCommandPrune(args []string) bool {
