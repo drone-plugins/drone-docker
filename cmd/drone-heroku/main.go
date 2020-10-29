@@ -4,9 +4,16 @@ import (
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	var (
 		registry = "registry.heroku.com"
 		process  = getenv("PLUGIN_PROCESS_TYPE")

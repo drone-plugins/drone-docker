@@ -2,8 +2,10 @@ package docker
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -32,6 +34,7 @@ type (
 		Username string // Docker registry username
 		Password string // Docker registry password
 		Email    string // Docker registry email
+		Config   string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
@@ -54,6 +57,7 @@ type (
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
 		Secrets     []string // Docker build secret
+		Quiet       bool     // Docker build quiet
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -84,6 +88,17 @@ func (p Plugin) Exec() error {
 		time.Sleep(time.Second * 1)
 	}
 
+	// Create Auth Config File
+	if p.Login.Config != "" {
+		os.MkdirAll(dockerHome, 0600)
+
+		path := filepath.Join(dockerHome, "config.json")
+		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
+		}
+	}
+
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
@@ -91,8 +106,15 @@ func (p Plugin) Exec() error {
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)
 		}
-	} else {
-		fmt.Println("Registry credentials not provided. Guest mode enabled.")
+	}
+
+	switch {
+	case p.Login.Password != "":
+		fmt.Println("Detected registry credentials")
+	case p.Login.Config != "":
+		fmt.Println("Detected registry credentials file")
+	default:
+		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
 
 	if p.Build.Squash && !p.Daemon.Experimental {
@@ -136,6 +158,10 @@ func (p Plugin) Exec() error {
 		err := cmd.Run()
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil && isCommandPrune(cmd.Args) {
+			fmt.Printf("Could not prune system containers. Ignoring...\n")
+		} else if err != nil && isCommandRmi(cmd.Args) {
+			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
 		}
@@ -223,8 +249,13 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
 	}
+<<<<<<< HEAD
 	for _, secret := range build.Secrets {
 		args = append(args, "--secret", secret)
+=======
+	if build.Quiet {
+		args = append(args, "--quiet")
+>>>>>>> upstream/master
 	}
 
 	labelSchema := []string{
@@ -313,7 +344,10 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	args := []string{"--data-root", daemon.StoragePath}
+	args := []string{
+		"--data-root", daemon.StoragePath,
+		"--host=unix:///var/run/docker.sock",
+	}
 
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
@@ -345,8 +379,18 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	return exec.Command(dockerdExe, args...)
 }
 
+// helper to check if args match "docker prune"
+func isCommandPrune(args []string) bool {
+	return len(args) > 3 && args[2] == "prune"
+}
+
 func commandPrune() *exec.Cmd {
 	return exec.Command(dockerExe, "system", "prune", "-f")
+}
+
+// helper to check if args match "docker rmi"
+func isCommandRmi(args []string) bool {
+	return len(args) > 2 && args[1] == "rmi"
 }
 
 func commandRmi(tag string) *exec.Cmd {

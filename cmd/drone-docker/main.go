@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/drone-plugins/drone-docker"
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -147,6 +147,11 @@ func main() {
 			Usage:  "build args",
 			EnvVar: "PLUGIN_BUILD_ARGS_FROM_ENV",
 		},
+		cli.BoolFlag{
+			Name:   "quiet",
+			Usage:  "quiet docker build",
+			EnvVar: "PLUGIN_QUIET",
+		},
 		cli.StringFlag{
 			Name:   "target",
 			Usage:  "build target",
@@ -208,6 +213,11 @@ func main() {
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
 		},
+		cli.StringFlag{
+			Name:   "docker.config",
+			Usage:  "docker json dockerconfig content",
+			EnvVar: "PLUGIN_CONFIG",
+		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
 			Usage:  "docker should cleanup images",
@@ -249,6 +259,7 @@ func run(c *cli.Context) error {
 			Username: c.String("docker.username"),
 			Password: c.String("docker.password"),
 			Email:    c.String("docker.email"),
+			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
@@ -269,6 +280,7 @@ func run(c *cli.Context) error {
 			NoCache:     c.Bool("no-cache"),
 			AddHost:     c.StringSlice("add-host"),
 			Secrets:     c.StringSlice("secret"),
+			Quiet:       c.Bool("quiet"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -292,10 +304,15 @@ func run(c *cli.Context) error {
 			c.String("commit.ref"),
 			c.String("repo.branch"),
 		) {
-			plugin.Build.Tags = docker.DefaultTagSuffix(
+			tag, err := docker.DefaultTagSuffix(
 				c.String("commit.ref"),
 				c.String("tags.suffix"),
 			)
+			if err != nil {
+				logrus.Printf("cannot build docker image for %s, invalid semantic version", c.String("commit.ref"))
+				return err
+			}
+			plugin.Build.Tags = tag
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
