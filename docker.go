@@ -251,6 +251,7 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	for _, secret := range build.Secrets {
 		args = append(args, "--secret", secret)
+	}
 	if build.Quiet {
 		args = append(args, "--quiet")
 	}
