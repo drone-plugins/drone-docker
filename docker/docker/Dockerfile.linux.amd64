@@ -1,4 +1,4 @@
-FROM docker:19.03.8-dind
+FROM docker:19.03.13-dind
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
