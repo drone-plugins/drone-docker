@@ -50,7 +50,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "daemon.mirror",
 			Usage:  "docker daemon registry mirror",
-			EnvVar: "PLUGIN_MIRROR",
+			EnvVar: "PLUGIN_MIRROR,DOCKER_PLUGIN_MIRROR",
 		},
 		cli.StringFlag{
 			Name:   "daemon.storage-driver",
@@ -216,7 +216,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "docker.config",
 			Usage:  "docker json dockerconfig content",
-			EnvVar: "PLUGIN_CONFIG",
+			EnvVar: "PLUGIN_CONFIG,DOCKER_PLUGIN_CONFIG",
 		},
 		cli.BoolTFlag{
 			Name:   "docker.purge",
