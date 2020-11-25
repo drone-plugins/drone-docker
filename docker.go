@@ -20,7 +20,7 @@ type (
 		StoragePath   string   // Docker daemon storage path
 		Disabled      bool     // DOcker daemon is disabled (already running)
 		Debug         bool     // Docker daemon started in debug mode
-		IPTables      bool     // docker daemon enable/disable addition of iptables rules
+		IPTablesOff   bool     // docker daemon enable/disable addition of iptables rules
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
 		DNSSearch     []string // Docker daemon dns search domain
@@ -371,8 +371,8 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	if daemon.Experimental {
 		args = append(args, "--experimental")
 	}
-	if daemon.IPTables {
-		args = append(args, "--iptables")
+	if daemon.IPTablesOff {
+		args = append(args, "--iptables=false")
 	}
 	return exec.Command(dockerdExe, args...)
 }
