@@ -103,7 +103,7 @@ func main() {
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
 		},
-		cli.BoolFlag{
+		cli.BoolTFlag{
 			Name:   "daemon.iptables",
 			Usage:  "docker daemon enable addition of iptables rules",
 			EnvVar: "PLUGIN_IPTABLES",
