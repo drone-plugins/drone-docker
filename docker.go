@@ -340,6 +340,8 @@ func commandPush(build Build, tag string) *exec.Cmd {
 func commandDaemon(daemon Daemon) *exec.Cmd {
 	args := []string{
 		"--data-root", daemon.StoragePath,
+		"--iptables=false",
+		"--bridge=none",
 		"--host=unix:///var/run/docker.sock",
 	}
 
