@@ -345,6 +345,10 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 		"--host=unix:///var/run/docker.sock",
 	}
 
+	if _, err := os.Stat("/etc/docker/default.json"); err == nil {
+		args = append(args, "--seccomp-profile=/etc/docker/default.json")
+	}
+
 	if daemon.StorageDriver != "" {
 		args = append(args, "-s", daemon.StorageDriver)
 	}
