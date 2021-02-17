@@ -238,6 +238,12 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringFlag{
+			Name:   "stage.number",
+			Usage:  "drone stage number",
+			EnvVar: "DRONE_STAGE_NUMBER",
+			Value:  "0",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -258,7 +264,7 @@ func run(c *cli.Context) error {
 		},
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
+			Name:        c.String("commit.sha") + "_" + c.String("stage.number"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
