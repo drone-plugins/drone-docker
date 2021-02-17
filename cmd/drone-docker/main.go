@@ -167,6 +167,11 @@ func main() {
 			Usage:  "squash the layers at build time",
 			EnvVar: "PLUGIN_SQUASH",
 		},
+		cli.BoolFlag{
+			Name:   "stream",
+			Usage:  "stream the build context",
+			EnvVar: "PLUGIN_STREAM",
+		},
 		cli.BoolTFlag{
 			Name:   "pull-image",
 			Usage:  "force pull base image at build time",
@@ -181,6 +186,11 @@ func main() {
 			Name:   "repo",
 			Usage:  "docker repository",
 			EnvVar: "PLUGIN_REPO",
+		},
+		cli.BoolFlag{
+			Name:   "push-target",
+			Usage:  "push the target image along the final image",
+			EnvVar: "PLUGIN_PUSH_TARGET",
 		},
 		cli.StringSliceFlag{
 			Name:   "custom-labels",
@@ -266,6 +276,7 @@ func run(c *cli.Context) error {
 			ArgsEnv:     c.StringSlice("args-from-env"),
 			Target:      c.String("target"),
 			Squash:      c.Bool("squash"),
+			Stream:      c.Bool("stream"),
 			Pull:        c.BoolT("pull-image"),
 			CacheFrom:   c.StringSlice("cache-from"),
 			Compress:    c.Bool("compress"),
@@ -273,6 +284,7 @@ func run(c *cli.Context) error {
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
+			PushTarget:  c.Bool("push-target"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
 		},
