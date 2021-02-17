@@ -57,6 +57,7 @@ type (
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
+		NetHost     bool     // Docker build nethost
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -250,6 +251,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
+	}
+	if build.NetHost {
+		args = append(args, "--network=host")
 	}
 
 	labelSchema := []string{
