@@ -40,6 +40,7 @@ type (
 	// Build defines Docker build parameters.
 	Build struct {
 		Remote      string   // Git remote URL
+		Ref         string   // Git commit hash
 		Name        string   // Docker build using default named tag
 		Dockerfile  string   // Docker build Dockerfile
 		Context     string   // Docker build context
@@ -255,7 +256,7 @@ func commandBuild(build Build) *exec.Cmd {
 	labelSchema := []string{
 		"schema-version=1.0",
 		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
-		fmt.Sprintf("vcs-ref=%s", build.Name),
+		fmt.Sprintf("vcs-ref=%s", build.Ref),
 		fmt.Sprintf("vcs-url=%s", build.Remote),
 	}
 
