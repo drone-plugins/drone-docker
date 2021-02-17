@@ -183,6 +183,11 @@ func main() {
 			EnvVar: "PLUGIN_REPO",
 		},
 		cli.StringSliceFlag{
+			Name:   "repos",
+			Usage:  "docker repositories",
+			EnvVar: "PLUGIN_REPOS",
+		},
+		cli.StringSliceFlag{
 			Name:   "custom-labels",
 			Usage:  "additional k=v labels",
 			EnvVar: "PLUGIN_CUSTOM_LABELS",
@@ -270,6 +275,7 @@ func run(c *cli.Context) error {
 			CacheFrom:   c.StringSlice("cache-from"),
 			Compress:    c.Bool("compress"),
 			Repo:        c.String("repo"),
+			Repos:       c.StringSlice("repos"),
 			Labels:      c.StringSlice("custom-labels"),
 			LabelSchema: c.StringSlice("label-schema"),
 			NoCache:     c.Bool("no-cache"),
