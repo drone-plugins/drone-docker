@@ -39,24 +39,26 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote      string   // Git remote URL
-		Name        string   // Docker build using default named tag
-		Dockerfile  string   // Docker build Dockerfile
-		Context     string   // Docker build context
-		Tags        []string // Docker build tags
-		Args        []string // Docker build args
-		ArgsEnv     []string // Docker build args from env
-		Target      string   // Docker build target
-		Squash      bool     // Docker build squash
-		Pull        bool     // Docker build pull
-		CacheFrom   []string // Docker build cache-from
-		Compress    bool     // Docker build compress
-		Repo        string   // Docker build repository
-		LabelSchema []string // label-schema Label map
-		Labels      []string // Label map
-		NoCache     bool     // Docker build no-cache
-		AddHost     []string // Docker build add-host
-		Quiet       bool     // Docker build quiet
+		Remote        string   // Git remote URL
+		Name          string   // Docker build using default named tag
+		Dockerfile    string   // Docker build Dockerfile
+		Context       string   // Docker build context
+		Tags          []string // Docker build tags
+		Args          []string // Docker build args
+		ArgsEnv       []string // Docker build args from env
+		Target        string   // Docker build target
+		Squash        bool     // Docker build squash
+		Pull          bool     // Docker build pull
+		CacheFrom     []string // Docker build cache-from
+		Compress      bool     // Docker build compress
+		Repo          string   // Docker build repository
+		LabelSchema   []string // label-schema Label map
+		AutoLabel     bool     // auto-label bool
+		Labels        []string // Label map
+		Link          string   // Git repo link
+		NoCache       bool     // Docker build no-cache
+		AddHost       []string // Docker build add-host
+		Quiet         bool     // Docker build quiet
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -252,19 +254,22 @@ func commandBuild(build Build) *exec.Cmd {
 		args = append(args, "--quiet")
 	}
 
-	labelSchema := []string{
-		"schema-version=1.0",
-		fmt.Sprintf("build-date=%s", time.Now().Format(time.RFC3339)),
-		fmt.Sprintf("vcs-ref=%s", build.Name),
-		fmt.Sprintf("vcs-url=%s", build.Remote),
-	}
+	if build.AutoLabel {
+		labelSchema := []string{
+			fmt.Sprintf("created=%s", time.Now().Format(time.RFC3339)),
+			fmt.Sprintf("revision=%s", build.Name),
+			fmt.Sprintf("source=%s", build.Remote),
+			fmt.Sprintf("url=%s", build.Link),
+		}
+		labelPrefix := "org.opencontainers.image"
 
-	if len(build.LabelSchema) > 0 {
-		labelSchema = append(labelSchema, build.LabelSchema...)
-	}
+		if len(build.LabelSchema) > 0 {
+			labelSchema = append(labelSchema, build.LabelSchema...)
+		}
 
-	for _, label := range labelSchema {
-		args = append(args, "--label", fmt.Sprintf("org.label-schema.%s", label))
+		for _, label := range labelSchema {
+			args = append(args, "--label", fmt.Sprintf("%s.%s", labelPrefix, label))
+		}
 	}
 
 	if len(build.Labels) > 0 {
