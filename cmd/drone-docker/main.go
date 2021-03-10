@@ -248,6 +248,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringSliceFlag{
+			Name:   "commands",
+			Usage:  "commands to run before pushing the image",
+			EnvVar: "PLUGIN_COMMANDS",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -259,6 +264,7 @@ func run(c *cli.Context) error {
 	plugin := docker.Plugin{
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: c.BoolT("docker.purge"),
+		Cmds:    c.StringSlice("commands"),
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),

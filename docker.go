@@ -68,6 +68,7 @@ type (
 		Daemon  Daemon // Docker daemon configuration
 		Dryrun  bool   // Docker push is skipped
 		Cleanup bool   // Docker purge is enabled
+		Cmds    []string // Commands to run after Docker build
 	}
 )
 
@@ -137,8 +138,17 @@ func (p Plugin) Exec() error {
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
+	var cmdsRun bool
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
+
+		// run commands
+		if !cmdsRun {
+			for _, cmd := range p.Cmds {
+				cmds = append(cmds, exec.Command("/bin/sh", "-c", cmd))
+			}
+			cmdsRun = true
+		}
 
 		if p.Dryrun == false {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
