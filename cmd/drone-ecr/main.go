@@ -38,6 +38,7 @@ func main() {
 		repositoryPolicy = getenv("PLUGIN_REPOSITORY_POLICY")
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
 		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
+		autolabel        = getenv("PLUGIN_AUTO_LABEL")
 	)
 
 	// set the region
@@ -104,6 +105,7 @@ func main() {
 	}
 
 	os.Setenv("PLUGIN_REPO", repo)
+	os.Setenv("PLUGIN_AUTO_LABEL", autolabel)
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)

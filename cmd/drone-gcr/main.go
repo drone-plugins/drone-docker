@@ -20,14 +20,15 @@ func main() {
 	}
 
 	var (
-		repo     = getenv("PLUGIN_REPO")
-		registry = getenv("PLUGIN_REGISTRY")
-		password = getenv(
+		repo      = getenv("PLUGIN_REPO")
+		registry  = getenv("PLUGIN_REGISTRY")
+		password  = getenv(
 			"PLUGIN_JSON_KEY",
 			"GCR_JSON_KEY",
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
+		autolabel = getenv("PLUGIN_AUTO_LABEL")
 	)
 
 	// decode the token if base64 encoded
@@ -49,6 +50,7 @@ func main() {
 	}
 
 	os.Setenv("PLUGIN_REPO", repo)
+	os.Setenv("PLUGIN_AUTO_LABEL", autolabel)
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)

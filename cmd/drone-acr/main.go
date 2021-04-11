@@ -16,10 +16,11 @@ func main() {
 	}
 
 	var (
-		repo     = getenv("PLUGIN_REPO")
-		registry = getenv("PLUGIN_REGISTRY")
-		username = getenv("SERVICE_PRINCIPAL_CLIENT_ID")
-		password = getenv("SERVICE_PRINCIPAL_CLIENT_SECRET")
+		repo      = getenv("PLUGIN_REPO")
+		registry  = getenv("PLUGIN_REGISTRY")
+		username  = getenv("SERVICE_PRINCIPAL_CLIENT_ID")
+		password  = getenv("SERVICE_PRINCIPAL_CLIENT_SECRET")
+		autolabel = getenv("PLUGIN_AUTO_LABEL")
 	)
 
 	// default registry value
@@ -35,6 +36,7 @@ func main() {
 	}
 
 	os.Setenv("PLUGIN_REPO", repo)
+	os.Setenv("PLUGIN_AUTO_LABEL", autolabel)
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)
