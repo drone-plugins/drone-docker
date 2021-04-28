@@ -1,0 +1,10 @@
+{
+  "auths": {
+    "https://index.docker.io/v1/":{
+      "auth": "DOCKERCREDS"
+    },
+    "harbor.shipttech.com": {
+      "auth": "HARBORCREDS"
+    }
+  }
+}

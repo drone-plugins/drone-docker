@@ -1,5 +1,8 @@
 FROM docker:19.03.8-dind
 
+COPY docker/docker/config.json /root/.docker/
+COPY docker/docker/daemon.json /etc/docker/
+
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
 ADD release/linux/amd64/drone-docker /bin/
