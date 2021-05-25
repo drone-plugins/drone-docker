@@ -39,26 +39,28 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote        string   // Git remote URL
-		Name          string   // Docker build using default named tag
-		Dockerfile    string   // Docker build Dockerfile
-		Context       string   // Docker build context
-		Tags          []string // Docker build tags
-		Args          []string // Docker build args
-		ArgsEnv       []string // Docker build args from env
-		Target        string   // Docker build target
-		Squash        bool     // Docker build squash
-		Pull          bool     // Docker build pull
-		CacheFrom     []string // Docker build cache-from
-		Compress      bool     // Docker build compress
-		Repo          string   // Docker build repository
-		LabelSchema   []string // label-schema Label map
-		AutoLabel     bool     // auto-label bool
-		Labels        []string // Label map
-		Link          string   // Git repo link
-		NoCache       bool     // Docker build no-cache
-		AddHost       []string // Docker build add-host
-		Quiet         bool     // Docker build quiet
+		Remote       string   // Git remote URL
+		Name         string   // Docker build using default named tag
+		Dockerfile   string   // Docker build Dockerfile
+		Context      string   // Docker build context
+		Tags         []string // Docker build tags
+		Args         []string // Docker build args
+		ArgsEnv      []string // Docker build args from env
+		Target       string   // Docker build target
+		Squash       bool     // Docker build squash
+		Pull         bool     // Docker build pull
+		CacheFrom    []string // Docker build cache-from
+		Compress     bool     // Docker build compress
+		Repo         string   // Docker build repository
+		LabelSchema  []string // label-schema Label map
+		AutoLabel    bool     // auto-label bool
+		Labels       []string // Label map
+		Link         string   // Git repo link
+		NoCache      bool     // Docker build no-cache
+		AddHost      []string // Docker build add-host
+		Quiet        bool     // Docker build quiet
+		CacheBuilder bool     //only target the builder and cache it
+		CacheRepo    string   //repo override for cache builder flag Defaults to CacheFrom[0]
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -249,6 +251,8 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
+	} else if build.CacheBuilder {
+		args = append(args, "--target", "builder")
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
@@ -337,7 +341,15 @@ func commandTag(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker push command.
 func commandPush(build Build, tag string) *exec.Cmd {
-	target := fmt.Sprintf("%s:%s", build.Repo, tag)
+	repoName := build.Repo
+	if build.CacheBuilder {
+		if build.CacheRepo != "" {
+			repoName = build.CacheRepo
+		} else {
+			repoName = build.CacheFrom[0]
+		}
+	}
+	target := fmt.Sprintf("%s:%s", repoName, tag)
 	return exec.Command(dockerExe, "push", target)
 }
 
