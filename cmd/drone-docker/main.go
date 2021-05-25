@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -30,6 +31,11 @@ func main() {
 			Name:   "dry-run",
 			Usage:  "dry run disables docker push",
 			EnvVar: "PLUGIN_DRY_RUN",
+		},
+		cli.BoolFlag{
+			Name:   "cache-builder",
+			Usage:  "cache builder will force this run to target the FROM entry in the dockerfile as specified in PLUGIN_TARGET (defaults to `builder` when this flag is enabled) and push it to the repo specified in PLUGIN_CACHE_REPO if set otherwise PLUGIN_CACHE_FROM[0]",
+			EnvVar: "PLUGIN_CACHE_BUILDER",
 		},
 		cli.StringFlag{
 			Name:   "remote.url",
@@ -157,6 +163,11 @@ func main() {
 			Usage:  "build target",
 			EnvVar: "PLUGIN_TARGET",
 		},
+		cli.StringFlag{
+			Name:   "cache-repo",
+			Usage:  "repo override for cache builder",
+			EnvVar: "PLUGIN_CACHE_REPO",
+		},
 		cli.StringSliceFlag{
 			Name:   "cache-from",
 			Usage:  "images to consider as cache sources",
@@ -267,26 +278,28 @@ func run(c *cli.Context) error {
 			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
-			Remote:        c.String("remote.url"),
-			Name:          c.String("commit.sha"),
-			Dockerfile:    c.String("dockerfile"),
-			Context:       c.String("context"),
-			Tags:          c.StringSlice("tags"),
-			Args:          c.StringSlice("args"),
-			ArgsEnv:       c.StringSlice("args-from-env"),
-			Target:        c.String("target"),
-			Squash:        c.Bool("squash"),
-			Pull:          c.BoolT("pull-image"),
-			CacheFrom:     c.StringSlice("cache-from"),
-			Compress:      c.Bool("compress"),
-			Repo:          c.String("repo"),
-			Labels:        c.StringSlice("custom-labels"),
-			LabelSchema:   c.StringSlice("label-schema"),
-			AutoLabel:     c.BoolT("auto-label"),
-			Link:          c.String("link"),
-			NoCache:       c.Bool("no-cache"),
-			AddHost:       c.StringSlice("add-host"),
-			Quiet:         c.Bool("quiet"),
+			Remote:       c.String("remote.url"),
+			Name:         c.String("commit.sha"),
+			Dockerfile:   c.String("dockerfile"),
+			Context:      c.String("context"),
+			Tags:         c.StringSlice("tags"),
+			Args:         c.StringSlice("args"),
+			ArgsEnv:      c.StringSlice("args-from-env"),
+			Target:       c.String("target"),
+			Squash:       c.Bool("squash"),
+			Pull:         c.BoolT("pull-image"),
+			CacheFrom:    c.StringSlice("cache-from"),
+			Compress:     c.Bool("compress"),
+			Repo:         c.String("repo"),
+			Labels:       c.StringSlice("custom-labels"),
+			LabelSchema:  c.StringSlice("label-schema"),
+			AutoLabel:    c.BoolT("auto-label"),
+			Link:         c.String("link"),
+			NoCache:      c.Bool("no-cache"),
+			AddHost:      c.StringSlice("add-host"),
+			Quiet:        c.Bool("quiet"),
+			CacheBuilder: c.Bool("cache-builder"),
+			CacheRepo:    c.String("cache-repo"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -322,6 +335,12 @@ func run(c *cli.Context) error {
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
+		}
+	}
+
+	if plugin.Build.CacheBuilder {
+		if plugin.Build.CacheRepo == "" && (len(plugin.Build.CacheFrom) < 1 || plugin.Build.CacheFrom[0] == "") {
+			return fmt.Errorf("PLUGIN_CACHE_BUILDER requires at least one PLUGIN_CACHE_FROM entry or PLUGIN_CACHE_REPO to be set")
 		}
 	}
 
