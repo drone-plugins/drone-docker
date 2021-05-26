@@ -330,17 +330,17 @@ func hasProxyBuildArg(build *Build, key string) bool {
 
 // helper function to create the docker tag command.
 func commandTag(build Build, tag string) *exec.Cmd {
+	repoName := getRepoName(build)
 	var (
 		source = build.Name
-		target = fmt.Sprintf("%s:%s", build.Repo, tag)
+		target = fmt.Sprintf("%s:%s", repoName, tag)
 	)
 	return exec.Command(
 		dockerExe, "tag", source, target,
 	)
 }
 
-// helper function to create the docker push command.
-func commandPush(build Build, tag string) *exec.Cmd {
+func getRepoName(build Build) string {
 	repoName := build.Repo
 	if build.CacheBuilder {
 		if build.CacheRepo != "" {
@@ -353,6 +353,12 @@ func commandPush(build Build, tag string) *exec.Cmd {
 			}
 		}
 	}
+	return repoName
+}
+
+// helper function to create the docker push command.
+func commandPush(build Build, tag string) *exec.Cmd {
+	repoName := getRepoName(build)
 	target := fmt.Sprintf("%s:%s", repoName, tag)
 	return exec.Command(dockerExe, "push", target)
 }
