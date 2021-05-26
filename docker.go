@@ -347,6 +347,10 @@ func commandPush(build Build, tag string) *exec.Cmd {
 			repoName = build.CacheRepo
 		} else {
 			repoName = build.CacheFrom[0]
+			lastColon := strings.LastIndex(repoName, ":")
+			if lastColon > 0 {
+				repoName = repoName[0:lastColon]
+			}
 		}
 	}
 	target := fmt.Sprintf("%s:%s", repoName, tag)
