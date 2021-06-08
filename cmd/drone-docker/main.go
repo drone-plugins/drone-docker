@@ -219,19 +219,19 @@ func main() {
 			EnvVar: "PLUGIN_PASSWORD,DOCKER_PASSWORD",
 		},
 		cli.StringFlag{
-			Name:   "docker.registry.alternative",
-			Usage:  "docker alternative registry",
-			EnvVar: "PLUGIN_REGISTRY_ALTERNATIVE,DOCKER_REGISTRY_ALTERNATIVE",
+			Name:   "docker.registry.additional",
+			Usage:  "docker additional registry",
+			EnvVar: "PLUGIN_REGISTRY_ADDITIONAL,DOCKER_REGISTRY_ADDITIONAL",
 		},
 		cli.StringFlag{
-			Name:   "docker.username.alternative",
-			Usage:  "docker username for alternative registry",
-			EnvVar: "PLUGIN_USERNAME_ALTERNATIVE,DOCKER_USERNAME_ALTERNATIVE",
+			Name:   "docker.username.additional",
+			Usage:  "docker username for additional registry",
+			EnvVar: "PLUGIN_USERNAME_ADDITIONAL,DOCKER_USERNAME_ADDITIONAL",
 		},
 		cli.StringFlag{
-			Name:   "docker.password.alternative",
-			Usage:  "docker password for alternative registry",
-			EnvVar: "PLUGIN_PASSWORD_ALTERNATIVE,DOCKER_PASSWORD_ALTERNATIVE",
+			Name:   "docker.password.additional",
+			Usage:  "docker password for additional registry",
+			EnvVar: "PLUGIN_PASSWORD_ADDITIONAL,DOCKER_PASSWORD_ADDITIONAL",
 		},
 		cli.StringFlag{
 			Name:   "docker.email",
@@ -281,10 +281,10 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 			Config:   c.String("docker.config"),
 		},
-		LoginAlt: docker.LoginAlt{
-			Registry: c.String("docker.registry.alternative"),
-			Username: c.String("docker.username.alternative"),
-			Password: c.String("docker.password.alternative")
+		LoginAdd: docker.LoginAdd{
+			Registry: c.String("docker.registry.additional"),
+			Username: c.String("docker.username.additional"),
+			Password: c.String("docker.password.additional")
 		},		
 		Build: docker.Build{
 			Remote:        c.String("remote.url"),
