@@ -42,6 +42,8 @@ type (
 		Registry string // Docker registry address
 		Username string // Docker registry username
 		Password string // Docker registry password
+		Email    string // Docker registry email
+		Config   string // Docker Auth Config
 	}
 
 	// Build defines Docker build parameters.
