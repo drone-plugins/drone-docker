@@ -37,6 +37,13 @@ type (
 		Config   string // Docker Auth Config
 	}
 
+	// LoginAlt defines Docker login parameters for a secondary registry
+	LoginAlt struct {
+		Registry string // Docker registry address
+		Username string // Docker registry username
+		Password string // Docker registry password
+	}
+
 	// Build defines Docker build parameters.
 	Build struct {
 		Remote        string   // Git remote URL
@@ -63,11 +70,12 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login    Login  // Docker login configuration
+		LoginAlt LoginAlt // Docker login configuration for secondary registry
+		Build    Build  // Docker build configuration
+		Daemon   Daemon // Docker daemon configuration
+		Dryrun   bool   // Docker push is skipped
+		Cleanup  bool   // Docker purge is enabled
 	}
 )
 
@@ -103,6 +111,16 @@ func (p Plugin) Exec() error {
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
+		err := cmd.Run()
+		if err != nil {
+			return fmt.Errorf("Error authenticating: %s", err)
+		}
+	}
+	
+	// login to secondary registry
+	if p.LoginAlt.Password != "" {
+		fmt.Println("Detected alternative registry credentials")
+		cmd := commandLogin(p.LoginAlt)
 		err := cmd.Run()
 		if err != nil {
 			return fmt.Errorf("Error authenticating: %s", err)

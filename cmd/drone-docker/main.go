@@ -219,6 +219,21 @@ func main() {
 			EnvVar: "PLUGIN_PASSWORD,DOCKER_PASSWORD",
 		},
 		cli.StringFlag{
+			Name:   "docker.registry.alternative",
+			Usage:  "docker alternative registry",
+			EnvVar: "PLUGIN_REGISTRY_ALTERNATIVE,DOCKER_REGISTRY_ALTERNATIVE",
+		},
+		cli.StringFlag{
+			Name:   "docker.username.alternative",
+			Usage:  "docker username for alternative registry",
+			EnvVar: "PLUGIN_USERNAME_ALTERNATIVE,DOCKER_USERNAME_ALTERNATIVE",
+		},
+		cli.StringFlag{
+			Name:   "docker.password.alternative",
+			Usage:  "docker password for alternative registry",
+			EnvVar: "PLUGIN_PASSWORD_ALTERNATIVE,DOCKER_PASSWORD_ALTERNATIVE",
+		},
+		cli.StringFlag{
 			Name:   "docker.email",
 			Usage:  "docker email",
 			EnvVar: "PLUGIN_EMAIL,DOCKER_EMAIL",
@@ -266,6 +281,11 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 			Config:   c.String("docker.config"),
 		},
+		LoginAlt: docker.LoginAlt{
+			Registry: c.String("docker.registry.alternative"),
+			Username: c.String("docker.username.alternative"),
+			Password: c.String("docker.password.alternative")
+		},		
 		Build: docker.Build{
 			Remote:        c.String("remote.url"),
 			Name:          c.String("commit.sha"),
