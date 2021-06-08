@@ -37,15 +37,6 @@ type (
 		Config   string // Docker Auth Config
 	}
 
-	// LoginAdd defines Docker login parameters for an additional registry
-	LoginAdd struct {
-		Registry string // Docker registry address
-		Username string // Docker registry username
-		Password string // Docker registry password
-		Email    string // Docker registry email
-		Config   string // Docker Auth Config
-	}
-
 	// Build defines Docker build parameters.
 	Build struct {
 		Remote        string   // Git remote URL

@@ -281,10 +281,10 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 			Config:   c.String("docker.config"),
 		},
-		LoginAdd: docker.LoginAdd{
+		LoginAdd: docker.Login{
 			Registry: c.String("docker.registry.additional"),
 			Username: c.String("docker.username.additional"),
-			Password: c.String("docker.password.additional")
+			Password: c.String("docker.password.additional"),
 		},		
 		Build: docker.Build{
 			Remote:        c.String("remote.url"),
