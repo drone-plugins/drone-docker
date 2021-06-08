@@ -63,12 +63,12 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login    Login  	// Docker login configuration
-		LoginAdd LoginAdd 	// Docker login configuration for an additional registry
-		Build    Build  	// Docker build configuration
-		Daemon   Daemon 	// Docker daemon configuration
-		Dryrun   bool   	// Docker push is skipped
-		Cleanup  bool   	// Docker purge is enabled
+		Login   Login  		// Docker login configuration
+		Login 	LoginAdd 	// Docker login configuration for an additional registry
+		Build   Build  		// Docker build configuration
+		Daemon  Daemon 		// Docker daemon configuration
+		Dryrun  bool   		// Docker push is skipped
+		Cleanup bool   		// Docker purge is enabled
 	}
 )
 
