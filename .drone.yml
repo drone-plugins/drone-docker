@@ -193,23 +193,6 @@ steps:
   commands:
   - ./release/linux/amd64/drone-docker --help
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/docker
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -277,23 +260,6 @@ steps:
   commands:
   - ./release/linux/arm64/drone-docker --help
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.arm64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/docker
-    tags: linux-arm64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -360,23 +326,6 @@ steps:
   image: golang:1.11
   commands:
   - ./release/linux/arm/drone-docker --help
-
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.arm
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/docker
-    tags: linux-arm
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
 
 - name: publish
   pull: always
@@ -481,23 +430,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/gcr
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -559,23 +491,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.arm64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/gcr
-    tags: linux-arm64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -636,23 +551,6 @@ steps:
   when:
     event:
     - tag
-
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.arm
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/gcr
-    tags: linux-arm
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
 
 - name: publish
   pull: always
@@ -754,23 +652,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/ecr/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/ecr
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -832,23 +713,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/ecr/Dockerfile.linux.arm64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/ecr
-    tags: linux-arm64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -909,23 +773,6 @@ steps:
   when:
     event:
     - tag
-
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/ecr/Dockerfile.linux.arm
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/ecr
-    tags: linux-arm
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
 
 - name: publish
   pull: always
@@ -1027,23 +874,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/heroku/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/heroku
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -1105,23 +935,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/heroku/Dockerfile.linux.arm64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/heroku
-    tags: linux-arm64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -1182,23 +995,6 @@ steps:
   when:
     event:
     - tag
-
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/heroku/Dockerfile.linux.arm
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/heroku
-    tags: linux-arm
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
 
 - name: publish
   pull: always
@@ -1300,23 +1096,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/acr/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/acr
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -1378,23 +1157,6 @@ steps:
     event:
     - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/acr/Dockerfile.linux.arm64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/acr
-    tags: linux-arm64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
 - name: publish
   pull: always
   image: plugins/docker:18
@@ -1455,23 +1217,6 @@ steps:
   when:
     event:
     - tag
-
-- name: dryrun
-  pull: always
-  image: plugins/docker:18
-  settings:
-    daemon_off: false
-    dockerfile: docker/acr/Dockerfile.linux.arm
-    dry_run: true
-    password:
-      from_secret: docker_password
-    repo: plugins/acr
-    tags: linux-arm
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
 
 - name: publish
   pull: always
