@@ -8,7 +8,6 @@ platform:
 
 steps:
 - name: vet
-  pull: always
   image: golang:1.11
   commands:
   - go vet ./...
@@ -19,7 +18,6 @@ steps:
     path: /go
 
 - name: test
-  pull: always
   image: golang:1.11
   commands:
   - go test -cover ./...
@@ -163,7 +161,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
@@ -176,7 +173,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
@@ -188,13 +184,11 @@ steps:
     - tag
 
 - name: executable
-  pull: always
   image: golang:1.11
   commands:
   - ./release/linux/amd64/drone-docker --help
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -230,7 +224,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
@@ -243,7 +236,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker"
@@ -255,13 +247,11 @@ steps:
     - tag
 
 - name: executable
-  pull: always
   image: golang:1.11
   commands:
   - ./release/linux/arm64/drone-docker --help
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -297,7 +287,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
@@ -310,7 +299,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
@@ -322,13 +310,11 @@ steps:
     - tag
 
 - name: executable
-  pull: always
   image: golang:1.11
   commands:
   - ./release/linux/arm/drone-docker --help
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -364,7 +350,6 @@ platform:
 
 steps:
 - name: manifest
-  pull: always
   image: plugins/manifest
   settings:
     auto_tag: true
@@ -374,14 +359,6 @@ steps:
     spec: docker/docker/manifest.tmpl
     username:
       from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook
-  failure: ignore
-  settings:
-    urls:
-      from_secret: microbadger_docker
 
 trigger:
   ref:
@@ -406,7 +383,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
@@ -419,7 +395,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr"
@@ -431,7 +406,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -467,7 +441,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
@@ -480,7 +453,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr"
@@ -492,7 +464,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -528,7 +499,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
@@ -541,7 +511,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
@@ -553,7 +522,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -589,7 +557,6 @@ platform:
 
 steps:
 - name: manifest
-  pull: always
   image: plugins/manifest
   settings:
     auto_tag: true
@@ -599,14 +566,6 @@ steps:
     spec: docker/gcr/manifest.tmpl
     username:
       from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook
-  failure: ignore
-  settings:
-    urls:
-      from_secret: microbadger_gcr
 
 trigger:
   ref:
@@ -628,7 +587,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
@@ -641,7 +599,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr"
@@ -653,7 +610,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -689,7 +645,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
@@ -702,7 +657,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr"
@@ -714,7 +668,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -750,7 +703,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
@@ -763,7 +715,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
@@ -775,7 +726,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -811,7 +761,6 @@ platform:
 
 steps:
 - name: manifest
-  pull: always
   image: plugins/manifest
   settings:
     auto_tag: true
@@ -821,14 +770,6 @@ steps:
     spec: docker/ecr/manifest.tmpl
     username:
       from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook
-  failure: ignore
-  settings:
-    urls:
-      from_secret: microbadger_ecr
 
 trigger:
   ref:
@@ -850,7 +791,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
@@ -863,7 +803,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku"
@@ -875,7 +814,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -911,7 +849,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
@@ -924,7 +861,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku"
@@ -936,7 +872,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -972,7 +907,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
@@ -985,7 +919,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
@@ -997,7 +930,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -1033,7 +965,6 @@ platform:
 
 steps:
 - name: manifest
-  pull: always
   image: plugins/manifest
   settings:
     auto_tag: true
@@ -1043,14 +974,6 @@ steps:
     spec: docker/heroku/manifest.tmpl
     username:
       from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook
-  failure: ignore
-  settings:
-    urls:
-      from_secret: microbadger_heroku
 
 trigger:
   ref:
@@ -1072,7 +995,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr"
@@ -1085,7 +1007,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr"
@@ -1097,7 +1018,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -1133,7 +1053,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr"
@@ -1146,7 +1065,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr"
@@ -1158,7 +1076,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -1194,7 +1111,6 @@ platform:
 
 steps:
 - name: build-push
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
@@ -1207,7 +1123,6 @@ steps:
       - tag
 
 - name: build-tag
-  pull: always
   image: golang:1.11
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
@@ -1219,7 +1134,6 @@ steps:
     - tag
 
 - name: publish
-  pull: always
   image: plugins/docker:18
   settings:
     auto_tag: true
@@ -1255,7 +1169,6 @@ platform:
 
 steps:
 - name: manifest
-  pull: always
   image: plugins/manifest
   settings:
     ignore_missing: true
@@ -1264,14 +1177,6 @@ steps:
     spec: docker/acr/manifest.tmpl
     username:
       from_secret: docker_username
-
-- name: microbadger
-  pull: always
-  image: plugins/webhook
-  failure: ignore
-  settings:
-    url:
-      from_secret: microbadger_acr
 
 trigger:
   ref:
