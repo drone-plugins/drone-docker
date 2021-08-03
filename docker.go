@@ -93,7 +93,20 @@ func (p Plugin) Exec() error {
 		time.Sleep(time.Second * 1)
 	}
 
-	// Create Auth Config File
+	// for debugging purposes, log the type of authentication
+	// credentials that have been provided.
+	switch {
+	case p.Login.Password != "" && p.Login.Config != "":
+		fmt.Println("Detected registry credentials and registry credentials file")
+	case p.Login.Password != "":
+		fmt.Println("Detected registry credentials")
+	case p.Login.Config != "":
+		fmt.Println("Detected registry credentials file")
+	default:
+		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
+	}
+
+	// create Auth Config File
 	if p.Login.Config != "" {
 		os.MkdirAll(dockerHome, 0600)
 
@@ -114,15 +127,6 @@ func (p Plugin) Exec() error {
 			fmt.Println(out)
 			return fmt.Errorf("Error authenticating: exit status 1")
 		}
-	}
-
-	switch {
-	case p.Login.Password != "":
-		fmt.Println("Detected registry credentials")
-	case p.Login.Config != "":
-		fmt.Println("Detected registry credentials file")
-	default:
-		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
 
 	if p.Build.Squash && !p.Daemon.Experimental {
