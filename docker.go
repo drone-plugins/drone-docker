@@ -39,26 +39,26 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote        string   // Git remote URL
-		Name          string   // Docker build using default named tag
-		Dockerfile    string   // Docker build Dockerfile
-		Context       string   // Docker build context
-		Tags          []string // Docker build tags
-		Args          []string // Docker build args
-		ArgsEnv       []string // Docker build args from env
-		Target        string   // Docker build target
-		Squash        bool     // Docker build squash
-		Pull          bool     // Docker build pull
-		CacheFrom     []string // Docker build cache-from
-		Compress      bool     // Docker build compress
-		Repo          string   // Docker build repository
-		LabelSchema   []string // label-schema Label map
-		AutoLabel     bool     // auto-label bool
-		Labels        []string // Label map
-		Link          string   // Git repo link
-		NoCache       bool     // Docker build no-cache
-		AddHost       []string // Docker build add-host
-		Quiet         bool     // Docker build quiet
+		Remote      string   // Git remote URL
+		Name        string   // Docker build using default named tag
+		Dockerfile  string   // Docker build Dockerfile
+		Context     string   // Docker build context
+		Tags        []string // Docker build tags
+		Args        []string // Docker build args
+		ArgsEnv     []string // Docker build args from env
+		Target      string   // Docker build target
+		Squash      bool     // Docker build squash
+		Pull        bool     // Docker build pull
+		CacheFrom   []string // Docker build cache-from
+		Compress    bool     // Docker build compress
+		Repo        string   // Docker build repository
+		LabelSchema []string // label-schema Label map
+		AutoLabel   bool     // auto-label bool
+		Labels      []string // Label map
+		Link        string   // Git repo link
+		NoCache     bool     // Docker build no-cache
+		AddHost     []string // Docker build add-host
+		Quiet       bool     // Docker build quiet
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -80,10 +80,14 @@ func (p Plugin) Exec() error {
 
 	// poll the docker daemon until it is started. This ensures the daemon is
 	// ready to accept connections before we proceed.
-	for i := 0; i < 15; i++ {
+	for i := 0; ; i++ {
 		cmd := commandInfo()
 		err := cmd.Run()
 		if err == nil {
+			break
+		}
+		if i == 15 {
+			fmt.Println("Unable to reach Docker Daemon after 15 attempts.")
 			break
 		}
 		time.Sleep(time.Second * 1)
@@ -103,9 +107,12 @@ func (p Plugin) Exec() error {
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
-		err := cmd.Run()
+		raw, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("Error authenticating: %s", err)
+			out := string(raw)
+			out = strings.ReplaceAll(out, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.", "")
+			fmt.Println(out)
+			return fmt.Errorf("Error authenticating: exit status 1")
 		}
 	}
 
