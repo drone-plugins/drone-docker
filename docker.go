@@ -110,7 +110,7 @@ func (p Plugin) Exec() error {
 		raw, err := cmd.CombinedOutput()
 		if err != nil {
 			out := string(raw)
-			out = strings.ReplaceAll(out, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.", "")
+			out = strings.Replace(out, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.", "", -1)
 			fmt.Println(out)
 			return fmt.Errorf("Error authenticating: exit status 1")
 		}
