@@ -216,6 +216,69 @@ depends_on:
 
 ---
 kind: pipeline
+name: linux-s390x-docker
+
+platform:
+  os: linux
+  arch: s390x
+
+steps:
+- name: build-push
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/s390x/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  image: golang:1.11
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/s390x/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: executable
+  image: golang:1.11
+  commands:
+  - ./release/linux/s390x/drone-docker --help
+
+- name: publish
+  image: plugins/docker:18
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-s390x
+    daemon_off: false
+    dockerfile: docker/docker/Dockerfile.linux.s390x
+    password:
+      from_secret: docker_password
+    repo: plugins/docker
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- testing
+
+---
+kind: pipeline
 name: linux-arm64-docker
 
 platform:
@@ -369,6 +432,7 @@ depends_on:
 - windows-1809-amd64-docker
 - windows-1909-amd64-docker
 - linux-amd64-docker
+- linux-s390x-docker
 - linux-arm64-docker
 - linux-arm-docker
 # - windows-1903-amd64-dfocker

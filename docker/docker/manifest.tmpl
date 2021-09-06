@@ -18,6 +18,11 @@ manifests:
       os: linux
       variant: v8
   -
+    image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}linux-s390x
+    platform:
+      architecture: s390x
+      os: linux
+  -
     image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}linux-arm
     platform:
       architecture: arm
