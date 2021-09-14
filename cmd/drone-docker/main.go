@@ -249,9 +249,15 @@ func main() {
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
 		cli.StringSliceFlag{
-			Name:   "secret",
-			Usage:  "Secret file to expose to the build (only if BuildKit enabled): id=mysecret,src=/local/secret",
-			EnvVar: "PLUGIN_SECRET",
+			Name:   "secrets",
+			Usage:  "Secret file to expose to the build (only if BuildKit enabled): id=mysecret;src=/local/secret",
+			EnvVar: "PLUGIN_SECRETS",
+		},
+		cli.StringFlag{
+			Name:   "secret-separator",
+			Usage:  "Sign to be used to separate secrets id and src - this sign will be replaced with , to work with docker build command",
+			Value:  ";",
+			EnvVar: "PLUGIN_SECRET_SEPARATOR",
 		},
 	}
 
@@ -272,27 +278,28 @@ func run(c *cli.Context) error {
 			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
-			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
-			Dockerfile:  c.String("dockerfile"),
-			Context:     c.String("context"),
-			Tags:        c.StringSlice("tags"),
-			Args:        c.StringSlice("args"),
-			ArgsEnv:     c.StringSlice("args-from-env"),
-			Target:      c.String("target"),
-			Squash:      c.Bool("squash"),
-			Pull:        c.BoolT("pull-image"),
-			CacheFrom:   c.StringSlice("cache-from"),
-			Compress:    c.Bool("compress"),
-			Repo:        c.String("repo"),
-			Labels:      c.StringSlice("custom-labels"),
-			LabelSchema: c.StringSlice("label-schema"),
-			AutoLabel:   c.BoolT("auto-label"),
-			Link:        c.String("link"),
-			NoCache:     c.Bool("no-cache"),
-			AddHost:     c.StringSlice("add-host"),
-			Secrets:     c.StringSlice("secret"),
-			Quiet:       c.Bool("quiet"),
+			Remote:           c.String("remote.url"),
+			Name:             c.String("commit.sha"),
+			Dockerfile:       c.String("dockerfile"),
+			Context:          c.String("context"),
+			Tags:             c.StringSlice("tags"),
+			Args:             c.StringSlice("args"),
+			ArgsEnv:          c.StringSlice("args-from-env"),
+			Target:           c.String("target"),
+			Squash:           c.Bool("squash"),
+			Pull:             c.BoolT("pull-image"),
+			CacheFrom:        c.StringSlice("cache-from"),
+			Compress:         c.Bool("compress"),
+			Repo:             c.String("repo"),
+			Labels:           c.StringSlice("custom-labels"),
+			LabelSchema:      c.StringSlice("label-schema"),
+			AutoLabel:        c.BoolT("auto-label"),
+			Link:             c.String("link"),
+			NoCache:          c.Bool("no-cache"),
+			AddHost:          c.StringSlice("add-host"),
+			Secrets:          c.StringSlice("secrets"),
+			SecretsSeparator: c.String("secret-separator"),
+			Quiet:            c.Bool("quiet"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -329,6 +336,10 @@ func run(c *cli.Context) error {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
 		}
+	}
+
+	if c.String("secret-separator") == "," {
+		logrus.Fatal("secret variables separator ',' will break build - please use default one or any other")
 	}
 
 	return plugin.Exec()

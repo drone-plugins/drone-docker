@@ -39,27 +39,28 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote      string   // Git remote URL
-		Name        string   // Docker build using default named tag
-		Dockerfile  string   // Docker build Dockerfile
-		Context     string   // Docker build context
-		Tags        []string // Docker build tags
-		Args        []string // Docker build args
-		ArgsEnv     []string // Docker build args from env
-		Target      string   // Docker build target
-		Squash      bool     // Docker build squash
-		Pull        bool     // Docker build pull
-		CacheFrom   []string // Docker build cache-from
-		Compress    bool     // Docker build compress
-		Repo        string   // Docker build repository
-		LabelSchema []string // label-schema Label map
-		AutoLabel   bool     // auto-label bool
-		Labels      []string // Label map
-		Link        string   // Git repo link
-		NoCache     bool     // Docker build no-cache
-		AddHost     []string // Docker build add-host
-		Secrets     []string // Docker build secret
-		Quiet       bool     // Docker build quiet
+		Remote           string   // Git remote URL
+		Name             string   // Docker build using default named tag
+		Dockerfile       string   // Docker build Dockerfile
+		Context          string   // Docker build context
+		Tags             []string // Docker build tags
+		Args             []string // Docker build args
+		ArgsEnv          []string // Docker build args from env
+		Target           string   // Docker build target
+		Squash           bool     // Docker build squash
+		Pull             bool     // Docker build pull
+		CacheFrom        []string // Docker build cache-from
+		Compress         bool     // Docker build compress
+		Repo             string   // Docker build repository
+		LabelSchema      []string // label-schema Label map
+		AutoLabel        bool     // auto-label bool
+		Labels           []string // Label map
+		Link             string   // Git repo link
+		NoCache          bool     // Docker build no-cache
+		AddHost          []string // Docker build add-host
+		Secrets          []string // Docker build secret
+		SecretsSeparator string   // Docker build secrets variables separator
+		Quiet            bool     // Docker build quiet
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -263,7 +264,7 @@ func commandBuild(build Build) *exec.Cmd {
 		args = append(args, "--target", build.Target)
 	}
 	for _, secret := range build.Secrets {
-		args = append(args, "--secret", secret)
+		args = append(args, "--secret", strings.Replace(secret, build.SecretsSeparator, ",", -1))
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
