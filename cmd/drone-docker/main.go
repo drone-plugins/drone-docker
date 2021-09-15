@@ -358,7 +358,7 @@ func run(c *cli.Context) error {
 		}
 	} else {
 		if c.Bool("git-netrc-pass") || len(c.StringSlice("secrets")) > 0 {
-			logrus.Printf("skipping all secrets because DOCKER_BUILDKIT environment variable is not set to 1 - If this build fails because of secrets this is the reason why")
+			logrus.Printf("skipping all secrets because DOCKER_BUILDKIT environment variable is not set to 1 - If docker build fails on the step with secrets this is the reason why")
 		}
 		plugin.Build.Secrets = []string{}
 	}
