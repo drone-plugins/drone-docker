@@ -248,6 +248,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.BoolFlag{
+			Name:   "git-netrc-pass",
+			Usage:  "Pass git auth ~/.netrc file into docker build as secret (only if BuildKit enabled) -  it will be avaliable as: id=git-netrc,src=$HOME/.netrc",
+			EnvVar: "PLUGIN_GIT_NETRC_PASS",
+		},
 		cli.StringSliceFlag{
 			Name:   "secrets",
 			Usage:  "Secret file to expose to the build (only if BuildKit enabled): id=mysecret;src=/local/secret",
@@ -338,8 +343,24 @@ func run(c *cli.Context) error {
 		}
 	}
 
-	if c.String("secret-separator") == "," {
-		logrus.Fatal("secret variables separator ',' will break build - please use default one or any other")
+	docker_buildkit_env_val, docker_buildkit_env_present := os.LookupEnv("DOCKER_BUILDKIT")
+	if docker_buildkit_env_present && docker_buildkit_env_val == "1" {
+		if c.String("secret-separator") == "," && len(c.StringSlice("secrets")) > 0 {
+			logrus.Fatal("secret variables separator ',' will break build - please use default one or any other")
+		}
+		if c.Bool("git-netrc-pass") {
+			homedirname, err := os.UserHomeDir()
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			plugin.Build.Secrets = append(c.StringSlice("secrets"), "id=git-netrc,src="+homedirname+"/.netrc")
+		}
+	} else {
+		if c.Bool("git-netrc-pass") || len(c.StringSlice("secrets")) > 0 {
+			logrus.Printf("skipping all secrets because DOCKER_BUILDKIT environment variable is not set to 1 - If this build fails because of secrets this is the reason why")
+		}
+		plugin.Build.Secrets = []string{}
 	}
 
 	return plugin.Exec()
