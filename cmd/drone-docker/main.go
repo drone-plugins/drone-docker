@@ -343,24 +343,37 @@ func run(c *cli.Context) error {
 		}
 	}
 
-	docker_buildkit_env_val, docker_buildkit_env_present := os.LookupEnv("DOCKER_BUILDKIT")
-	if docker_buildkit_env_present && docker_buildkit_env_val == "1" {
+	if c.Bool("git-netrc-pass") || len(c.StringSlice("secrets")) > 0 {
 		if c.String("secret-separator") == "," && len(c.StringSlice("secrets")) > 0 {
 			logrus.Fatal("secret variables separator ',' will break build - please use default one or any other")
 		}
 		if c.Bool("git-netrc-pass") {
+			// Detect current user home directory
 			homedirname, err := os.UserHomeDir()
 			if err != nil {
 				logrus.Fatal(err)
 			}
 
-			plugin.Build.Secrets = append(c.StringSlice("secrets"), "id=git-netrc,src="+homedirname+"/.netrc")
+			// Create $HOME/.netrc file with correct permissions
+			netrcpath := homedirname + "/.netrc"
+			drone_netrc_file_env_val, drone_netrc_file_env_present := os.LookupEnv("DRONE_NETRC_FILE")
+			if drone_netrc_file_env_present {
+				err = os.WriteFile(netrcpath, []byte(drone_netrc_file_env_val), 0600)
+				if err != nil {
+					logrus.Fatal(err)
+				}
+			} else {
+				logrus.Fatal("DRONE_NETRC_FILE environment variable doesn't exists - cannot pass netrc file into build")
+			}
+
+			// Inject netrc secret into secrets
+			plugin.Build.Secrets = append(c.StringSlice("secrets"), "id=git-netrc,src="+netrcpath)
 		}
-	} else {
-		if c.Bool("git-netrc-pass") || len(c.StringSlice("secrets")) > 0 {
-			logrus.Printf("skipping all secrets because DOCKER_BUILDKIT environment variable is not set to 1 - If docker build fails on the step with secrets this is the reason why")
+		// Enable Buildkit if there are any secrets to pass to docker build
+		docker_buildkit_env_val, docker_buildkit_env_present := os.LookupEnv("DOCKER_BUILDKIT")
+		if docker_buildkit_env_present != true || docker_buildkit_env_val == "0" {
+			os.Setenv("DOCKER_BUILDKIT", "1")
 		}
-		plugin.Build.Secrets = []string{}
 	}
 
 	return plugin.Exec()
