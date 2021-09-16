@@ -250,12 +250,12 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:   "git-netrc-pass",
-			Usage:  "Pass git auth ~/.netrc file into docker build as secret (only if BuildKit enabled) -  it will be avaliable as: id=git-netrc,src=$HOME/.netrc",
+			Usage:  "Pass git auth ~/.netrc file into docker build as secret -  it will be avaliable as: id=git-netrc,src=$HOME/.netrc",
 			EnvVar: "PLUGIN_GIT_NETRC_PASS",
 		},
 		cli.StringSliceFlag{
 			Name:   "secrets",
-			Usage:  "Secret file to expose to the build (only if BuildKit enabled): id=mysecret;src=/local/secret",
+			Usage:  "Secret file to expose to the build ex: id=mysecret;src=/local/secret",
 			EnvVar: "PLUGIN_SECRETS",
 		},
 		cli.StringFlag{
