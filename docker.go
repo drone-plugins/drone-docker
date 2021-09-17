@@ -264,7 +264,7 @@ func commandBuild(build Build) *exec.Cmd {
 		args = append(args, "--target", build.Target)
 	}
 	for _, secret := range build.Secrets {
-		args = append(args, "--secret", strings.Replace(secret, build.SecretsSeparator, ",", -1))
+		args = append(args, "--secret", secret)
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
