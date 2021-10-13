@@ -59,6 +59,7 @@ type (
 		NoCache     bool     // Docker build no-cache
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
+		SSHAgent    string   // Docker build ssh
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -263,6 +264,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
+	}
+	if build.SSHAgent != "" {
+		args = append(args, "--ssh", build.SSHAgent)
 	}
 
 	if build.AutoLabel {
