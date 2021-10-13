@@ -64,6 +64,7 @@ type (
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
 		Platform    string   // Docker build platform
+		SSHAgent    []string // Docker build ssh
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -327,6 +328,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Platform != "" {
 		args = append(args, "--platform", build.Platform)
+	}
+	if build.SSHAgent != "" {
+		args = append(args, "--ssh", build.SSHAgent)
 	}
 
 	if build.AutoLabel {

@@ -274,6 +274,11 @@ func main() {
 			Usage:  "platform value to pass to docker",
 			EnvVar: "PLUGIN_PLATFORM",
 		},
+		cli.StringSliceFlag{
+			Name:   "ssh-agent",
+			Usage:  "mount ssh agent",
+			EnvVar: "PLUGIN_SSH_AGENT",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -318,6 +323,7 @@ func run(c *cli.Context) error {
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
 			Platform:    c.String("platform"),
+			SSHAgent:    c.StringSlice("ssh-agent"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
