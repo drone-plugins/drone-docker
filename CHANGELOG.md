@@ -1,6 +1,6 @@
 # Changelog
 
-## [v19.03.9](https://github.com/drone-plugins/drone-docker/tree/v19.03.9) (2021-10-13)
+## [v19.03.9](https://github.com/drone-plugins/drone-docker/tree/v19.03.9) (2021-10-21)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v19.03.8...v19.03.9)
 
@@ -17,6 +17,8 @@
 
 **Merged pull requests:**
 
+- \(maint\) bump git to 1.13 for build and test [\#338](https://github.com/drone-plugins/drone-docker/pull/338) ([tphoney](https://github.com/tphoney))
+- \(maint\) v19.03.9 release prep [\#337](https://github.com/drone-plugins/drone-docker/pull/337) ([tphoney](https://github.com/tphoney))
 - \(maint\) CI, remove the dry run steps, due to rate limiting [\#323](https://github.com/drone-plugins/drone-docker/pull/323) ([tphoney](https://github.com/tphoney))
 - Update seccomp to 20.10 docker [\#322](https://github.com/drone-plugins/drone-docker/pull/322) ([techknowlogick](https://github.com/techknowlogick))
 
