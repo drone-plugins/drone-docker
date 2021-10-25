@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/drone/drone-go/drone"
 )
 
 type (
@@ -69,10 +72,30 @@ type (
 		Dryrun  bool   // Docker push is skipped
 		Cleanup bool   // Docker purge is enabled
 	}
+
+	Inspect []struct {
+		ID            string        `json:"Id"`
+		RepoTags      []string      `json:"RepoTags"`
+		RepoDigests   []interface{} `json:"RepoDigests"`
+		Parent        string        `json:"Parent"`
+		Comment       string        `json:"Comment"`
+		Created       time.Time     `json:"Created"`
+		Container     string        `json:"Container"`
+		DockerVersion string        `json:"DockerVersion"`
+		Author        string        `json:"Author"`
+		Architecture  string        `json:"Architecture"`
+		Os            string        `json:"Os"`
+		Size          int           `json:"Size"`
+		VirtualSize   int           `json:"VirtualSize"`
+		Metadata      struct {
+			LastTagTime time.Time `json:"LastTagTime"`
+		} `json:"Metadata"`
+	}
 )
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	//var dockerImageProps Inspect
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -152,7 +175,8 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+			cmds = append(cmds, commandPush(p.Build, tag))    // docker push
+			cmds = append(cmds, commandInspect(p.Build, tag)) // docker inspect
 		}
 	}
 
@@ -168,6 +192,14 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
+
+		// inspect container & post card data
+		if err == nil && isCommandInspect(cmd.Args) {
+			err = writeCardFile()
+			if err != nil {
+				return err
+			}
+		}
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil && isCommandPrune(cmd.Args) {
@@ -179,6 +211,30 @@ func (p Plugin) Exec() error {
 		}
 	}
 
+	return nil
+}
+
+func writeCardFile() error {
+	card := drone.CardInput{
+		Schema: "https://gist.githubusercontent.com/eoinmcafee00/481a0f562a533da6aa4efac31eb97183/raw/cca54994d44212b4020d7139a417d5ffdb2981f4/template.json",
+	}
+	// read docker inspect output
+	data, err := os.ReadFile("/tmp/output.json")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	card.Data = data
+	file, err := json.Marshal(card)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	err = ioutil.WriteFile("/tmp/card.json", file, 0644)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	return nil
 }
 
@@ -202,6 +258,17 @@ func isCommandPull(args []string) bool {
 
 func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
+}
+
+func commandInspect(build Build, tag string) *exec.Cmd {
+	target := fmt.Sprintf("%s:%s", build.Name, tag)
+	args := []string{
+		"docker inspect",
+	}
+	args = append(args, target)
+	args = append(args, "> /tmp/output.json")
+
+	return exec.Command(bashExe, "-c", strings.Join(args, " "))
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -409,6 +476,11 @@ func isCommandRmi(args []string) bool {
 
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
+}
+
+// helper to check if args match "docker inspect"
+func isCommandInspect(args []string) bool {
+	return args[0] == "/bin/sh"
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
