@@ -79,16 +79,16 @@ type (
 		RepoDigests   []interface{} `json:"RepoDigests"`
 		Parent        string        `json:"Parent"`
 		Comment       string        `json:"Comment"`
-		Created       time.Time     `json:"Created"`
+		Created       string        `json:"Created"`
 		Container     string        `json:"Container"`
 		DockerVersion string        `json:"DockerVersion"`
 		Author        string        `json:"Author"`
 		Architecture  string        `json:"Architecture"`
 		Os            string        `json:"Os"`
-		Size          int           `json:"Size"`
-		VirtualSize   int           `json:"VirtualSize"`
+		Size          string        `json:"Size"`
+		VirtualSize   string        `json:"VirtualSize"`
 		Metadata      struct {
-			LastTagTime time.Time `json:"LastTagTime"`
+			LastTagTime string `json:"LastTagTime"`
 		} `json:"Metadata"`
 	}
 )
