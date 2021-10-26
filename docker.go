@@ -224,7 +224,19 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
-	card.Data = data
+
+	inspect := Inspect{}
+	err = json.Unmarshal(data, &inspect)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	result, err := json.Marshal(inspect[0])
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	card.Data = result
 	file, err := json.Marshal(card)
 	if err != nil {
 		fmt.Println(err)
