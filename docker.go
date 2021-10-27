@@ -253,7 +253,7 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
-	err = ioutil.WriteFile("/tmp/card.tar", file, 0644)
+	err = ioutil.WriteFile("/tmp/card.json", file, 0644)
 	if err != nil {
 		fmt.Println(err)
 		return err
