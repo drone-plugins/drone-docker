@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/inhies/go-bytesize"
+
 	"github.com/drone/drone-go/drone"
 )
 
@@ -90,6 +92,9 @@ type (
 		Metadata      struct {
 			LastTagTime time.Time `json:"LastTagTime"`
 		} `json:"Metadata"`
+		SizeString        string
+		VirtualSizeString string
+		Time              string
 	}
 )
 
@@ -231,6 +236,12 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
+	inspect[0].SizeString = fmt.Sprint(bytesize.New(float64(inspect[0].Size)))
+	inspect[0].VirtualSizeString = fmt.Sprint(bytesize.New(float64(inspect[0].VirtualSize)))
+	inspect[0].Time = fmt.Sprint(inspect[0].Metadata.LastTagTime.Format(time.RFC3339))
+	if err != nil {
+		fmt.Println(err)
+	}
 	result, err := json.Marshal(inspect[0])
 	if err != nil {
 		fmt.Println(err)
@@ -242,7 +253,7 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
-	err = ioutil.WriteFile("/tmp/card.json", file, 0644)
+	err = ioutil.WriteFile("/tmp/card.tar", file, 0644)
 	if err != nil {
 		fmt.Println(err)
 		return err
