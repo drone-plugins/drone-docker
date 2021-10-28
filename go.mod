@@ -13,5 +13,3 @@ require (
 )
 
 go 1.13
-
-replace github.com/drone/drone-go => /Users/eoinmcafee/Desktop/Code/drone-go
