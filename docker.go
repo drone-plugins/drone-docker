@@ -236,13 +236,14 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
-	inspect[0].SizeString = fmt.Sprint(bytesize.New(float64(inspect[0].Size)))
-	inspect[0].VirtualSizeString = fmt.Sprint(bytesize.New(float64(inspect[0].VirtualSize)))
-	inspect[0].Time = fmt.Sprint(inspect[0].Metadata.LastTagTime.Format(time.RFC3339))
+	insp := inspect[0]
+	insp.SizeString = fmt.Sprint(bytesize.New(float64(insp.Size)))
+	insp.VirtualSizeString = fmt.Sprint(bytesize.New(float64(insp.VirtualSize)))
+	insp.Time = fmt.Sprint(inspect[0].Metadata.LastTagTime.Format(time.RFC3339))
 	if err != nil {
 		fmt.Println(err)
 	}
-	result, err := json.Marshal(inspect[0])
+	result, err := json.Marshal(insp)
 	if err != nil {
 		fmt.Println(err)
 		return err
