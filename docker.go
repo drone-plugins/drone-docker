@@ -221,7 +221,7 @@ func (p Plugin) Exec() error {
 
 func writeCardFile() error {
 	card := drone.CardInput{
-		Schema: "https://gist.githubusercontent.com/eoinmcafee00/481a0f562a533da6aa4efac31eb97183/raw/cca54994d44212b4020d7139a417d5ffdb2981f4/template.json",
+		Schema: "https://gist.githubusercontent.com/d1wilko/8a192fbce230cfc76350062a560364ff/raw/aa27d4fac72f632b99b024d350a3e3e6e67abe91/adcard.json",
 	}
 	// read docker inspect output
 	data, err := os.ReadFile("/tmp/output.json")
