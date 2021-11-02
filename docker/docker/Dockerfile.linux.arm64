@@ -1,4 +1,4 @@
-FROM arm64v8/docker:19.03.8-dind
+FROM arm64v8/docker:20.10.9-dind
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
