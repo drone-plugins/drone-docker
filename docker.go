@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/inhies/go-bytesize"
-
 	"github.com/drone/drone-go/drone"
+
+	"github.com/inhies/go-bytesize"
 )
 
 type (
@@ -97,6 +98,8 @@ type (
 		Time              string
 	}
 )
+
+var outputLocation = getenv("PLUGIN_CARD_LOCATION")
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
@@ -200,7 +203,7 @@ func (p Plugin) Exec() error {
 
 		// inspect container & post card data
 		if err == nil && isCommandInspect(cmd.Args) {
-			err = writeCardFile()
+			err = writeCardFile(cmd)
 			if err != nil {
 				return err
 			}
@@ -219,7 +222,7 @@ func (p Plugin) Exec() error {
 	return nil
 }
 
-func writeCardFile() error {
+func writeCardFile(cmd *exec.Cmd) error {
 	card := drone.CardInput{
 		Schema: "https://gist.githubusercontent.com/d1wilko/8a192fbce230cfc76350062a560364ff/raw/aa27d4fac72f632b99b024d350a3e3e6e67abe91/adcard.json",
 	}
@@ -254,11 +257,21 @@ func writeCardFile() error {
 		fmt.Println(err)
 		return err
 	}
-	err = ioutil.WriteFile("/tmp/card.json", file, 0644)
-	if err != nil {
-		fmt.Println(err)
-		return err
+	// support both writing to file location & encoded to logs
+	switch outputLocation {
+	case "":
+		sEnc := fmt.Sprintf("#%s#", base64.StdEncoding.EncodeToString(file))
+		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
+		if err != nil {
+			return err
+		}
+	default:
+		err = ioutil.WriteFile(outputLocation, file, 0644)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -511,4 +524,14 @@ func isCommandInspect(args []string) bool {
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
 	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
+}
+
+func getenv(key ...string) (s string) {
+	for _, k := range key {
+		s = os.Getenv(k)
+		if s != "" {
+			return
+		}
+	}
+	return
 }
