@@ -103,8 +103,8 @@ const Esc = "\u001B"
 
 var (
 	outputLocation = getenv("PLUGIN_CARD_LOCATION")
-	prefix         = Esc + "[1338;"
-	suffix         = Esc + "[0m"
+	prefix         = Esc + "]1338;"
+	suffix         = Esc + "]0m"
 )
 
 // Exec executes the plugin step
@@ -266,7 +266,7 @@ func writeCardFile(cmd *exec.Cmd) error {
 	// support both writing to file location & encoded to logs
 	switch outputLocation {
 	case "":
-		sEnc := fmt.Sprintf("%s %s %s %s", prefix, base64.StdEncoding.EncodeToString(file), suffix, "\n")
+		sEnc := fmt.Sprintf("%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix)
 		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
 		if err != nil {
 			return err
