@@ -209,7 +209,7 @@ func (p Plugin) Exec() error {
 
 		// inspect container & post card data
 		if err == nil && isCommandInspect(cmd.Args) {
-			err = writeCardFile(cmd)
+			err = writeCardFile()
 			if err != nil {
 				return err
 			}
@@ -228,14 +228,13 @@ func (p Plugin) Exec() error {
 	return nil
 }
 
-func writeCardFile(cmd *exec.Cmd) error {
+func writeCardFile() error {
 	card := drone.CardInput{
 		Schema: "https://gist.githubusercontent.com/d1wilko/8a192fbce230cfc76350062a560364ff/raw/aa27d4fac72f632b99b024d350a3e3e6e67abe91/adcard.json",
 	}
 	// read docker inspect output
 	data, err := os.ReadFile("/tmp/output.json")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
