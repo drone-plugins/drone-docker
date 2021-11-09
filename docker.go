@@ -61,6 +61,7 @@ type (
 		Quiet       bool     // Docker build quiet
 		Stream      bool     // Docker build stream
 		PushTarget  bool     // build final image and push built target
+		TargetTag   string   // build target tag
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -162,15 +163,21 @@ func (p Plugin) Exec() error {
 
 	// push the target if requested
 	if p.Build.PushTarget {
-		target := p.Build.Target
-		cmds = append(cmds, commandTag(p.Build, target)) // docker tag
+		var targetTag string
+		// use a custom target tag if set, else use the default target name
+		if p.Build.TargetTag != "" {
+			targetTag = p.Build.TargetTag
+		} else {
+			targetTag = p.Build.Target
+		}
+		cmds = append(cmds, commandTag(p.Build, targetTag)) // docker tag
 
 		// clear the target so a normal build can be done
 		p.Build.Target = ""
 		cmds = append(cmds, commandBuild(p.Build)) // docker build
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, target)) // docker push
+			cmds = append(cmds, commandPush(p.Build, targetTag)) // docker push
 		}
 	}
 

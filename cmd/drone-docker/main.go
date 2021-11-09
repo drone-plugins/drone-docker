@@ -258,6 +258,11 @@ func main() {
 			Usage:  "push the target image along the final image",
 			EnvVar: "PLUGIN_PUSH_TARGET",
 		},
+		cli.StringFlag{
+			Name:   "target-tag",
+			Usage:  "target build tag",
+			EnvVar: "PLUGIN_TARGET_TAG",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -299,6 +304,7 @@ func run(c *cli.Context) error {
 			Quiet:         c.Bool("quiet"),
 			Stream:        c.Bool("stream"),
 			PushTarget:    c.Bool("push-target"),
+			TargetTag:     c.String("target-tag"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
