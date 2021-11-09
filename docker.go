@@ -233,7 +233,7 @@ func writeCardFile() error {
 		Schema: "https://gist.githubusercontent.com/d1wilko/8a192fbce230cfc76350062a560364ff/raw/aa27d4fac72f632b99b024d350a3e3e6e67abe91/adcard.json",
 	}
 	// read docker inspect output
-	data, err := os.ReadFile("/tmp/output.json")
+	data, err := ioutil.ReadFile("/tmp/output.json")
 	if err != nil {
 		return err
 	}
