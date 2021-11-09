@@ -266,7 +266,8 @@ func writeCardFile(cmd *exec.Cmd) error {
 	// support both writing to file location & encoded to logs
 	switch outputLocation {
 	case "":
-		sEnc := fmt.Sprintf("%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix)
+		// !important - new line required otherwise TrimSuffix in runner won't work
+		sEnc := fmt.Sprintf("%s%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix, "\n")
 		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
 		if err != nil {
 			return err
