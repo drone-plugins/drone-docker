@@ -69,11 +69,12 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login    Login  // Docker login configuration
+		Build    Build  // Docker build configuration
+		Daemon   Daemon // Docker daemon configuration
+		Dryrun   bool   // Docker push is skipped
+		Cleanup  bool   // Docker purge is enabled
+		CardPath string // Card path to write file to
 	}
 
 	Inspect []struct {
@@ -209,7 +210,7 @@ func (p Plugin) Exec() error {
 
 		// inspect container & post card data
 		if err == nil && isCommandInspect(cmd.Args) {
-			err = writeCardFile()
+			err = writeCardFile(p)
 			if err != nil {
 				return err
 			}
@@ -228,7 +229,7 @@ func (p Plugin) Exec() error {
 	return nil
 }
 
-func writeCardFile() error {
+func writeCardFile(p Plugin) error {
 	card := drone.CardInput{
 		Schema: "https://gist.githubusercontent.com/d1wilko/8a192fbce230cfc76350062a560364ff/raw/aa27d4fac72f632b99b024d350a3e3e6e67abe91/adcard.json",
 	}
@@ -263,21 +264,15 @@ func writeCardFile() error {
 		return err
 	}
 	// support both writing to file location & encoded to logs
-	switch outputLocation {
-	case "":
+	path := p.CardPath
+	switch {
+	case path == "/dev/stdout":
 		// !important - new line required otherwise TrimSuffix in runner won't work
 		sEnc := fmt.Sprintf("%s%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix, "\n")
 		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
-		if err != nil {
-			return err
-		}
-	default:
-		err = ioutil.WriteFile(outputLocation, file, 0644)
-		if err != nil {
-			return err
-		}
+	case path != "":
+		ioutil.WriteFile(path, file, 0644)
 	}
-
 	return nil
 }
 
