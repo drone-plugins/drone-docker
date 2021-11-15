@@ -180,7 +180,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "repo",
 			Usage:  "docker repository",
-			EnvVar: "PLUGIN_REPO",
+			EnvVar: "PLUGIN_REPO,DRONE_REPO",
 		},
 		cli.StringSliceFlag{
 			Name:   "custom-labels",
