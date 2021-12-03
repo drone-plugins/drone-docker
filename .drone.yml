@@ -328,7 +328,7 @@ depends_on:
 ---
 kind: pipeline
 type: ssh
-name: windows-1909-amd64-docker
+name: windows-1909
 
 platform:
   os: windows
