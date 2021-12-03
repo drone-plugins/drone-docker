@@ -37,101 +37,101 @@ trigger:
   - "refs/tags/**"
   - "refs/pull/**"
 
----
-kind: pipeline
-type: ssh
-name: windows-1803
+# ---
+# kind: pipeline
+# type: ssh
+# name: windows-1803
 
-platform:
-  os: windows
+# platform:
+#   os: windows
 
-server:
-  host: windows.1803.amd64.plugins.drone.ci
-  password:
-    from_secret: windows_password
-  user:
-    from_secret: windows_username
+# server:
+#   host: windows.1803.amd64.plugins.drone.ci
+#   password:
+#     from_secret: windows_password
+#   user:
+#     from_secret: windows_username
 
-steps:
-- name: build-docker
-  commands:
-  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1803-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
-    }
-    docker build -f docker/docker/Dockerfile.windows.1803 -t plugins/docker:$tag .
-    docker push plugins/docker:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# steps:
+# - name: build-docker
+#   commands:
+#   - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1803-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
+#     }
+#     docker build -f docker/docker/Dockerfile.windows.1803 -t plugins/docker:$tag .
+#     docker push plugins/docker:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-gcr
-  commands:
-  - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1803-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
-    }
-    docker build -f docker/gcr/Dockerfile.windows.1803 -t plugins/gcr:$tag .
-    docker push plugins/gcr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-gcr
+#   commands:
+#   - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1803-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
+#     }
+#     docker build -f docker/gcr/Dockerfile.windows.1803 -t plugins/gcr:$tag .
+#     docker push plugins/gcr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-ecr
-  commands:
-  - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1803-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
-    }
-    docker build -f docker/ecr/Dockerfile.windows.1803 -t plugins/ecr:$tag .
-    docker push plugins/ecr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-ecr
+#   commands:
+#   - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1803-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
+#     }
+#     docker build -f docker/ecr/Dockerfile.windows.1803 -t plugins/ecr:$tag .
+#     docker push plugins/ecr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-acr
-  commands:
-  - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1803-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
-    }
-    docker build -f docker/acr/Dockerfile.windows.1803 -t plugins/acr:$tag .
-    docker push plugins/acr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-acr
+#   commands:
+#   - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1803-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1803-amd64"
+#     }
+#     docker build -f docker/acr/Dockerfile.windows.1803 -t plugins/acr:$tag .
+#     docker push plugins/acr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-trigger:
-  event:
-  - push
-  - tag
+# trigger:
+#   event:
+#   - push
+#   - tag
 
-depends_on:
-- testing
+# depends_on:
+# - testing
 
 ---
 kind: pipeline
@@ -229,101 +229,101 @@ trigger:
 depends_on:
 - testing
 
----
-kind: pipeline
-type: ssh
-name: windows-1903
+# ---
+# kind: pipeline
+# type: ssh
+# name: windows-1903
 
-platform:
-  os: windows
+# platform:
+#   os: windows
 
-server:
-  host: windows.1903.amd64.plugins.drone.ci
-  password:
-    from_secret: windows_password
-  user:
-    from_secret: windows_username
+# server:
+#   host: windows.1903.amd64.plugins.drone.ci
+#   password:
+#     from_secret: windows_password
+#   user:
+#     from_secret: windows_username
 
-steps:
-- name: build-docker
-  commands:
-  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1903-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
-    }
-    docker build -f docker/docker/Dockerfile.windows.1903 -t plugins/docker:$tag .
-    docker push plugins/docker:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# steps:
+# - name: build-docker
+#   commands:
+#   - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1903-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
+#     }
+#     docker build -f docker/docker/Dockerfile.windows.1903 -t plugins/docker:$tag .
+#     docker push plugins/docker:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-gcr
-  commands:
-  - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1903-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
-    }
-    docker build -f docker/gcr/Dockerfile.windows.1903 -t plugins/gcr:$tag .
-    docker push plugins/gcr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-gcr
+#   commands:
+#   - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1903-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
+#     }
+#     docker build -f docker/gcr/Dockerfile.windows.1903 -t plugins/gcr:$tag .
+#     docker push plugins/gcr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-ecr
-  commands:
-  - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1903-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
-    }
-    docker build -f docker/ecr/Dockerfile.windows.1903 -t plugins/ecr:$tag .
-    docker push plugins/ecr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-ecr
+#   commands:
+#   - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1903-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
+#     }
+#     docker build -f docker/ecr/Dockerfile.windows.1903 -t plugins/ecr:$tag .
+#     docker push plugins/ecr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-- name: build-acr
-  commands:
-  - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-  - docker login -u $env:USERNAME -p $env:PASSWORD
-  - |
-    $tag="windows-1903-amd64"
-    if (Test-Path env:DRONE_SEMVER_SHORT) {
-      $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
-    }
-    docker build -f docker/acr/Dockerfile.windows.1903 -t plugins/acr:$tag .
-    docker push plugins/acr:$tag
-  environment:
-    CGO_ENABLED: "0"
-    USERNAME:
-      from_secret: docker_username
-    PASSWORD:
-      from_secret: docker_password
+# - name: build-acr
+#   commands:
+#   - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
+#   - docker login -u $env:USERNAME -p $env:PASSWORD
+#   - |
+#     $tag="windows-1903-amd64"
+#     if (Test-Path env:DRONE_SEMVER_SHORT) {
+#       $tag="$env:DRONE_SEMVER_SHORT-windows-1903-amd64"
+#     }
+#     docker build -f docker/acr/Dockerfile.windows.1903 -t plugins/acr:$tag .
+#     docker push plugins/acr:$tag
+#   environment:
+#     CGO_ENABLED: "0"
+#     USERNAME:
+#       from_secret: docker_username
+#     PASSWORD:
+#       from_secret: docker_password
 
-trigger:
-  event:
-  - push
-  - tag
+# trigger:
+#   event:
+#   - push
+#   - tag
 
-depends_on:
-- testing
+# depends_on:
+# - testing
 
 ---
 kind: pipeline
@@ -636,9 +636,9 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-- windows-1803
+# - windows-1803
 - windows-1809
-- windows-1903
+# - windows-1903
 - windows-1909
 - linux-amd64-docker
 - linux-arm64-docker
@@ -844,9 +844,9 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-- windows-1803
+# - windows-1803
 - windows-1809
-- windows-1903
+# - windows-1903
 - windows-1909
 - linux-amd64-gcr
 - linux-arm64-gcr
@@ -1052,9 +1052,9 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-- windows-1803
+# - windows-1803
 - windows-1809
-- windows-1903
+# - windows-1903
 - windows-1909
 - linux-amd64-ecr
 - linux-arm64-ecr
@@ -1463,9 +1463,9 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-- windows-1803
+# - windows-1803
 - windows-1809
-- windows-1903
+# - windows-1903
 - windows-1909
 - linux-amd64-acr
 - linux-arm64-acr
