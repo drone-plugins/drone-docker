@@ -35,3 +35,15 @@ manifests:
       architecture: amd64
       os: windows
       version: 1809
+  -
+    image: plugins/gcr:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-1903
+    platform:
+      architecture: amd64
+      os: windows
+      version: 1803
+  -
+    image: plugins/gcr:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-1909
+    platform:
+      architecture: amd64
+      os: windows
+      version: 1809
