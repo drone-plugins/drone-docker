@@ -444,9 +444,7 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-# - windows-1803
 - windows-1809
-# - windows-1903
 - windows-1909
 - linux-amd64-docker
 - linux-arm64-docker
@@ -652,9 +650,7 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-# - windows-1803
 - windows-1809
-# - windows-1903
 - windows-1909
 - linux-amd64-gcr
 - linux-arm64-gcr
@@ -860,9 +856,7 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-# - windows-1803
 - windows-1809
-# - windows-1903
 - windows-1909
 - linux-amd64-ecr
 - linux-arm64-ecr
@@ -1271,9 +1265,7 @@ trigger:
   - "refs/tags/**"
 
 depends_on:
-# - windows-1803
 - windows-1809
-# - windows-1903
 - windows-1909
 - linux-amd64-acr
 - linux-arm64-acr
