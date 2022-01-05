@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,6 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/drone/drone-go/drone"
+
+	"github.com/inhies/go-bytesize"
 )
 
 type (
@@ -63,16 +69,47 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login    Login  // Docker login configuration
+		Build    Build  // Docker build configuration
+		Daemon   Daemon // Docker daemon configuration
+		Dryrun   bool   // Docker push is skipped
+		Cleanup  bool   // Docker purge is enabled
+		CardPath string // Card path to write file to
 	}
+
+	Inspect []struct {
+		ID            string        `json:"Id"`
+		RepoTags      []string      `json:"RepoTags"`
+		RepoDigests   []interface{} `json:"RepoDigests"`
+		Parent        string        `json:"Parent"`
+		Comment       string        `json:"Comment"`
+		Created       time.Time     `json:"Created"`
+		Container     string        `json:"Container"`
+		DockerVersion string        `json:"DockerVersion"`
+		Author        string        `json:"Author"`
+		Architecture  string        `json:"Architecture"`
+		Os            string        `json:"Os"`
+		Size          int           `json:"Size"`
+		VirtualSize   int           `json:"VirtualSize"`
+		Metadata      struct {
+			LastTagTime time.Time `json:"LastTagTime"`
+		} `json:"Metadata"`
+		SizeString        string
+		VirtualSizeString string
+		Time              string
+	}
+)
+
+const Esc = "\u001B"
+
+var (
+	prefix = Esc + "]1338;"
+	suffix = Esc + "]0m"
 )
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	//var dockerImageProps Inspect
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -152,7 +189,8 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+			cmds = append(cmds, commandPush(p.Build, tag))    // docker push
+			cmds = append(cmds, commandInspect(p.Build, tag)) // docker inspect
 		}
 	}
 
@@ -168,6 +206,14 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
+
+		// inspect container & post card data
+		if err == nil && isCommandInspect(cmd.Args) {
+			err = writeCardFile(p)
+			if err != nil {
+				return err
+			}
+		}
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil && isCommandPrune(cmd.Args) {
@@ -179,6 +225,53 @@ func (p Plugin) Exec() error {
 		}
 	}
 
+	return nil
+}
+
+func writeCardFile(p Plugin) error {
+	card := drone.CardInput{
+		Schema: "https://harness.github.io/card-templates/drone-docker.json",
+	}
+	// read docker inspect output
+	data, err := ioutil.ReadFile("/tmp/output.json")
+	if err != nil {
+		return err
+	}
+
+	inspect := Inspect{}
+	err = json.Unmarshal(data, &inspect)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	insp := inspect[0]
+	insp.SizeString = fmt.Sprint(bytesize.New(float64(insp.Size)))
+	insp.VirtualSizeString = fmt.Sprint(bytesize.New(float64(insp.VirtualSize)))
+	insp.Time = fmt.Sprint(insp.Metadata.LastTagTime.Format(time.RFC3339))
+	if err != nil {
+		fmt.Println(err)
+	}
+	result, err := json.Marshal(insp)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	card.Data = result
+	file, err := json.Marshal(card)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	// support both writing to file location & encoded to logs
+	path := p.CardPath
+	switch {
+	case path == "/dev/stdout":
+		// !important - new line required otherwise TrimSuffix in runner won't work
+		sEnc := fmt.Sprintf("%s%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix, "\n")
+		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
+	case path != "":
+		ioutil.WriteFile(path, file, 0644)
+	}
 	return nil
 }
 
@@ -202,6 +295,17 @@ func isCommandPull(args []string) bool {
 
 func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
+}
+
+func commandInspect(build Build, tag string) *exec.Cmd {
+	target := fmt.Sprintf("%s:%s", build.Name, tag)
+	args := []string{
+		"docker inspect",
+	}
+	args = append(args, target)
+	args = append(args, "> /tmp/output.json")
+
+	return exec.Command(bashExe, "-c", strings.Join(args, " "))
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -411,8 +515,23 @@ func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
 }
 
+// helper to check if args match "docker inspect"
+func isCommandInspect(args []string) bool {
+	return args[0] == "/bin/sh"
+}
+
 // trace writes each command to stdout with the command wrapped in an xml
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
 	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
+}
+
+func getenv(key ...string) (s string) {
+	for _, k := range key {
+		s = os.Getenv(k)
+		if s != "" {
+			return
+		}
+	}
+	return
 }
