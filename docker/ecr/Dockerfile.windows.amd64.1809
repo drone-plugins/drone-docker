@@ -1,5 +1,5 @@
 # escape=`
-FROM plugins/docker:windows-1803
+FROM plugins/docker:windows-1809-amd64
 
 LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
   org.label-schema.name="Drone ECR" `
