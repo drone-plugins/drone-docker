@@ -63,8 +63,6 @@ steps:
       from_secret: docker_password
   commands:
   - powershell.exe scripts/windows/latest.ps1
-  when:
-    event: [ push ]
 
 - name: build_tag
   environment:
@@ -86,7 +84,7 @@ trigger:
   ref:
   - refs/heads/master
   - refs/tags/*
-
+  - "refs/pull/**"
 ---
 kind: pipeline
 type: ssh
