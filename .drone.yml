@@ -131,6 +131,7 @@ steps:
 
 depends_on:
   - testing
+  - windows-1809-docker
 
 trigger:
   ref:
@@ -181,6 +182,7 @@ steps:
 
 depends_on:
   - testing
+  - windows-1809-ecr
 
 trigger:
   ref:
@@ -231,6 +233,7 @@ steps:
 
 depends_on:
   - testing
+  - windows-1809-gcr
 
 trigger:
   ref:
