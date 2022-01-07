@@ -31,7 +31,7 @@ echo $env:VERSION
 
 # build the binary
 Write-Host "+ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe"
-go build -o release/windows/amd64/drone-${env:REGISTRY}.exe
+go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}
 
 # authenticate with the docker registry
 docker login -u ${env:USERNAME} -p ${env:PASSWORD}
