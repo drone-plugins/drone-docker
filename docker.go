@@ -230,7 +230,7 @@ func (p Plugin) Exec() error {
 
 func writeCardFile(p Plugin) error {
 	card := drone.CardInput{
-		Schema: "https://harness.github.io/card-templates/drone-docker.json",
+		Schema: "https://drone-plugins.github.io/drone-docker/card.json",
 	}
 	// read docker inspect output
 	data, err := ioutil.ReadFile("/tmp/output.json")
