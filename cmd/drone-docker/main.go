@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -248,6 +249,22 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringSliceFlag{
+			Name:   "secrets-from-env",
+			Usage:  "The list of environment variables provided to secrets list in lowercase",
+			EnvVar: "PLUGIN_SECRETS_FROM_ENV",
+		},
+		cli.StringSliceFlag{
+			Name:   "secrets",
+			Usage:  "Secret file to expose to the build ex: id=mysecret;src=/local/secret",
+			EnvVar: "PLUGIN_SECRETS",
+		},
+		cli.StringFlag{
+			Name:   "secret-separator",
+			Usage:  "Sign to be used to separate secrets id and src - this sign will be replaced with , to work with docker build command",
+			Value:  ";",
+			EnvVar: "PLUGIN_SECRET_SEPARATOR",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -267,26 +284,27 @@ func run(c *cli.Context) error {
 			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
-			Remote:        c.String("remote.url"),
-			Name:          c.String("commit.sha"),
-			Dockerfile:    c.String("dockerfile"),
-			Context:       c.String("context"),
-			Tags:          c.StringSlice("tags"),
-			Args:          c.StringSlice("args"),
-			ArgsEnv:       c.StringSlice("args-from-env"),
-			Target:        c.String("target"),
-			Squash:        c.Bool("squash"),
-			Pull:          c.BoolT("pull-image"),
-			CacheFrom:     c.StringSlice("cache-from"),
-			Compress:      c.Bool("compress"),
-			Repo:          c.String("repo"),
-			Labels:        c.StringSlice("custom-labels"),
-			LabelSchema:   c.StringSlice("label-schema"),
-			AutoLabel:     c.BoolT("auto-label"),
-			Link:          c.String("link"),
-			NoCache:       c.Bool("no-cache"),
-			AddHost:       c.StringSlice("add-host"),
-			Quiet:         c.Bool("quiet"),
+			Remote:      c.String("remote.url"),
+			Name:        c.String("commit.sha"),
+			Dockerfile:  c.String("dockerfile"),
+			Context:     c.String("context"),
+			Tags:        c.StringSlice("tags"),
+			Args:        c.StringSlice("args"),
+			ArgsEnv:     c.StringSlice("args-from-env"),
+			Target:      c.String("target"),
+			Squash:      c.Bool("squash"),
+			Pull:        c.BoolT("pull-image"),
+			CacheFrom:   c.StringSlice("cache-from"),
+			Compress:    c.Bool("compress"),
+			Repo:        c.String("repo"),
+			Labels:      c.StringSlice("custom-labels"),
+			LabelSchema: c.StringSlice("label-schema"),
+			AutoLabel:   c.BoolT("auto-label"),
+			Link:        c.String("link"),
+			NoCache:     c.Bool("no-cache"),
+			AddHost:     c.StringSlice("add-host"),
+			Secrets:     c.StringSlice("secrets"),
+			Quiet:       c.Bool("quiet"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -322,6 +340,46 @@ func run(c *cli.Context) error {
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
+		}
+	}
+
+	// secrets list handling
+	if len(c.StringSlice("secrets-from-env")) > 0 || len(c.StringSlice("secrets")) > 0 {
+		// Replace provided string separator with , in the list of strings
+		if c.String("secret-separator") == "," && len(c.StringSlice("secrets")) > 0 {
+			logrus.Fatal("secret variables separator ',' will break build - please use default one or any other")
+		} else if len(c.StringSlice("secrets")) > 0 {
+			secretslist := []string{}
+			for _, secret := range c.StringSlice("secrets") {
+				secretslist = append(secretslist, strings.Replace(secret, c.String("secret-separator"), ",", -1))
+			}
+			plugin.Build.Secrets = secretslist
+		}
+
+		// Create secret files based on environment variables
+		if len(c.StringSlice("secrets-from-env")) > 0 {
+			// Detect current user home directory
+			homedirname, err := os.UserHomeDir()
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			for _, secret := range c.StringSlice("secrets-from-env") {
+				env_val, env_present := os.LookupEnv(secret)
+				if env_present {
+					secretfilepath := homedirname + "/" + strings.ToLower(secret)
+					err = os.WriteFile(secretfilepath, []byte(env_val), 0600)
+					if err != nil {
+						logrus.Fatal(err)
+					}
+					plugin.Build.Secrets = append(plugin.Build.Secrets, "id="+strings.ToLower(secret)+",src="+secretfilepath)
+				}
+			}
+		}
+		// Enable Buildkit if there are any secrets to pass to docker build
+		docker_buildkit_env_val, docker_buildkit_env_present := os.LookupEnv("DOCKER_BUILDKIT")
+		if docker_buildkit_env_present != true || docker_buildkit_env_val == "0" {
+			os.Setenv("DOCKER_BUILDKIT", "1")
 		}
 	}
 
