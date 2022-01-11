@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
@@ -47,7 +48,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 
