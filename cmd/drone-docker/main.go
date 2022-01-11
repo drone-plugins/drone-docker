@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -267,26 +268,26 @@ func run(c *cli.Context) error {
 			Config:   c.String("docker.config"),
 		},
 		Build: docker.Build{
-			Remote:        c.String("remote.url"),
-			Name:          c.String("commit.sha"),
-			Dockerfile:    c.String("dockerfile"),
-			Context:       c.String("context"),
-			Tags:          c.StringSlice("tags"),
-			Args:          c.StringSlice("args"),
-			ArgsEnv:       c.StringSlice("args-from-env"),
-			Target:        c.String("target"),
-			Squash:        c.Bool("squash"),
-			Pull:          c.BoolT("pull-image"),
-			CacheFrom:     c.StringSlice("cache-from"),
-			Compress:      c.Bool("compress"),
-			Repo:          c.String("repo"),
-			Labels:        c.StringSlice("custom-labels"),
-			LabelSchema:   c.StringSlice("label-schema"),
-			AutoLabel:     c.BoolT("auto-label"),
-			Link:          c.String("link"),
-			NoCache:       c.Bool("no-cache"),
-			AddHost:       c.StringSlice("add-host"),
-			Quiet:         c.Bool("quiet"),
+			Remote:      c.String("remote.url"),
+			Name:        c.String("commit.sha"),
+			Dockerfile:  c.String("dockerfile"),
+			Context:     c.String("context"),
+			Tags:        c.StringSlice("tags"),
+			Args:        c.StringSlice("args"),
+			ArgsEnv:     c.StringSlice("args-from-env"),
+			Target:      c.String("target"),
+			Squash:      c.Bool("squash"),
+			Pull:        c.BoolT("pull-image"),
+			CacheFrom:   c.StringSlice("cache-from"),
+			Compress:    c.Bool("compress"),
+			Repo:        c.String("repo"),
+			Labels:      c.StringSlice("custom-labels"),
+			LabelSchema: c.StringSlice("label-schema"),
+			AutoLabel:   c.BoolT("auto-label"),
+			Link:        c.String("link"),
+			NoCache:     c.Bool("no-cache"),
+			AddHost:     c.StringSlice("add-host"),
+			Quiet:       c.Bool("quiet"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -326,4 +327,12 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func GetExecCmd() string {
+	if runtime.GOOS == "windows" {
+		return "C:/bin/drone-docker.exe"
+	}
+
+	return "drone-docker"
 }

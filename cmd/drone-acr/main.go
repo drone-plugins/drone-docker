@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+
+	docker "github.com/drone-plugins/drone-docker/cmd/drone-docker"
 )
 
 func main() {
@@ -40,7 +42,7 @@ func main() {
 	os.Setenv("DOCKER_PASSWORD", password)
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
