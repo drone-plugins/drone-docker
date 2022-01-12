@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package docker
@@ -10,7 +11,6 @@ import (
 const dockerExe = "/usr/local/bin/docker"
 const dockerdExe = "/usr/local/bin/dockerd"
 const dockerHome = "/root/.docker/"
-const bashExe = "/bin/sh"
 
 func (p Plugin) startDaemon() {
 	cmd := commandDaemon(p.Daemon)

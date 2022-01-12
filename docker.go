@@ -101,13 +101,6 @@ type (
 	}
 )
 
-const Esc = "\u001B"
-
-var (
-	prefix = Esc + "]1338;"
-	suffix = Esc + "]0m"
-)
-
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
 	//var dockerImageProps Inspect
@@ -503,23 +496,8 @@ func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
 }
 
-// helper to check if args match "docker inspect"
-func isCommandInspect(args []string) bool {
-	return args[1] == "inspect"
-}
-
 // trace writes each command to stdout with the command wrapped in an xml
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
 	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
-}
-
-func getenv(key ...string) (s string) {
-	for _, k := range key {
-		s = os.Getenv(k)
-		if s != "" {
-			return
-		}
-	}
-	return
 }
