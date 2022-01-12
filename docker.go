@@ -156,11 +156,6 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	if p.Cleanup {
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
-	}
-
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
@@ -176,6 +171,26 @@ func (p Plugin) Exec() error {
 			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
+		}
+	}
+
+	// output the adaptive card
+	if err := p.writeCard(); err != nil {
+		fmt.Printf("Could not create adaptive card. %s\n", err)
+	}
+
+	// execute cleanup routines in batch mode
+	if p.Cleanup {
+		// clear the slice
+		cmds = nil
+
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune())           // docker system prune -f
+
+		for _, cmd := range cmds {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			trace(cmd)
 		}
 	}
 
