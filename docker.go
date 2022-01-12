@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -189,8 +190,7 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if p.Dryrun == false {
-			cmds = append(cmds, commandPush(p.Build, tag))    // docker push
-			cmds = append(cmds, commandInspect(p.Build, tag)) // docker inspect
+			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
 
@@ -206,14 +206,6 @@ func (p Plugin) Exec() error {
 		trace(cmd)
 
 		err := cmd.Run()
-
-		// inspect container & post card data
-		if err == nil && isCommandInspect(cmd.Args) {
-			err = writeCardFile(p)
-			if err != nil {
-				return err
-			}
-		}
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil && isCommandPrune(cmd.Args) {
@@ -224,55 +216,58 @@ func (p Plugin) Exec() error {
 			return err
 		}
 	}
-
+	writeDockerCard(p)
 	return nil
 }
 
-func writeCardFile(p Plugin) error {
-	card := drone.CardInput{
-		Schema: "https://drone-plugins.github.io/drone-docker/card.json",
+func writeDockerCard(p Plugin) {
+	// run docker inspect
+	for _, tag := range p.Build.Tags {
+		card := drone.CardInput{
+			Schema: "https://drone-plugins.github.io/drone-docker/card.json",
+		}
+		cmd := commandInspect(p.Build, tag)
+		raw, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println(err)
+		}
+		inspect := Inspect{}
+		err = json.Unmarshal(raw, &inspect)
+		if err != nil {
+			fmt.Println(err)
+		}
+		insp := inspect[0]
+		insp.SizeString = fmt.Sprint(bytesize.New(float64(insp.Size)))
+		insp.VirtualSizeString = fmt.Sprint(bytesize.New(float64(insp.VirtualSize)))
+		insp.Time = fmt.Sprint(insp.Metadata.LastTagTime.Format(time.RFC3339))
+		// create card structure
+		result, err := json.Marshal(insp)
+		if err != nil {
+			fmt.Println(err)
+		}
+		card.Data = result
+		writeCard(p.CardPath, card)
 	}
-	// read docker inspect output
-	data, err := ioutil.ReadFile("/tmp/output.json")
-	if err != nil {
-		return err
-	}
+}
 
-	inspect := Inspect{}
-	err = json.Unmarshal(data, &inspect)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	insp := inspect[0]
-	insp.SizeString = fmt.Sprint(bytesize.New(float64(insp.Size)))
-	insp.VirtualSizeString = fmt.Sprint(bytesize.New(float64(insp.VirtualSize)))
-	insp.Time = fmt.Sprint(insp.Metadata.LastTagTime.Format(time.RFC3339))
-	if err != nil {
-		fmt.Println(err)
-	}
-	result, err := json.Marshal(insp)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	card.Data = result
-	file, err := json.Marshal(card)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	// support both writing to file location & encoded to logs
-	path := p.CardPath
+func writeCard(path string, card interface{}) {
+	data, _ := json.Marshal(card)
 	switch {
 	case path == "/dev/stdout":
-		// !important - new line required otherwise TrimSuffix in runner won't work
-		sEnc := fmt.Sprintf("%s%s%s%s", prefix, base64.StdEncoding.EncodeToString(file), suffix, "\n")
-		err = ioutil.WriteFile("/dev/stdout", []byte(sEnc), 0644)
+		writeCardTo(os.Stdout, data)
+	case path == "/dev/stderr":
+		writeCardTo(os.Stderr, data)
 	case path != "":
-		ioutil.WriteFile(path, file, 0644)
+		ioutil.WriteFile(path, data, 0644)
 	}
-	return nil
+}
+
+func writeCardTo(out io.Writer, data []byte) {
+	encoded := base64.StdEncoding.EncodeToString(data)
+	io.WriteString(out, "\u001B]1338;")
+	io.WriteString(out, encoded)
+	io.WriteString(out, "\u001B]0m")
+	io.WriteString(out, "\n")
 }
 
 // helper function to create the docker login command.
@@ -299,13 +294,7 @@ func commandPull(repo string) *exec.Cmd {
 
 func commandInspect(build Build, tag string) *exec.Cmd {
 	target := fmt.Sprintf("%s:%s", build.Name, tag)
-	args := []string{
-		"docker inspect",
-	}
-	args = append(args, target)
-	args = append(args, "> /tmp/output.json")
-
-	return exec.Command(bashExe, "-c", strings.Join(args, " "))
+	return exec.Command(dockerExe, "inspect", target)
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -336,7 +325,6 @@ func commandBuild(build Build) *exec.Cmd {
 		"-f", build.Dockerfile,
 		"-t", build.Name,
 	}
-
 	args = append(args, build.Context)
 	if build.Squash {
 		args = append(args, "--squash")
@@ -517,7 +505,7 @@ func commandRmi(tag string) *exec.Cmd {
 
 // helper to check if args match "docker inspect"
 func isCommandInspect(args []string) bool {
-	return args[0] == "/bin/sh"
+	return args[1] == "inspect"
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
