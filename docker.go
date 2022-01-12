@@ -1,20 +1,13 @@
 package docker
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/drone/drone-go/drone"
-
-	"github.com/inhies/go-bytesize"
 )
 
 type (
@@ -103,7 +96,6 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
-	//var dockerImageProps Inspect
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -187,11 +179,6 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	if p.Cleanup {
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
-	}
-
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
@@ -209,58 +196,28 @@ func (p Plugin) Exec() error {
 			return err
 		}
 	}
-	writeDockerCard(p)
+
+	// output the adaptive card
+	if err := p.writeCard(); err != nil {
+		fmt.Printf("Could not create adaptive card. %s\n", err)
+	}
+
+	// execute cleanup routines in batch mode
+	if p.Cleanup {
+		// clear the slice
+		cmds = nil
+
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune())           // docker system prune -f
+
+		for _, cmd := range cmds {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			trace(cmd)
+		}
+	}
+
 	return nil
-}
-
-func writeDockerCard(p Plugin) {
-	// run docker inspect
-	for _, tag := range p.Build.Tags {
-		card := drone.CardInput{
-			Schema: "https://drone-plugins.github.io/drone-docker/card.json",
-		}
-		cmd := commandInspect(p.Build, tag)
-		raw, err := cmd.CombinedOutput()
-		if err != nil {
-			fmt.Println(err)
-		}
-		inspect := Inspect{}
-		err = json.Unmarshal(raw, &inspect)
-		if err != nil {
-			fmt.Println(err)
-		}
-		insp := inspect[0]
-		insp.SizeString = fmt.Sprint(bytesize.New(float64(insp.Size)))
-		insp.VirtualSizeString = fmt.Sprint(bytesize.New(float64(insp.VirtualSize)))
-		insp.Time = fmt.Sprint(insp.Metadata.LastTagTime.Format(time.RFC3339))
-		// create card structure
-		result, err := json.Marshal(insp)
-		if err != nil {
-			fmt.Println(err)
-		}
-		card.Data = result
-		writeCard(p.CardPath, card)
-	}
-}
-
-func writeCard(path string, card interface{}) {
-	data, _ := json.Marshal(card)
-	switch {
-	case path == "/dev/stdout":
-		writeCardTo(os.Stdout, data)
-	case path == "/dev/stderr":
-		writeCardTo(os.Stderr, data)
-	case path != "":
-		ioutil.WriteFile(path, data, 0644)
-	}
-}
-
-func writeCardTo(out io.Writer, data []byte) {
-	encoded := base64.StdEncoding.EncodeToString(data)
-	io.WriteString(out, "\u001B]1338;")
-	io.WriteString(out, encoded)
-	io.WriteString(out, "\u001B]0m")
-	io.WriteString(out, "\n")
 }
 
 // helper function to create the docker login command.
@@ -283,11 +240,6 @@ func isCommandPull(args []string) bool {
 
 func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
-}
-
-func commandInspect(build Build, tag string) *exec.Cmd {
-	target := fmt.Sprintf("%s:%s", build.Name, tag)
-	return exec.Command(dockerExe, "inspect", target)
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
@@ -318,6 +270,7 @@ func commandBuild(build Build) *exec.Cmd {
 		"-f", build.Dockerfile,
 		"-t", build.Name,
 	}
+
 	args = append(args, build.Context)
 	if build.Squash {
 		args = append(args, "--squash")
