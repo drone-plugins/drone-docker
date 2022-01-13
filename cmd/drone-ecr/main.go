@@ -11,12 +11,15 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 const defaultRegion = "us-east-1"
@@ -110,11 +113,11 @@ func main() {
 	os.Setenv("DOCKER_PASSWORD", password)
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 

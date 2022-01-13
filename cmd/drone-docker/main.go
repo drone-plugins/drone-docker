@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -332,4 +333,12 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func GetExecCmd() string {
+	if runtime.GOOS == "windows" {
+		return "C:/bin/drone-docker.exe"
+	}
+
+	return "drone-docker"
 }
