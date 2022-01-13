@@ -1,0 +1,118 @@
+{
+  "type": "AdaptiveCard",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "items": [
+            {
+              "type": "Image",
+              "url": "https://d36jcksde1wxzq.cloudfront.net/be7833db9bddb4494d2a7c3dd659199a.png",
+              "size": "Medium"
+            }
+          ],
+          "width": "auto"
+        },
+        {
+          "type": "Column",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "${RepoTags[0]}",
+              "size": "Medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "DIGEST: ${RepoDigests[0]}",
+              "wrap": true,
+              "size": "Small",
+              "weight": "Lighter",
+              "isSubtle": true,
+              "spacing": "Small"
+            },
+            {
+              "type": "ColumnSet",
+              "columns": [
+                {
+                  "type": "Column",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "weight": "Lighter",
+                      "text": "OS/ARCH",
+                      "wrap": true,
+                      "size": "Small",
+                      "isSubtle": true,
+                      "spacing": "Medium"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "${OS}/${Architecture}",
+                      "wrap": true,
+                      "size": "Small",
+                      "spacing": "Small"
+                    }
+                  ],
+                  "separator": true,
+                  "width": "auto"
+                },
+                {
+                  "type": "Column",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "weight": "Lighter",
+                      "text": "SIZE",
+                      "wrap": true,
+                      "size": "Small",
+                      "isSubtle": true
+                    },
+                    {
+                      "type": "TextBlock",
+                      "spacing": "Small",
+                      "text": "${SizeString}",
+                      "wrap": true,
+                      "size": "Small"
+                    }
+                  ],
+                  "width": "auto",
+                  "separator": true,
+                  "spacing": "Medium"
+                },
+                {
+                  "type": "Column",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "weight": "Lighter",
+                      "text": "LAST PUSHED",
+                      "wrap": true,
+                      "size": "Small",
+                      "isSubtle": true
+                    },
+                    {
+                      "type": "TextBlock",
+                      "spacing": "Small",
+                      "text": "{{DATE(${Time})}} - {{TIME(${Time})}}",
+                      "wrap": true,
+                      "size": "Small"
+                    }
+                  ],
+                  "width": "auto",
+                  "separator": true,
+                  "spacing": "Medium"
+                }
+              ],
+              "style": "default"
+            }
+          ],
+          "width": "stretch"
+        }
+      ]
+    }
+  ],
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.0"
+}

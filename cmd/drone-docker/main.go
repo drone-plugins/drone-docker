@@ -249,6 +249,11 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringFlag{
+			Name:   "drone-card-path",
+			Usage:  "card path location to write to",
+			EnvVar: "DRONE_CARD_PATH",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -267,6 +272,7 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 			Config:   c.String("docker.config"),
 		},
+		CardPath: c.String("drone-card-path"),
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
 			Name:        c.String("commit.sha"),
