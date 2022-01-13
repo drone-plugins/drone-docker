@@ -1,11 +1,27 @@
 # Changelog
 
-## [v20.10.9](https://github.com/drone-plugins/drone-docker/tree/v20.10.9) (2021-11-02)
+## [v20.10.9.1](https://github.com/drone-plugins/drone-docker/tree/v20.10.9.1) (2022-01-13)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.10.9...v20.10.9.1)
+
+**Implemented enhancements:**
+
+- Serialize windows 1809 pipelines [\#348](https://github.com/drone-plugins/drone-docker/pull/348) ([shubham149](https://github.com/shubham149))
+- Support for windows images for tags [\#346](https://github.com/drone-plugins/drone-docker/pull/346) ([shubham149](https://github.com/shubham149))
+
+**Fixed bugs:**
+
+- Fix ECR & GCR docker publish on windows [\#352](https://github.com/drone-plugins/drone-docker/pull/352) ([shubham149](https://github.com/shubham149))
+- Fix windows docker builds [\#351](https://github.com/drone-plugins/drone-docker/pull/351) ([shubham149](https://github.com/shubham149))
+- Fix powershell script to publish windows images [\#350](https://github.com/drone-plugins/drone-docker/pull/350) ([shubham149](https://github.com/shubham149))
+
+## [v20.10.9](https://github.com/drone-plugins/drone-docker/tree/v20.10.9) (2021-11-03)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v19.03.9...v20.10.9)
 
 **Merged pull requests:**
 
+- bump to version 20.10.9: [\#342](https://github.com/drone-plugins/drone-docker/pull/342) ([eoinmcafee00](https://github.com/eoinmcafee00))
 - Upgrade Docker dind to 20.10.9 for 64bit platforms [\#334](https://github.com/drone-plugins/drone-docker/pull/334) ([gzm0](https://github.com/gzm0))
 
 ## [v19.03.9](https://github.com/drone-plugins/drone-docker/tree/v19.03.9) (2021-10-13)
