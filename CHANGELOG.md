@@ -1,5 +1,13 @@
 # Changelog
 
+## [v20.11.0](https://github.com/drone-plugins/drone-docker/tree/v20.11.0) (2022-01-19)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.10.9.1...v20.11.0)
+
+**Merged pull requests:**
+
+- \(feat\) publish docker data to create drone card [\#347](https://github.com/drone-plugins/drone-docker/pull/347) ([eoinmcafee00](https://github.com/eoinmcafee00))
+
 ## [v20.10.9.1](https://github.com/drone-plugins/drone-docker/tree/v20.10.9.1) (2022-01-13)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.10.9...v20.10.9.1)
@@ -14,6 +22,10 @@
 - Fix ECR & GCR docker publish on windows [\#352](https://github.com/drone-plugins/drone-docker/pull/352) ([shubham149](https://github.com/shubham149))
 - Fix windows docker builds [\#351](https://github.com/drone-plugins/drone-docker/pull/351) ([shubham149](https://github.com/shubham149))
 - Fix powershell script to publish windows images [\#350](https://github.com/drone-plugins/drone-docker/pull/350) ([shubham149](https://github.com/shubham149))
+
+**Merged pull requests:**
+
+- release prep for 20.10.9.1 [\#353](https://github.com/drone-plugins/drone-docker/pull/353) ([eoinmcafee00](https://github.com/eoinmcafee00))
 
 ## [v20.10.9](https://github.com/drone-plugins/drone-docker/tree/v20.10.9) (2021-11-03)
 
