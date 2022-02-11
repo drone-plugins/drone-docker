@@ -58,6 +58,7 @@ type (
 		Labels      []string // Label map
 		Link        string   // Git repo link
 		NoCache     bool     // Docker build no-cache
+		Secret      string   // secret keypair
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
 	}
@@ -72,26 +73,30 @@ type (
 		CardPath string // Card path to write file to
 	}
 
-	Inspect []struct {
-		ID            string        `json:"Id"`
-		RepoTags      []string      `json:"RepoTags"`
-		RepoDigests   []interface{} `json:"RepoDigests"`
-		Parent        string        `json:"Parent"`
-		Comment       string        `json:"Comment"`
-		Created       time.Time     `json:"Created"`
-		Container     string        `json:"Container"`
-		DockerVersion string        `json:"DockerVersion"`
-		Author        string        `json:"Author"`
-		Architecture  string        `json:"Architecture"`
-		Os            string        `json:"Os"`
-		Size          int           `json:"Size"`
-		VirtualSize   int           `json:"VirtualSize"`
-		Metadata      struct {
+	Card []struct {
+		ID             string        `json:"Id"`
+		RepoTags       []string      `json:"RepoTags"`
+		ParsedRepoTags []TagStruct   `json:"ParsedRepoTags"`
+		RepoDigests    []interface{} `json:"RepoDigests"`
+		Parent         string        `json:"Parent"`
+		Comment        string        `json:"Comment"`
+		Created        time.Time     `json:"Created"`
+		Container      string        `json:"Container"`
+		DockerVersion  string        `json:"DockerVersion"`
+		Author         string        `json:"Author"`
+		Architecture   string        `json:"Architecture"`
+		Os             string        `json:"Os"`
+		Size           int           `json:"Size"`
+		VirtualSize    int           `json:"VirtualSize"`
+		Metadata       struct {
 			LastTagTime time.Time `json:"LastTagTime"`
 		} `json:"Metadata"`
 		SizeString        string
 		VirtualSizeString string
 		Time              string
+	}
+	TagStruct struct {
+		Tag string `json:"Tag"`
 	}
 )
 
@@ -175,7 +180,7 @@ func (p Plugin) Exec() error {
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
-		if p.Dryrun == false {
+		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
@@ -297,6 +302,9 @@ func commandBuild(build Build) *exec.Cmd {
 	for _, host := range build.AddHost {
 		args = append(args, "--add-host", host)
 	}
+	if build.Secret != "" {
+		args = append(args, "--secret", build.Secret)
+	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
 	}
@@ -328,6 +336,10 @@ func commandBuild(build Build) *exec.Cmd {
 		}
 	}
 
+	// we need to enable buildkit, for secret support
+	if build.Secret != "" {
+		os.Setenv("DOCKER_BUILDKIT", "1")
+	}
 	return exec.Command(dockerExe, args...)
 }
 

@@ -22,7 +22,7 @@ func (p Plugin) writeCard() error {
 		return err
 	}
 
-	out := Inspect{}
+	out := Card{}
 	if err := json.Unmarshal(data, &out); err != nil {
 		return err
 	}
@@ -31,6 +31,12 @@ func (p Plugin) writeCard() error {
 	inspect.SizeString = fmt.Sprint(bytesize.New(float64(inspect.Size)))
 	inspect.VirtualSizeString = fmt.Sprint(bytesize.New(float64(inspect.VirtualSize)))
 	inspect.Time = fmt.Sprint(inspect.Metadata.LastTagTime.Format(time.RFC3339))
+	// change slice of tags to slice of TagStruct
+	var sliceTagStruct []TagStruct
+	for _, tag := range inspect.RepoTags {
+		sliceTagStruct = append(sliceTagStruct, TagStruct{Tag: tag})
+	}
+	inspect.ParsedRepoTags = sliceTagStruct
 	cardData, _ := json.Marshal(inspect)
 
 	card := drone.CardInput{

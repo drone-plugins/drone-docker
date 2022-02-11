@@ -250,6 +250,11 @@ func main() {
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
 		cli.StringFlag{
+			Name:   "secret",
+			Usage:  "secret key value pair eg id=MYSECRET",
+			EnvVar: "PLUGIN_SECRET",
+		},
+		cli.StringFlag{
 			Name:   "drone-card-path",
 			Usage:  "card path location to write to",
 			EnvVar: "DRONE_CARD_PATH",
@@ -292,6 +297,7 @@ func run(c *cli.Context) error {
 			AutoLabel:   c.BoolT("auto-label"),
 			Link:        c.String("link"),
 			NoCache:     c.Bool("no-cache"),
+			Secret:      c.String("secret"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
 		},

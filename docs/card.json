@@ -51,19 +51,22 @@
                         {
                             "type": "TextBlock",
                             "weight": "Lighter",
-                            "text": "OS/ARCH",
+                            "text": "TAGS",
                             "wrap": true,
                             "size": "Small",
                             "isSubtle": true,
                             "spacing": "Medium"
                         },
                         {
-                            "type": "TextBlock",
-                            "text": "${OS}/${Architecture}",
-                            "wrap": true,
-                            "size": "Small",
+                            "type": "FactSet",
+                            "facts": [
+                                {
+                                    "title": "-",
+                                    "value": "${Tag}"
+                                }
+                            ],
                             "spacing": "Small",
-                            "weight": "Bolder"
+                            "$data": "${ParsedRepoTags}"
                         }
                     ],
                     "separator": true,
