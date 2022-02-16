@@ -39,6 +39,15 @@ local pipeline = import 'pipeline.libsonnet';
     'linux-arm',
   ]),
 
+  pipeline.build('ecr-public', 'linux', 'amd64'),
+  pipeline.build('ecr-public', 'linux', 'arm64'),
+  pipeline.build('ecr-public', 'linux', 'arm'),
+  pipeline.notifications('ecr-public', depends_on=[
+    'linux-amd64',
+    'linux-arm64',
+    'linux-arm',
+  ]),
+
   pipeline.build('heroku', 'linux', 'amd64'),
   pipeline.build('heroku', 'linux', 'arm64'),
   pipeline.build('heroku', 'linux', 'arm'),

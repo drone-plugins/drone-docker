@@ -141,6 +141,57 @@ trigger:
 ---
 kind: pipeline
 type: ssh
+name: windows-1809-ecr-public
+
+platform:
+  os: windows
+
+server:
+  host: windows.1809.amd64.plugins.drone.ci
+  password:
+    from_secret: windows_password
+  user:
+    from_secret: windows_username
+
+steps:
+- name: build_latest
+  environment:
+    VERSION: 1809
+    REGISTRY: ecr-public
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  commands:
+  - powershell.exe scripts/windows/latest.ps1
+  when:
+    event: [ push ]
+
+- name: build_tag
+  environment:
+    VERSION: 1809
+    REGISTRY: ecr-public
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  commands:
+  - powershell.exe scripts/windows/tag.ps1
+  when:
+    event: [ tag ]
+
+depends_on:
+  - testing
+  - windows-1809-ecr
+
+trigger:
+  ref:
+  - refs/heads/master
+  - refs/tags/*
+
+---
+kind: pipeline
+type: ssh
 name: windows-1809-gcr
 
 platform:
@@ -182,7 +233,7 @@ steps:
 
 depends_on:
   - testing
-  - windows-1809-ecr
+  - windows-1809-ecr-public
 
 trigger:
   ref:
@@ -323,6 +374,56 @@ steps:
   environment:
     VERSION: 1909
     REGISTRY: ecr
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  commands:
+  - powershell.exe scripts/windows/tag.ps1
+  when:
+    event: [ tag ]
+
+depends_on:
+  - testing
+
+trigger:
+  ref:
+  - refs/heads/master
+  - refs/tags/*
+
+---
+kind: pipeline
+type: ssh
+name: windows-1909-ecr-public
+
+platform:
+  os: windows
+
+server:
+  host: windows.1909.amd64.plugins.drone.ci
+  password:
+    from_secret: windows_password
+  user:
+    from_secret: windows_username
+
+steps:
+- name: build_latest
+  environment:
+    VERSION: 1909
+    REGISTRY: ecr-public
+    USERNAME:
+      from_secret: docker_username
+    PASSWORD:
+      from_secret: docker_password
+  commands:
+  - powershell.exe scripts/windows/latest.ps1
+  when:
+    event: [ push ]
+
+- name: build_tag
+  environment:
+    VERSION: 1909
+    REGISTRY: ecr-public
     USERNAME:
       from_secret: docker_username
     PASSWORD:
@@ -1072,6 +1173,212 @@ depends_on:
 - linux-amd64-ecr
 - linux-arm64-ecr
 - linux-arm-ecr
+
+---
+kind: pipeline
+name: linux-amd64-ecr-public
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build-push
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: publish
+  image: plugins/docker:18
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-amd64
+    daemon_off: false
+    dockerfile: docker/ecr-public/Dockerfile.linux.amd64
+    password:
+      from_secret: docker_password
+    repo: plugins/ecr-public
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-amd64-docker
+
+---
+kind: pipeline
+name: linux-arm64-ecr-public
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: build-push
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm64/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm64/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: publish
+  image: plugins/docker:18
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm64
+    daemon_off: false
+    dockerfile: docker/ecr-public/Dockerfile.linux.arm64
+    password:
+      from_secret: docker_password
+    repo: plugins/ecr-public
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-arm64-docker
+
+---
+kind: pipeline
+name: linux-arm-ecr-public
+
+platform:
+  os: linux
+  arch: arm
+
+steps:
+- name: build-push
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-ecr-public ./cmd/drone-ecr-public"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: publish
+  image: plugins/docker:18
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-arm
+    daemon_off: false
+    dockerfile: docker/ecr-public/Dockerfile.linux.arm
+    password:
+      from_secret: docker_password
+    repo: plugins/ecr-public
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+  - "refs/pull/**"
+
+depends_on:
+- linux-arm-docker
+
+---
+kind: pipeline
+name: notifications-ecr-public
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: manifest
+  image: plugins/manifest
+  settings:
+    auto_tag: true
+    ignore_missing: true
+    password:
+      from_secret: docker_password
+    spec: docker/ecr-public/manifest.tmpl
+    username:
+      from_secret: docker_username
+
+trigger:
+  ref:
+  - refs/heads/master
+  - "refs/tags/**"
+
+depends_on:
+- windows-1809-ecr-public
+- windows-1909-ecr-public
+- linux-amd64-ecr-public
+- linux-arm64-ecr-public
+- linux-arm-ecr-public
 
 ---
 kind: pipeline
