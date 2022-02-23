@@ -61,12 +61,15 @@
                             "type": "FactSet",
                             "facts": [
                                 {
-                                    "title": "-",
-                                    "value": "${Tag}"
+                                    "title": "${Tag}",
+                                    "value": ""
                                 }
                             ],
                             "spacing": "Small",
-                            "$data": "${ParsedRepoTags}"
+                            "$data": "${ParsedRepoTags}",
+                            "wrap": true,
+                            "size": "Small",
+                            "weight": "Bolder"
                         }
                     ],
                     "separator": true,
@@ -88,7 +91,6 @@
                             "spacing": "Small",
                             "text": "${SizeString}",
                             "wrap": true,
-                            "size": "Small",
                             "weight": "Bolder"
                         }
                     ],
@@ -112,7 +114,6 @@
                             "spacing": "Small",
                             "text": "{{DATE(${Time})}} - {{TIME(${Time})}}",
                             "wrap": true,
-                            "size": "Small",
                             "weight": "Bolder"
                         }
                     ],
@@ -123,6 +124,13 @@
             ],
             "style": "default",
             "separator": true
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.OpenUrl",
+            "title": "Go to image",
+            "url": "${url}"
         }
     ],
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
