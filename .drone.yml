@@ -5,7 +5,7 @@ name: linux-amd64-docker
 steps:
 - name: build-push
   pull: always
-  image: golang:1.11
+  image: golang:1.17
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
   environment:
@@ -18,7 +18,7 @@ steps:
 
 - name: build-tag
   pull: always
-  image: golang:1.11
+  image: golang:1.17
   commands:
   - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
   environment:
@@ -30,7 +30,7 @@ steps:
 
 - name: executable
   pull: always
-  image: golang:1.11
+  image: golang:1.17
   commands:
   - ./release/linux/amd64/drone-docker --help
 
@@ -60,9 +60,6 @@ steps:
     password:
       from_secret: harbor_drone_pass
     env_file: "docker_args"
-  volumes:
-    - name: docker-sock
-      path: /var/run/docker.sock
   when:
     event:
       exclude:
@@ -74,7 +71,3 @@ trigger:
   - "refs/tags/**"
   - "refs/pull/**"
 
-volumes:
-  - name: docker-sock
-    host:
-      path: /var/run/docker.sock

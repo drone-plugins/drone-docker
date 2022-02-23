@@ -148,8 +148,9 @@ func (p Plugin) Exec() error {
 	}
 
 	if p.Cleanup {
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
+		//Commenting for now as it causes 'Error response from daemon: No such image:' when 2 builds are running on the same agnet for the same git sha
+		//cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune()) // docker system prune -f
 	}
 
 	// execute all commands in batch mode.
