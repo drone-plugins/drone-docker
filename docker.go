@@ -94,6 +94,7 @@ type (
 		SizeString        string
 		VirtualSizeString string
 		Time              string
+		URL               string `json:"URL"`
 	}
 	TagStruct struct {
 		Tag string `json:"Tag"`

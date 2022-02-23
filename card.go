@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/drone/drone-go/drone"
@@ -36,7 +38,9 @@ func (p Plugin) writeCard() error {
 	for _, tag := range inspect.RepoTags {
 		sliceTagStruct = append(sliceTagStruct, TagStruct{Tag: tag})
 	}
-	inspect.ParsedRepoTags = sliceTagStruct
+	inspect.ParsedRepoTags = sliceTagStruct[1:] // remove the first tag which is always "hash:latest"
+	// create the url from repo and registry
+	inspect.URL = mapRegistryToURL(p.Daemon.Registry, p.Build.Repo)
 	cardData, _ := json.Marshal(inspect)
 
 	card := drone.CardInput{
@@ -66,4 +70,19 @@ func writeCardTo(out io.Writer, data []byte) {
 	io.WriteString(out, encoded)
 	io.WriteString(out, "\u001B]0m")
 	io.WriteString(out, "\n")
+}
+
+func mapRegistryToURL(registry, repo string) (url string) {
+	url = "https://"
+	var domain string
+	if strings.Contains(registry, "amazonaws.com") {
+		domain = "gallery.ecr.aws/"
+	} else if strings.Contains(registry, "gcr.io") {
+		domain = "console.cloud.google.com/gcr/images"
+	} else {
+		// default to docker hub
+		domain = "hub.docker.com/r/"
+	}
+	url = path.Join(url, domain, repo)
+	return url
 }
