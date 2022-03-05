@@ -59,6 +59,8 @@ type (
 		Link        string   // Git repo link
 		NoCache     bool     // Docker build no-cache
 		Secret      string   // secret keypair
+		SecretEnvs  []string // Docker build secrets with env var as source
+		SecretFiles []string // Docker build secrets with file as source
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
 	}
@@ -306,6 +308,16 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Secret != "" {
 		args = append(args, "--secret", build.Secret)
 	}
+	for _, secret := range build.SecretEnvs {
+		if arg, err := getSecretStringCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
+	for _, secret := range build.SecretFiles {
+		if arg, err := getSecretFileCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
 	}
@@ -338,10 +350,38 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 
 	// we need to enable buildkit, for secret support
-	if build.Secret != "" {
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
 		os.Setenv("DOCKER_BUILDKIT", "1")
 	}
 	return exec.Command(dockerExe, args...)
+}
+
+func getSecretStringCmdArg(kvp string) (string, error) {
+	return getSecretCmdArg(kvp, false)
+}
+
+func getSecretFileCmdArg(kvp string) (string, error) {
+	return getSecretCmdArg(kvp, true)
+}
+
+func getSecretCmdArg(kvp string, file bool) (string, error) {
+	delimIndex := strings.IndexByte(kvp, '=')
+	if delimIndex == -1 {
+		return "", fmt.Errorf("%s is not a valid secret", kvp)
+	}
+
+	key := kvp[:delimIndex]
+	value := kvp[delimIndex+1:]
+
+	if key == "" || value == "" {
+		return "", fmt.Errorf("%s is not a valid secret", kvp)
+	}
+
+	if file {
+		return fmt.Sprintf("id=%s,src=%s", key, value), nil
+	}
+
+	return fmt.Sprintf("id=%s,env=%s", key, value), nil
 }
 
 // helper function to add proxy values from the environment
