@@ -17,7 +17,7 @@ import (
 	"github.com/inhies/go-bytesize"
 )
 
-func (p Plugin) writeCard() error {
+func (p Plugin) printAdaptiveCard() error {
 	cmd := exec.Command("docker", "inspect", p.Build.Name)
 	data, err := cmd.CombinedOutput()
 	if err != nil {

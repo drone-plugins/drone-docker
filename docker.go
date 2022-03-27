@@ -2,6 +2,8 @@ package docker
 
 import (
 	"fmt"
+	"github.com/drone-plugins/drone-docker/utils"
+	"github.com/google/uuid"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -65,14 +67,22 @@ type (
 		Quiet       bool     // Docker build quiet
 	}
 
+	Buildx struct {
+		ConfigFile string
+		Driver     string
+		DriverOpts []string
+	}
+
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login    Login  // Docker login configuration
-		Build    Build  // Docker build configuration
-		Daemon   Daemon // Docker daemon configuration
-		Dryrun   bool   // Docker push is skipped
-		Cleanup  bool   // Docker purge is enabled
-		CardPath string // Card path to write file to
+		Login    Login      // Docker login configuration
+		Build    Build      // Docker build configuration
+		Buildx   Buildx     // Docker buildx configuration
+		Daemon   Daemon     // Docker daemon configuration
+		Dryrun   bool       // Docker push is skipped
+		Cleanup  bool       // Docker purge is enabled
+		CardPath string     // Card path to write file to
+		Executor utils.Exec // Wrapper to allow mocking os.exec calls
 	}
 
 	Card []struct {
@@ -104,7 +114,7 @@ type (
 )
 
 // Exec executes the plugin step
-func (p Plugin) Exec() error {
+func (p Plugin) Exec() (err error) {
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -113,9 +123,7 @@ func (p Plugin) Exec() error {
 	// poll the docker daemon until it is started. This ensures the daemon is
 	// ready to accept connections before we proceed.
 	for i := 0; ; i++ {
-		cmd := commandInfo()
-		err := cmd.Run()
-		if err == nil {
+		if err := p.Executor.Command(dockerExe, "info").Run(); err == nil {
 			break
 		}
 		if i == 15 {
@@ -123,6 +131,14 @@ func (p Plugin) Exec() error {
 			break
 		}
 		time.Sleep(time.Second * 1)
+	}
+
+	if err := p.printDockerVersion(); err != nil {
+		return err
+	}
+
+	if err := p.printDockerInfo(); err != nil {
+		return err
 	}
 
 	// for debugging purposes, log the type of authentication
@@ -169,64 +185,40 @@ func (p Plugin) Exec() error {
 	// add proxy build args
 	addProxyBuildArgs(&p.Build)
 
-	var cmds []*exec.Cmd
-	cmds = append(cmds, commandVersion()) // docker version
-	cmds = append(cmds, commandInfo())    // docker info
+	builderName := "default"
+	if p.Buildx.Driver != "docker" {
+		builderName = "builder-" + uuid.NewString()
+	}
 
-	// pre-pull cache images
+	if err := p.createBuildxBuilder(builderName); err != nil {
+		return err
+	}
+
+	defer func(name string, buildx Buildx) {
+		if tempErr := p.removeBuildxBuilder(name); tempErr != nil {
+			err = tempErr
+		}
+	}(builderName, p.Buildx)
+
+	if err := p.inspectBuildxBuilder(builderName); err != nil {
+		return err
+	}
+
 	for _, img := range p.Build.CacheFrom {
-		cmds = append(cmds, commandPull(img))
-	}
-
-	cmds = append(cmds, commandBuild(p.Build)) // docker build
-
-	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
-
-		if !p.Dryrun {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+		if err := p.pullDockerImage(img); err != nil {
+			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", img)
 		}
 	}
 
-	// execute all commands in batch mode.
-	for _, cmd := range cmds {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		trace(cmd)
-
-		err := cmd.Run()
-		if err != nil && isCommandPull(cmd.Args) {
-			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
-		} else if err != nil && isCommandPrune(cmd.Args) {
-			fmt.Printf("Could not prune system containers. Ignoring...\n")
-		} else if err != nil && isCommandRmi(cmd.Args) {
-			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
-		} else if err != nil {
-			return err
-		}
+	if err := p.buildDockerImage(); err != nil {
+		return err
 	}
 
-	// output the adaptive card
-	if err := p.writeCard(); err != nil {
+	if err := p.printAdaptiveCard(); err != nil {
 		fmt.Printf("Could not create adaptive card. %s\n", err)
 	}
 
-	// execute cleanup routines in batch mode
-	if p.Cleanup {
-		// clear the slice
-		cmds = nil
-
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
-
-		for _, cmd := range cmds {
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			trace(cmd)
-		}
-	}
-
-	return nil
+	return p.pruneDocker()
 }
 
 // helper function to create the docker login command.
@@ -235,25 +227,18 @@ func commandLogin(login Login) *exec.Cmd {
 		return commandLoginEmail(login)
 	}
 	return exec.Command(
-		dockerExe, "login",
+		dockerExe,
+		"login",
 		"-u", login.Username,
 		"-p", login.Password,
 		login.Registry,
 	)
 }
 
-// helper to check if args match "docker pull <image>"
-func isCommandPull(args []string) bool {
-	return len(args) > 2 && args[1] == "pull"
-}
-
-func commandPull(repo string) *exec.Cmd {
-	return exec.Command(dockerExe, "pull", repo)
-}
-
 func commandLoginEmail(login Login) *exec.Cmd {
 	return exec.Command(
-		dockerExe, "login",
+		dockerExe,
+		"login",
 		"-u", login.Username,
 		"-p", login.Password,
 		"-e", login.Email,
@@ -261,81 +246,122 @@ func commandLoginEmail(login Login) *exec.Cmd {
 	)
 }
 
-// helper function to create the docker info command.
-func commandVersion() *exec.Cmd {
-	return exec.Command(dockerExe, "version")
-}
+func (p *Plugin) printDockerVersion() error {
+	cmd := p.Executor.Command(dockerExe, "version")
+	cmd.SetStdout(os.Stdout)
+	cmd.SetStderr(os.Stderr)
 
-// helper function to create the docker info command.
-func commandInfo() *exec.Cmd {
-	return exec.Command(dockerExe, "info")
-}
-
-// helper function to create the docker build command.
-func commandBuild(build Build) *exec.Cmd {
-	args := []string{
-		"build",
-		"--rm=true",
-		"-f", build.Dockerfile,
-		"-t", build.Name,
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to get docker version: %w", err)
 	}
 
-	args = append(args, build.Context)
-	if build.Squash {
+	return nil
+}
+
+func (p *Plugin) printDockerInfo() error {
+	cmd := p.Executor.Command(dockerExe, "info")
+	cmd.SetStdout(os.Stdout)
+	cmd.SetStderr(os.Stderr)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to get docker info: %w", err)
+	}
+
+	return nil
+}
+
+func (p *Plugin) pruneDocker() error {
+	if p.Cleanup {
+		cmd := p.Executor.Command(dockerExe, "system", "prune", "-f")
+		cmd.SetStdout(os.Stdout)
+		cmd.SetStderr(os.Stderr)
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to prune unused docker containers, networks and images: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (p *Plugin) pullDockerImage(img string) error {
+	cmd := p.Executor.Command(dockerExe, "pull", img)
+	cmd.SetStdout(os.Stdout)
+	cmd.SetStderr(os.Stderr)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to pull docker image: %w", err)
+	}
+
+	return nil
+}
+
+func (p *Plugin) buildDockerImage() error {
+	args := []string{
+		"buildx",
+		"build",
+		"--rm",
+		"--file",
+		p.Build.Dockerfile,
+		"--tag",
+		p.Build.Name,
+	}
+
+	if p.Build.Squash {
 		args = append(args, "--squash")
 	}
-	if build.Compress {
+	if p.Build.Compress {
 		args = append(args, "--compress")
 	}
-	if build.Pull {
+	if p.Build.Pull {
 		args = append(args, "--pull=true")
 	}
-	if build.NoCache {
+	if p.Build.NoCache {
 		args = append(args, "--no-cache")
 	}
-	for _, arg := range build.CacheFrom {
+	for _, arg := range p.Build.CacheFrom {
 		args = append(args, "--cache-from", arg)
 	}
-	for _, arg := range build.ArgsEnv {
-		addProxyValue(&build, arg)
+	for _, arg := range p.Build.ArgsEnv {
+		addProxyValue(&p.Build, arg)
 	}
-	for _, arg := range build.Args {
+	for _, arg := range p.Build.Args {
 		args = append(args, "--build-arg", arg)
 	}
-	for _, host := range build.AddHost {
+	for _, host := range p.Build.AddHost {
 		args = append(args, "--add-host", host)
 	}
-	if build.Secret != "" {
-		args = append(args, "--secret", build.Secret)
+	if p.Build.Secret != "" {
+		args = append(args, "--secret", p.Build.Secret)
 	}
-	for _, secret := range build.SecretEnvs {
+	for _, secret := range p.Build.SecretEnvs {
 		if arg, err := getSecretStringCmdArg(secret); err == nil {
 			args = append(args, "--secret", arg)
 		}
 	}
-	for _, secret := range build.SecretFiles {
+	for _, secret := range p.Build.SecretFiles {
 		if arg, err := getSecretFileCmdArg(secret); err == nil {
 			args = append(args, "--secret", arg)
 		}
 	}
-	if build.Target != "" {
-		args = append(args, "--target", build.Target)
+	if p.Build.Target != "" {
+		args = append(args, "--target", p.Build.Target)
 	}
-	if build.Quiet {
+	if p.Build.Quiet {
 		args = append(args, "--quiet")
 	}
 
-	if build.AutoLabel {
+	if p.Build.AutoLabel {
 		labelSchema := []string{
 			fmt.Sprintf("created=%s", time.Now().Format(time.RFC3339)),
-			fmt.Sprintf("revision=%s", build.Name),
-			fmt.Sprintf("source=%s", build.Remote),
-			fmt.Sprintf("url=%s", build.Link),
+			fmt.Sprintf("revision=%s", p.Build.Name),
+			fmt.Sprintf("source=%s", p.Build.Remote),
+			fmt.Sprintf("url=%s", p.Build.Link),
 		}
 		labelPrefix := "org.opencontainers.image"
 
-		if len(build.LabelSchema) > 0 {
-			labelSchema = append(labelSchema, build.LabelSchema...)
+		if len(p.Build.LabelSchema) > 0 {
+			labelSchema = append(labelSchema, p.Build.LabelSchema...)
 		}
 
 		for _, label := range labelSchema {
@@ -343,17 +369,31 @@ func commandBuild(build Build) *exec.Cmd {
 		}
 	}
 
-	if len(build.Labels) > 0 {
-		for _, label := range build.Labels {
+	if len(p.Build.Labels) > 0 {
+		for _, label := range p.Build.Labels {
 			args = append(args, "--label", label)
 		}
 	}
 
-	// we need to enable buildkit, for secret support
-	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
-		os.Setenv("DOCKER_BUILDKIT", "1")
+	for _, tag := range p.Build.Tags {
+		args = append(args, "--tag", fmt.Sprintf("%s:%s", p.Build.Repo, tag))
 	}
-	return exec.Command(dockerExe, args...)
+
+	if !p.Dryrun {
+		args = append(args, "--push")
+	}
+
+	args = append(args, p.Build.Context)
+
+	cmd := p.Executor.Command(dockerExe, args...)
+	cmd.SetStdout(os.Stdout)
+	cmd.SetStderr(os.Stderr)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to build docker image: %w", err)
+	}
+
+	return nil
 }
 
 func getSecretStringCmdArg(kvp string) (string, error) {
@@ -427,23 +467,6 @@ func hasProxyBuildArg(build *Build, key string) bool {
 	return false
 }
 
-// helper function to create the docker tag command.
-func commandTag(build Build, tag string) *exec.Cmd {
-	var (
-		source = build.Name
-		target = fmt.Sprintf("%s:%s", build.Repo, tag)
-	)
-	return exec.Command(
-		dockerExe, "tag", source, target,
-	)
-}
-
-// helper function to create the docker push command.
-func commandPush(build Build, tag string) *exec.Cmd {
-	target := fmt.Sprintf("%s:%s", build.Repo, tag)
-	return exec.Command(dockerExe, "push", target)
-}
-
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
 	args := []string{
@@ -485,28 +508,10 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	return exec.Command(dockerdExe, args...)
 }
 
-// helper to check if args match "docker prune"
-func isCommandPrune(args []string) bool {
-	return len(args) > 3 && args[2] == "prune"
-}
-
-func commandPrune() *exec.Cmd {
-	return exec.Command(dockerExe, "system", "prune", "-f")
-}
-
-// helper to check if args match "docker rmi"
-func isCommandRmi(args []string) bool {
-	return len(args) > 2 && args[1] == "rmi"
-}
-
-func commandRmi(tag string) *exec.Cmd {
-	return exec.Command(dockerExe, "rmi", tag)
-}
-
 // trace writes each command to stdout with the command wrapped in an xml
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
-	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
+	fmt.Printf("+ %s\n", strings.Join(cmd.Args, " "))
 }
 
 func GetDroneDockerExecCmd() string {

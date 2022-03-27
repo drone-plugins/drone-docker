@@ -1,12 +1,11 @@
 package main
 
 import (
-	"os"
-	"runtime"
-
+	"github.com/drone-plugins/drone-docker/utils"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"os"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
@@ -235,6 +234,22 @@ func main() {
 			EnvVar: "PLUGIN_PURGE",
 		},
 		cli.StringFlag{
+			Name:   "docker.buildx-config-file",
+			Usage:  "docker buildx config file",
+			EnvVar: "PLUGIN_BUILDX_CONFIG_FILE",
+		},
+		cli.StringFlag{
+			Name:   "docker.buildx-driver",
+			Usage:  "docker buildx builder driver",
+			Value:  "docker",
+			EnvVar: "PLUGIN_BUILDX_DRIVER",
+		},
+		cli.StringSliceFlag{
+			Name:   "docker.buildx-driver-opts",
+			Usage:  "docker buildx builder driver options",
+			EnvVar: "PLUGIN_BUILDX_DRIVER_OPTS",
+		},
+		cli.StringFlag{
 			Name:   "repo.branch",
 			Usage:  "repository default branch",
 			EnvVar: "DRONE_REPO_BRANCH",
@@ -278,8 +293,9 @@ func main() {
 
 func run(c *cli.Context) error {
 	plugin := docker.Plugin{
-		Dryrun:  c.Bool("dry-run"),
-		Cleanup: c.BoolT("docker.purge"),
+		Dryrun:   c.Bool("dry-run"),
+		Cleanup:  c.BoolT("docker.purge"),
+		Executor: utils.NewExecutor(),
 		Login: docker.Login{
 			Registry: c.String("docker.registry"),
 			Username: c.String("docker.username"),
@@ -312,6 +328,11 @@ func run(c *cli.Context) error {
 			SecretFiles: c.StringSlice("secrets-from-file"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
+		},
+		Buildx: docker.Buildx{
+			ConfigFile: c.String("docker.buildx-config-file"),
+			Driver:     c.String("docker.buildx-driver"),
+			DriverOpts: c.StringSlice("docker.buildx-driver-opts"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -351,12 +372,4 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
-}
-
-func GetExecCmd() string {
-	if runtime.GOOS == "windows" {
-		return "C:/bin/drone-docker.exe"
-	}
-
-	return "drone-docker"
 }

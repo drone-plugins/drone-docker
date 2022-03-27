@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/windows/servercore:1809 as download
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ENV DOCKER_VERSION 18.09.1
+ENV DOCKER_BUILDX_VERSION 0.8.2
 
 RUN Invoke-WebRequest 'http://constexpr.org/innoextract/files/innoextract-1.6-windows.zip' -OutFile 'innoextract.zip' -UseBasicParsing ; `
     Expand-Archive innoextract.zip -DestinationPath C:\ ; `
@@ -12,6 +13,9 @@ RUN Invoke-WebRequest 'http://constexpr.org/innoextract/files/innoextract-1.6-wi
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
     Invoke-WebRequest $('https://github.com/docker/toolbox/releases/download/v{0}/DockerToolbox-{0}.exe' -f $env:DOCKER_VERSION) -OutFile 'dockertoolbox.exe' -UseBasicParsing
 RUN /innoextract.exe dockertoolbox.exe
+
+RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
+    Invoke-WebRequest $('https://github.com/docker/buildx/releases/download/v{0}/buildx-v{0}.windows-amd64.exe' -f $env:DOCKER_BUILDX_VERSION) -OutFile 'docker-buildx.exe' -UseBasicParsing
 
 FROM mcr.microsoft.com/windows/nanoserver:1809
 USER ContainerAdministrator
@@ -23,5 +27,6 @@ LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
 
 COPY --from=download /windows/system32/netapi32.dll /windows/system32/netapi32.dll
 COPY --from=download /app/docker.exe C:/bin/docker.exe
+COPY --from=download /app/docker-buildx.exe C:/ProgramData/docker/cli-plugins/docker-buildx.exe
 ADD release/windows/amd64/drone-docker.exe C:/bin/drone-docker.exe
 ENTRYPOINT [ "C:\\bin\\drone-docker.exe" ]

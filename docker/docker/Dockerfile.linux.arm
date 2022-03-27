@@ -11,5 +11,7 @@ RUN apk --update add --virtual .build-deps curl && \
     rm -rf /var/cache/apk/* && \
     rm -rf /tmp/*
 
+COPY --from=docker/buildx-bin:0.8.2 /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+
 ADD release/linux/arm/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
