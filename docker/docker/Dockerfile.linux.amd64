@@ -1,4 +1,4 @@
-FROM docker:20.10.9-dind
+FROM docker:20.10.13-dind
 
 COPY docker/docker/config.json /root/.docker/
 COPY docker/docker/daemon.json /etc/docker/
