@@ -171,9 +171,20 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
-	// pre-pull cache images
-	for _, img := range p.Build.CacheFrom {
-		cmds = append(cmds, commandPull(img))
+	var inlineCache = false
+	for _, v := range p.Build.Args {
+		if v == "BUILDKIT_INLINE_CACHE=1" {
+			inlineCache = true
+			break
+		}
+	}
+	if os.Getenv("DOCKER_BUILDKIT") != "1" || !inlineCache {
+		// pre-pull cache images for non-buildkit
+		for _, img := range p.Build.CacheFrom {
+			cmds = append(cmds, commandPull(img))
+		}
+	} else {
+		fmt.Println("Detected Buildkit with inline cache, will not pre-pull cache image.")
 	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
