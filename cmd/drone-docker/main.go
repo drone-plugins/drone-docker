@@ -333,8 +333,8 @@ func run(c *cli.Context) error {
 			}
 			plugin.Build.Tags = tag
 		} else {
-			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
-			return nil
+			logrus.Printf("dry-running automated docker build for %s", c.String("commit.ref"))
+			plugin.Dryrun = true
 		}
 	}
 
