@@ -1,11 +1,26 @@
 # Changelog
 
+## [v20.12.0](https://github.com/drone-plugins/drone-docker/tree/v20.12.0) (2022-05-12)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.11.0...v20.12.0)
+
+**Implemented enhancements:**
+
+- Add support for multiple Buildkit secrets with env vars or files as source [\#359](https://github.com/drone-plugins/drone-docker/pull/359) ([ste93cry](https://github.com/ste93cry))
+- \(DRON-237\) cards add link to image repo, minor cleanup [\#358](https://github.com/drone-plugins/drone-docker/pull/358) ([tphoney](https://github.com/tphoney))
+- \(DRON-232\) enable build-kit for secrets consumption [\#356](https://github.com/drone-plugins/drone-docker/pull/356) ([tphoney](https://github.com/tphoney))
+
+**Fixed bugs:**
+
+- \(fix\) Update card.json with UX [\#355](https://github.com/drone-plugins/drone-docker/pull/355) ([tphoney](https://github.com/tphoney))
+
 ## [v20.11.0](https://github.com/drone-plugins/drone-docker/tree/v20.11.0) (2022-01-19)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.10.9.1...v20.11.0)
 
 **Merged pull requests:**
 
+- new release to fix window semver error [\#354](https://github.com/drone-plugins/drone-docker/pull/354) ([eoinmcafee00](https://github.com/eoinmcafee00))
 - \(feat\) publish docker data to create drone card [\#347](https://github.com/drone-plugins/drone-docker/pull/347) ([eoinmcafee00](https://github.com/eoinmcafee00))
 
 ## [v20.10.9.1](https://github.com/drone-plugins/drone-docker/tree/v20.10.9.1) (2022-01-13)
