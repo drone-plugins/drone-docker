@@ -73,6 +73,11 @@ docker run --rm \
   plugins/docker --dry-run
 ```
 
+## Developer Notes
+
+- When updating the base image, you will need to update for each architecture and OS.
+- Arm32 base images are no longer being updated.
+
 ## Release procedure
 
 Run the changelog generator.
