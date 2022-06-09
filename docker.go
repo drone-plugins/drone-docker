@@ -63,6 +63,7 @@ type (
 		SecretFiles []string // Docker build secrets with file as source
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
+		IgnoreRm    bool     // Docker build rm
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -275,10 +276,16 @@ func commandInfo() *exec.Cmd {
 func commandBuild(build Build) *exec.Cmd {
 	args := []string{
 		"build",
-		"--rm=true",
+	}
+
+	if !build.IgnoreRm {
+		args = append(args, "--rm=true")
+	}
+
+	args = append(args, []string{
 		"-f", build.Dockerfile,
 		"-t", build.Name,
-	}
+	}...)
 
 	args = append(args, build.Context)
 	if build.Squash {

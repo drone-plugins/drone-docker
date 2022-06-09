@@ -153,6 +153,11 @@ func main() {
 			Usage:  "quiet docker build",
 			EnvVar: "PLUGIN_QUIET",
 		},
+		cli.BoolFlag{
+			Name:   "ignore-rm",
+			Usage:  "remove intermediate container",
+			EnvVar: "PLUGIN_IGNORE_RM",
+		},
 		cli.StringFlag{
 			Name:   "target",
 			Usage:  "build target",
@@ -312,6 +317,7 @@ func run(c *cli.Context) error {
 			SecretFiles: c.StringSlice("secrets-from-file"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
+			IgnoreRm:    c.Bool("ignore-rm"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),

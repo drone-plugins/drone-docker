@@ -114,6 +114,28 @@ func TestCommandBuild(t *testing.T) {
 				".",
 			),
 		},
+		{
+			name: "build without rm",
+			build: Build{
+				Name:       "plugins/drone-docker:latest",
+				Dockerfile: "Dockerfile",
+				Context:    ".",
+				SecretEnvs: []string{
+					"foo_secret=FOO_SECRET_ENV_VAR",
+				},
+				IgnoreRm: true,
+			},
+			want: exec.Command(
+				dockerExe,
+				"build",
+				"-f",
+				"Dockerfile",
+				"-t",
+				"plugins/drone-docker:latest",
+				".",
+				"--secret id=foo_secret,env=FOO_SECRET_ENV_VAR",
+			),
+		},
 	}
 
 	for _, tc := range tcs {
