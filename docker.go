@@ -539,7 +539,9 @@ func writeSSHPrivateKey() error {
 	if err != nil {
 		return fmt.Errorf("unable to determine home directory: %s", err)
 	}
-	os.MkdirAll(filepath.Join(home, ".ssh"), 0700)
+	if err := os.MkdirAll(filepath.Join(home, ".ssh"), 0700); err != nil {
+		return fmt.Errorf("unable to create .ssh directory: %s", err)
+	}
 	if err := os.WriteFile(filepath.Join(home, ".ssh", "id_rsa"), []byte(privateKey), 0400); err != nil {
 		return fmt.Errorf("unable to write ssh key: %s", err)
 	}
