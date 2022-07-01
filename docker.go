@@ -3,12 +3,18 @@ package docker
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+)
+
+const (
+	SSHAgentSockPath     = "/tmp/drone-ssh-agent-sock"
+	SSHPrivateKeyFromEnv = "SSH_KEY"
 )
 
 type (
@@ -177,6 +183,11 @@ func (p Plugin) Exec() error {
 	// pre-pull cache images
 	for _, img := range p.Build.CacheFrom {
 		cmds = append(cmds, commandPull(img))
+	}
+
+	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
+	if p.Build.SSHAgent != "" {
+		cmds = append(cmds, commandSSHAgentForwardingSetup(p.Build)...)
 	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
@@ -353,8 +364,8 @@ func commandBuild(build Build) *exec.Cmd {
 		}
 	}
 
-	// we need to enable buildkit, for secret support
-	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
+	// we need to enable buildkit, for secret support and ssh agent support
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 || build.SSHAgent != "" {
 		os.Setenv("DOCKER_BUILDKIT", "1")
 	}
 	return exec.Command(dockerExe, args...)
@@ -505,6 +516,34 @@ func isCommandRmi(args []string) bool {
 
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
+}
+
+func commandSSHAgentForwardingSetup(build Build) []*exec.Cmd {
+	cmds := make([]*exec.Cmd, 0)
+	if err := writeSSHPrivateKey(); err != nil {
+		log.Fatalf("unable to setup ssh agent forwarding: %s", err)
+	}
+	os.Setenv("SSH_AUTH_SOCK", SSHAgentSockPath)
+	cmds = append(cmds, exec.Command("ssh-agent", "-p", SSHAgentSockPath))
+	cmds = append(cmds, exec.Command("ssh-add"))
+	return cmds
+}
+
+func writeSSHPrivateKey() error {
+	privateKey := os.Getenv(SSHPrivateKeyFromEnv)
+	if privateKey == "" {
+		return fmt.Errorf("%s must be defined and contain the private key to use for ssh agent forwarding", SSHPrivateKeyFromEnv)
+	}
+	var err error
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("unable to determine home directory: %s", err)
+	}
+	os.MkdirAll(filepath.Join(home, ".ssh"), 0700)
+	if err := os.WriteFile(filepath.Join(home, ".ssh", "id_rsa"), []byte(privateKey), 0400); err != nil {
+		return fmt.Errorf("unable to write ssh key: %s", err)
+	}
+	return nil
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
