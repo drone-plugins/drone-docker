@@ -190,7 +190,7 @@ func (p Plugin) Exec() error {
 	}
 
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
-	if p.Build.SSHAgent != "" {
+	if !sshAgentEmpty(p.Build.SSHAgent) {
 		fmt.Printf("ssh agent set to \"%s\"", p.Build.SSHAgent)
 		cmds = append(cmds, commandSSHAgentForwardingSetup(p.Build)...)
 	}
@@ -341,7 +341,7 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Quiet {
 		args = append(args, "--quiet")
 	}
-	if build.SSHAgent != "" {
+	if !sshAgentEmpty(build.SSHAgent) {
 		args = append(args, "--ssh", build.SSHAgent)
 	}
 
@@ -370,7 +370,7 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 
 	// we need to enable buildkit, for secret support and ssh agent support
-	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 || build.SSHAgent != "" {
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 || !sshAgentEmpty(build.SSHAgent) {
 		os.Setenv("DOCKER_BUILDKIT", "1")
 	}
 	return exec.Command(dockerExe, args...)
@@ -565,4 +565,8 @@ func GetDroneDockerExecCmd() string {
 	}
 
 	return "drone-docker"
+}
+
+func sshAgentEmpty(agent string) bool {
+	return agent == "" || agent == "[]"
 }
