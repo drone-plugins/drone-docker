@@ -112,6 +112,10 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+
+	fmt.Printf("exec build: %#v", p.Build)
+	fmt.Printf("exec env: %#v", os.Environ())
+
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -187,6 +191,7 @@ func (p Plugin) Exec() error {
 
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
 	if p.Build.SSHAgent != "" {
+		fmt.Printf("ssh agent set to \"%s\"", p.Build.SSHAgent)
 		cmds = append(cmds, commandSSHAgentForwardingSetup(p.Build)...)
 	}
 
