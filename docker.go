@@ -543,9 +543,8 @@ func writeSSHPrivateKey() error {
 	if privateKeyBase64 == "" {
 		return fmt.Errorf("%s must be defined and contain the base64 encoded private key to use for ssh agent forwarding", SSHPrivateKeyFromEnv)
 	}
-	privateKey := []byte{}
 	var err error
-	_, err = base64.StdEncoding.Decode(privateKey, []byte(privateKeyBase64))
+	privateKey, err := base64.StdEncoding.DecodeString(privateKeyBase64)
 	if err != nil {
 		return fmt.Errorf("unable to base64 decode private key")
 	}
