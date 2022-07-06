@@ -568,5 +568,5 @@ func GetDroneDockerExecCmd() string {
 }
 
 func sshAgentEmpty(agent string) bool {
-	return agent == "" || agent == "[]"
+	return agent == ""
 }

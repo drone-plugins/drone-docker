@@ -264,7 +264,7 @@ func main() {
 			Usage:  "secret key value pairs eg secret_name=/path/to/secret",
 			EnvVar: "PLUGIN_SECRETS_FROM_FILE",
 		},
-		cli.StringSliceFlag{
+		cli.StringFlag{
 			Name:   "ssh-agent",
 			Usage:  "mount ssh agent",
 			EnvVar: "PLUGIN_SSH_AGENT",
