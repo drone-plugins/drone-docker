@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -538,11 +539,16 @@ func commandSSHAgentForwardingSetup(build Build) []*exec.Cmd {
 }
 
 func writeSSHPrivateKey() error {
-	privateKey := os.Getenv(SSHPrivateKeyFromEnv)
-	if privateKey == "" {
-		return fmt.Errorf("%s must be defined and contain the private key to use for ssh agent forwarding", SSHPrivateKeyFromEnv)
+	privateKeyBase64 := os.Getenv(SSHPrivateKeyFromEnv)
+	if privateKeyBase64 == "" {
+		return fmt.Errorf("%s must be defined and contain the base64 encoded private key to use for ssh agent forwarding", SSHPrivateKeyFromEnv)
 	}
+	privateKey := []byte{}
 	var err error
+	_, err = base64.StdEncoding.Decode(privateKey, []byte(privateKeyBase64))
+	if err != nil {
+		return fmt.Errorf("unable to base64 decode private key")
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("unable to determine home directory: %s", err)
@@ -550,7 +556,7 @@ func writeSSHPrivateKey() error {
 	if err := os.MkdirAll(filepath.Join(home, ".ssh"), 0700); err != nil {
 		return fmt.Errorf("unable to create .ssh directory: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(home, ".ssh", "id_rsa"), []byte(privateKey), 0400); err != nil {
+	if err := os.WriteFile(filepath.Join(home, ".ssh", "id_rsa"), privateKey, 0400); err != nil {
 		return fmt.Errorf("unable to write ssh key: %s", err)
 	}
 	return nil
