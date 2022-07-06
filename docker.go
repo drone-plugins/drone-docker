@@ -191,6 +191,8 @@ func (p Plugin) Exec() error {
 
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
 	if !sshAgentEmpty(p.Build.SSHAgent) {
+		p.Build.SSHAgent = strings.TrimSuffix(p.Build.SSHAgent, "]")
+		p.Build.SSHAgent = strings.TrimPrefix(p.Build.SSHAgent, "[")
 		fmt.Printf("ssh agent set to \"%s\"", p.Build.SSHAgent)
 		cmds = append(cmds, commandSSHAgentForwardingSetup(p.Build)...)
 	}
@@ -529,7 +531,7 @@ func commandSSHAgentForwardingSetup(build Build) []*exec.Cmd {
 		log.Fatalf("unable to setup ssh agent forwarding: %s", err)
 	}
 	os.Setenv("SSH_AUTH_SOCK", SSHAgentSockPath)
-	cmds = append(cmds, exec.Command("ssh-agent", "-p", SSHAgentSockPath))
+	cmds = append(cmds, exec.Command("ssh-agent", "-a", SSHAgentSockPath))
 	cmds = append(cmds, exec.Command("ssh-add"))
 	return cmds
 }
