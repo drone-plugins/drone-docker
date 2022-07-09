@@ -62,6 +62,46 @@ docker build \
 
 > Notice: Be aware that the Docker plugin currently requires privileged capabilities, otherwise the integrated Docker daemon is not able to start.
 
+### Using Docker buildkit Secrets
+
+```yaml
+kind: pipeline
+name: default
+
+steps:
+- name: build dummy docker file and publish
+  image: plugins/docker
+  pull: never
+  settings:
+    repo: tphoney/test
+    tags: latest
+    secret: id=mysecret,src=secret-file
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+```
+
+Using a dockerfile that references the secret-file 
+
+```bash
+# syntax=docker/dockerfile:1.2
+
+FROM alpine
+
+# shows secret from default secret location:
+RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
+```
+
+and a secret file called secret-file
+
+```
+COOL BANANAS
+```
+
+
+### Running from the CLI
+
 ```console
 docker run --rm \
   -e PLUGIN_TAG=latest \
