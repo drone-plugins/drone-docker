@@ -114,9 +114,6 @@ type (
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
 
-	fmt.Printf("exec build: %#v", p.Build)
-	fmt.Printf("exec env: %#v", os.Environ())
-
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
