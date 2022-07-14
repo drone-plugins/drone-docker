@@ -190,12 +190,6 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	if p.Cleanup {
-		//Commenting for now as it causes 'Error response from daemon: No such image:' when 2 builds are running on the same agnet for the same git sha
-		//cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune()) // docker system prune -f
-	}
-
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
@@ -224,8 +218,9 @@ func (p Plugin) Exec() error {
 		// clear the slice
 		cmds = nil
 
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
+		//Commenting for now as it causes 'Error response from daemon: No such image:' when 2 builds are running on the same agnet for the same git sha
+		//cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune()) // docker system prune -f
 
 		for _, cmd := range cmds {
 			cmd.Stdout = os.Stdout
