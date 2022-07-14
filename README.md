@@ -62,6 +62,46 @@ docker build \
 
 > Notice: Be aware that the Docker plugin currently requires privileged capabilities, otherwise the integrated Docker daemon is not able to start.
 
+### Using Docker buildkit Secrets
+
+```yaml
+kind: pipeline
+name: default
+
+steps:
+- name: build dummy docker file and publish
+  image: plugins/docker
+  pull: never
+  settings:
+    repo: tphoney/test
+    tags: latest
+    secret: id=mysecret,src=secret-file
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+```
+
+Using a dockerfile that references the secret-file 
+
+```bash
+# syntax=docker/dockerfile:1.2
+
+FROM alpine
+
+# shows secret from default secret location:
+RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
+```
+
+and a secret file called secret-file
+
+```
+COOL BANANAS
+```
+
+
+### Running from the CLI
+
 ```console
 docker run --rm \
   -e PLUGIN_TAG=latest \
@@ -72,3 +112,28 @@ docker run --rm \
   --privileged \
   plugins/docker --dry-run
 ```
+
+## Developer Notes
+
+- When updating the base image, you will need to update for each architecture and OS.
+- Arm32 base images are no longer being updated.
+
+## Release procedure
+
+Run the changelog generator.
+
+```BASH
+docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator/github-changelog-generator -u drone-plugins -p drone-docker -t <secret github token>
+```
+
+You can generate a token by logging into your GitHub account and going to Settings -> Personal access tokens.
+
+Next we tag the PR's with the fixes or enhancements labels. If the PR does not fufil the requirements, do not add a label.
+
+Run the changelog generator again with the future version according to semver.
+
+```BASH
+docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator/github-changelog-generator -u drone-plugins -p drone-docker -t <secret token> --future-release v1.0.0
+```
+
+Create your pull request for the release. Get it merged then tag the release.

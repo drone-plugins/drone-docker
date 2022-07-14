@@ -1,0 +1,138 @@
+{
+    "type": "AdaptiveCard",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://d36jcksde1wxzq.cloudfront.net/be7833db9bddb4494d2a7c3dd659199a.png",
+                            "size": "small"
+                        }
+                    ],
+                    "width": "auto"
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Plugin: Drone Docker",
+                            "wrap": true,
+                            "size": "Small",
+                            "weight": "Bolder",
+                            "isSubtle": false,
+                            "spacing": "Small"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "DIGEST: ${RepoDigests[0]}",
+                            "wrap": true,
+                            "size": "Small",
+                            "weight": "Lighter",
+                            "isSubtle": true,
+                            "spacing": "Small"
+                        }
+                    ],
+                    "width": "stretch"
+                }
+            ],
+            "style": "default"
+        },
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "weight": "Lighter",
+                            "text": "TAGS",
+                            "wrap": true,
+                            "size": "Small",
+                            "isSubtle": true,
+                            "spacing": "Medium"
+                        },
+                        {
+                            "type": "FactSet",
+                            "facts": [
+                                {
+                                    "title": "${Tag}",
+                                    "value": ""
+                                }
+                            ],
+                            "spacing": "Small",
+                            "$data": "${ParsedRepoTags}",
+                            "wrap": true,
+                            "size": "Small",
+                            "weight": "Bolder"
+                        }
+                    ],
+                    "separator": true,
+                    "width": "auto"
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "weight": "Lighter",
+                            "text": "SIZE",
+                            "wrap": true,
+                            "size": "Small",
+                            "isSubtle": true
+                        },
+                        {
+                            "type": "TextBlock",
+                            "spacing": "Small",
+                            "text": "${SizeString}",
+                            "wrap": true,
+                            "weight": "Bolder"
+                        }
+                    ],
+                    "width": "auto",
+                    "separator": true,
+                    "spacing": "Medium"
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "weight": "Lighter",
+                            "text": "LAST PUSHED",
+                            "wrap": true,
+                            "size": "Small",
+                            "isSubtle": true
+                        },
+                        {
+                            "type": "TextBlock",
+                            "spacing": "Small",
+                            "text": "{{DATE(${Time})}} - {{TIME(${Time})}}",
+                            "wrap": true,
+                            "weight": "Bolder"
+                        }
+                    ],
+                    "width": "auto",
+                    "separator": true,
+                    "spacing": "Medium"
+                }
+            ],
+            "style": "default",
+            "separator": true
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.OpenUrl",
+            "title": "Go to image",
+            "url": "${url}"
+        }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.5"
+}

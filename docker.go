@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -57,7 +58,9 @@ type (
 		Labels       []string // Label map
 		Link         string   // Git repo link
 		NoCache      bool     // Docker build no-cache
-		AddHost      []string // Docker build add-host
+		Secret       string   // secret keypair
+		SecretEnvs   []string // Docker build secrets with env var as source
+		SecretFiles  []string // Docker build secrets with file as sourceAddHost      []string // Docker build add-host
 		Quiet        bool     // Docker build quiet
 		CacheBuilder bool     //only target the builder and cache it
 		CacheRepo    string   //repo override for cache builder flag Defaults to CacheFrom[0]
@@ -65,11 +68,39 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login   Login  // Docker login configuration
-		Build   Build  // Docker build configuration
-		Daemon  Daemon // Docker daemon configuration
-		Dryrun  bool   // Docker push is skipped
-		Cleanup bool   // Docker purge is enabled
+		Login    Login  // Docker login configuration
+		Build    Build  // Docker build configuration
+		Daemon   Daemon // Docker daemon configuration
+		Dryrun   bool   // Docker push is skipped
+		Cleanup  bool   // Docker purge is enabled
+		CardPath string // Card path to write file to
+	}
+
+	Card []struct {
+		ID             string        `json:"Id"`
+		RepoTags       []string      `json:"RepoTags"`
+		ParsedRepoTags []TagStruct   `json:"ParsedRepoTags"`
+		RepoDigests    []interface{} `json:"RepoDigests"`
+		Parent         string        `json:"Parent"`
+		Comment        string        `json:"Comment"`
+		Created        time.Time     `json:"Created"`
+		Container      string        `json:"Container"`
+		DockerVersion  string        `json:"DockerVersion"`
+		Author         string        `json:"Author"`
+		Architecture   string        `json:"Architecture"`
+		Os             string        `json:"Os"`
+		Size           int           `json:"Size"`
+		VirtualSize    int           `json:"VirtualSize"`
+		Metadata       struct {
+			LastTagTime time.Time `json:"LastTagTime"`
+		} `json:"Metadata"`
+		SizeString        string
+		VirtualSizeString string
+		Time              string
+		URL               string `json:"URL"`
+	}
+	TagStruct struct {
+		Tag string `json:"Tag"`
 	}
 )
 
@@ -82,16 +113,33 @@ func (p Plugin) Exec() error {
 
 	// poll the docker daemon until it is started. This ensures the daemon is
 	// ready to accept connections before we proceed.
-	for i := 0; i < 15; i++ {
+	for i := 0; ; i++ {
 		cmd := commandInfo()
 		err := cmd.Run()
 		if err == nil {
 			break
 		}
+		if i == 15 {
+			fmt.Println("Unable to reach Docker Daemon after 15 attempts.")
+			break
+		}
 		time.Sleep(time.Second * 1)
 	}
 
-	// Create Auth Config File
+	// for debugging purposes, log the type of authentication
+	// credentials that have been provided.
+	switch {
+	case p.Login.Password != "" && p.Login.Config != "":
+		fmt.Println("Detected registry credentials and registry credentials file")
+	case p.Login.Password != "":
+		fmt.Println("Detected registry credentials")
+	case p.Login.Config != "":
+		fmt.Println("Detected registry credentials file")
+	default:
+		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
+	}
+
+	// create Auth Config File
 	if p.Login.Config != "" {
 		os.MkdirAll(dockerHome, 0600)
 
@@ -105,19 +153,13 @@ func (p Plugin) Exec() error {
 	// login to the Docker registry
 	if p.Login.Password != "" {
 		cmd := commandLogin(p.Login)
-		err := cmd.Run()
+		raw, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("Error authenticating: %s", err)
+			out := string(raw)
+			out = strings.Replace(out, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.", "", -1)
+			fmt.Println(out)
+			return fmt.Errorf("Error authenticating: exit status 1")
 		}
-	}
-
-	switch {
-	case p.Login.Password != "":
-		fmt.Println("Detected registry credentials")
-	case p.Login.Config != "":
-		fmt.Println("Detected registry credentials file")
-	default:
-		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
 
 	if p.Build.Squash && !p.Daemon.Experimental {
@@ -142,7 +184,7 @@ func (p Plugin) Exec() error {
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
-		if p.Dryrun == false {
+		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
@@ -168,6 +210,26 @@ func (p Plugin) Exec() error {
 			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
+		}
+	}
+
+	// output the adaptive card
+	if err := p.writeCard(); err != nil {
+		fmt.Printf("Could not create adaptive card. %s\n", err)
+	}
+
+	// execute cleanup routines in batch mode
+	if p.Cleanup {
+		// clear the slice
+		cmds = nil
+
+		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
+		cmds = append(cmds, commandPrune())           // docker system prune -f
+
+		for _, cmd := range cmds {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			trace(cmd)
 		}
 	}
 
@@ -250,6 +312,19 @@ func commandBuild(build Build) *exec.Cmd {
 	for _, host := range build.AddHost {
 		args = append(args, "--add-host", host)
 	}
+	if build.Secret != "" {
+		args = append(args, "--secret", build.Secret)
+	}
+	for _, secret := range build.SecretEnvs {
+		if arg, err := getSecretStringCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
+	for _, secret := range build.SecretFiles {
+		if arg, err := getSecretFileCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
 	if build.Target != "" {
 		args = append(args, "--target", build.Target)
 	} else if build.CacheBuilder {
@@ -283,7 +358,39 @@ func commandBuild(build Build) *exec.Cmd {
 		}
 	}
 
+	// we need to enable buildkit, for secret support
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
+		os.Setenv("DOCKER_BUILDKIT", "1")
+	}
 	return exec.Command(dockerExe, args...)
+}
+
+func getSecretStringCmdArg(kvp string) (string, error) {
+	return getSecretCmdArg(kvp, false)
+}
+
+func getSecretFileCmdArg(kvp string) (string, error) {
+	return getSecretCmdArg(kvp, true)
+}
+
+func getSecretCmdArg(kvp string, file bool) (string, error) {
+	delimIndex := strings.IndexByte(kvp, '=')
+	if delimIndex == -1 {
+		return "", fmt.Errorf("%s is not a valid secret", kvp)
+	}
+
+	key := kvp[:delimIndex]
+	value := kvp[delimIndex+1:]
+
+	if key == "" || value == "" {
+		return "", fmt.Errorf("%s is not a valid secret", kvp)
+	}
+
+	if file {
+		return fmt.Sprintf("id=%s,src=%s", key, value), nil
+	}
+
+	return fmt.Sprintf("id=%s,env=%s", key, value), nil
 }
 
 // helper function to add proxy values from the environment
@@ -427,4 +534,12 @@ func commandRmi(tag string) *exec.Cmd {
 // tag so that it can be extracted and displayed in the logs.
 func trace(cmd *exec.Cmd) {
 	fmt.Fprintf(os.Stdout, "+ %s\n", strings.Join(cmd.Args, " "))
+}
+
+func GetDroneDockerExecCmd() string {
+	if runtime.GOOS == "windows" {
+		return "C:/bin/drone-docker.exe"
+	}
+
+	return "drone-docker"
 }

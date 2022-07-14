@@ -8,6 +8,9 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 // gcr default username
@@ -54,12 +57,12 @@ func main() {
 	os.Setenv("DOCKER_PASSWORD", password)
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 
