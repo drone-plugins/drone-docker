@@ -1,0 +1,5 @@
+FROM ppc64le/alpine:3.14
+ENV DOCKER_HOST=unix:///var/run/docker.sock
+
+ADD release/linux/ppc64le/drone-docker /bin/
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]

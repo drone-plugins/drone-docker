@@ -12,6 +12,11 @@ manifests:
       architecture: amd64
       os: linux
   -
+    image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}linux-ppc64le
+    platform:
+      architecture: ppc64le
+      os: linux
+  -
     image: plugins/docker:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}linux-arm64
     platform:
       architecture: arm64

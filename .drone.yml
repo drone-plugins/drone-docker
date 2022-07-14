@@ -631,11 +631,65 @@ depends_on:
 
 ---
 kind: pipeline
+name: linux-ppc64le-docker
+
+platform:
+  os: linux
+  arch: ppc64le
+
+steps:
+- name: build-push
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/ppc64le/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+      exclude:
+      - tag
+
+- name: build-tag
+  image: golang:1.17.3
+  commands:
+  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/ppc64le/drone-docker ./cmd/drone-docker"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: on
+  when:
+    event:
+    - tag
+
+- name: publish
+  image: plugins/docker
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linux-ppc64le
+    daemon_off: false
+    dockerfile: docker/docker/Dockerfile.linux.ppc64le
+    password:
+      from_secret: docker_password
+    repo: sbm13/drone
+    username:
+      from_secret: docker_username
+  when:
+    event:
+      exclude:
+      - pull_request
+
+trigger:
+  ref:
+  - refs/heads/ppc-test-image
+  - "refs/tags/**"
+  - "refs/pull/**"
+---
+kind: pipeline
 name: notifications-docker
 
 platform:
   os: linux
-  arch: amd64
+  arch: ppc64le
 
 steps:
 - name: manifest
@@ -651,7 +705,7 @@ steps:
 
 trigger:
   ref:
-  - refs/heads/master
+  - refs/heads/ppc-test-image
   - "refs/tags/**"
 
 depends_on:
@@ -660,6 +714,7 @@ depends_on:
 - linux-amd64-docker
 - linux-arm64-docker
 - linux-arm-docker
+- linux-ppc64le-docker
 
 ---
 kind: pipeline
@@ -718,7 +773,6 @@ trigger:
 
 depends_on:
 - linux-amd64-docker
-
 ---
 kind: pipeline
 name: linux-arm64-gcr
