@@ -670,7 +670,7 @@ steps:
     dockerfile: docker/docker/Dockerfile.linux.ppc64le
     password:
       from_secret: docker_password
-    repo: sbm13/drone
+    repo: plugins/docker
     username:
       from_secret: docker_username
   when:
@@ -680,7 +680,7 @@ steps:
 
 trigger:
   ref:
-  - refs/heads/ppc-test-image
+  - refs/heads/master
   - "refs/tags/**"
   - "refs/pull/**"
 ---
@@ -705,7 +705,7 @@ steps:
 
 trigger:
   ref:
-  - refs/heads/ppc-test-image
+  - refs/heads/master
   - "refs/tags/**"
 
 depends_on:
