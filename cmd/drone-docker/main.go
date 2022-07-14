@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -259,6 +260,26 @@ func main() {
 			Usage:  "additional host:IP mapping",
 			EnvVar: "PLUGIN_ADD_HOST",
 		},
+		cli.StringFlag{
+			Name:   "secret",
+			Usage:  "secret key value pair eg id=MYSECRET",
+			EnvVar: "PLUGIN_SECRET",
+		},
+		cli.StringSliceFlag{
+			Name:   "secrets-from-env",
+			Usage:  "secret key value pair eg secret_name=secret",
+			EnvVar: "PLUGIN_SECRETS_FROM_ENV",
+		},
+		cli.StringSliceFlag{
+			Name:   "secrets-from-file",
+			Usage:  "secret key value pairs eg secret_name=/path/to/secret",
+			EnvVar: "PLUGIN_SECRETS_FROM_FILE",
+		},
+		cli.StringFlag{
+			Name:   "drone-card-path",
+			Usage:  "card path location to write to",
+			EnvVar: "DRONE_CARD_PATH",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -277,6 +298,7 @@ func run(c *cli.Context) error {
 			Email:    c.String("docker.email"),
 			Config:   c.String("docker.config"),
 		},
+		CardPath: c.String("drone-card-path"),
 		Build: docker.Build{
 			Remote:       c.String("remote.url"),
 			Name:         c.String("commit.sha"),
@@ -296,6 +318,9 @@ func run(c *cli.Context) error {
 			AutoLabel:    c.BoolT("auto-label"),
 			Link:         c.String("link"),
 			NoCache:      c.Bool("no-cache"),
+			Secret:       c.String("secret"),
+			SecretEnvs:   c.StringSlice("secrets-from-env"),
+			SecretFiles:  c.StringSlice("secrets-from-file"),
 			AddHost:      c.StringSlice("add-host"),
 			Quiet:        c.Bool("quiet"),
 			CacheBuilder: c.Bool("cache-builder"),
@@ -345,4 +370,12 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func GetExecCmd() string {
+	if runtime.GOOS == "windows" {
+		return "C:/bin/drone-docker.exe"
+	}
+
+	return "drone-docker"
 }

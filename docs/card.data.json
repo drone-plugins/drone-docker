@@ -1,0 +1,41 @@
+{
+    "Id": "sha256:3b0709c9afb41629c79c93355feed114d08a8c1bedd975eb53af08f4b867fd91",
+    "RepoTags": [
+        "798a0dae10d63d281eff4c06eaa12001ffd23740:latest",
+        "tphoney/test:latest"
+    ],
+    "ParsedRepoTags": [
+        {
+            "Tag": ""
+        },
+        {
+            "Tag": ""
+        },
+        {
+            "Tag": "798a0dae10d63d281eff4c06eaa12001ffd23740:latest"
+        },
+        {
+            "Tag": "tphoney/test:latest"
+        }
+    ],
+    "RepoDigests": [
+        "tphoney/test@sha256:93f8b95aaae7d194208b72e94a3a90544b00c8f2ad45aeb89d81a0c6ccbc5e19"
+    ],
+    "Parent": "sha256:493aa330a5929027dd8ecded9fa8c473a1508d17c0fd7d6a94a7f197f8d22c60",
+    "Comment": "",
+    "Created": "2022-02-16T11:13:40.8956582Z",
+    "Container": "a57c0ca4dd2e081df8758e00549f7abe83803f1a1a7aaaf1cd8e685a5eb5a097",
+    "DockerVersion": "20.10.9",
+    "Author": "",
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Size": 14045949,
+    "VirtualSize": 14045949,
+    "Metadata": {
+        "LastTagTime": "2022-02-16T11:13:40.9433973Z"
+    },
+    "SizeString": "13.40MB",
+    "VirtualSizeString": "13.40MB",
+    "Time": "2022-02-16T11:13:40Z",
+    "URL": "http://hub.docker.com/repositories/tphoney/test/"
+}

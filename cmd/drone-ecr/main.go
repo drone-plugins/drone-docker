@@ -11,12 +11,15 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 const defaultRegion = "us-east-1"
@@ -37,6 +40,7 @@ func main() {
 		lifecyclePolicy  = getenv("PLUGIN_LIFECYCLE_POLICY")
 		repositoryPolicy = getenv("PLUGIN_REPOSITORY_POLICY")
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
+		externalId       = getenv("PLUGIN_EXTERNAL_ID")
 		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
 	)
 
@@ -57,7 +61,7 @@ func main() {
 		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
 	}
 
-	svc := getECRClient(sess, assumeRole)
+	svc := getECRClient(sess, assumeRole, externalId)
 	username, password, defaultRegistry, err := getAuthInfo(svc)
 
 	if registry == "" {
@@ -109,11 +113,11 @@ func main() {
 	os.Setenv("DOCKER_PASSWORD", password)
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 
@@ -208,11 +212,19 @@ func getenv(key ...string) (s string) {
 	return
 }
 
-func getECRClient(sess *session.Session, role string) *ecr.ECR {
+func getECRClient(sess *session.Session, role string, externalId string) *ecr.ECR {
 	if role == "" {
 		return ecr.New(sess)
 	}
-	return ecr.New(sess, &aws.Config{
-		Credentials: stscreds.NewCredentials(sess, role),
-	})
+	if externalId != "" {
+		return ecr.New(sess, &aws.Config{
+			Credentials: stscreds.NewCredentials(sess, role, func(p *stscreds.AssumeRoleProvider) {
+				p.ExternalID = &externalId
+			}),
+		})
+	} else {
+		return ecr.New(sess, &aws.Config{
+			Credentials: stscreds.NewCredentials(sess, role),
+		})
+	}
 }

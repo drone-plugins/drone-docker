@@ -5,7 +5,7 @@ local test_pipeline_name = 'testing';
 local windows(os) = os == 'windows';
 
 local golang_image(os, version) =
-  'golang:' + '1.11' + if windows(os) then '-windowsservercore-' + version else '';
+  'golang:' + '1.13' + if windows(os) then '-windowsservercore-' + version else '';
 
 {
   test(os='linux', arch='amd64', version='')::
