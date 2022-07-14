@@ -60,7 +60,8 @@ type (
 		NoCache      bool     // Docker build no-cache
 		Secret       string   // secret keypair
 		SecretEnvs   []string // Docker build secrets with env var as source
-		SecretFiles  []string // Docker build secrets with file as sourceAddHost      []string // Docker build add-host
+		SecretFiles  []string // Docker build secrets with file as source
+		AddHost      []string // Docker build add-host
 		Quiet        bool     // Docker build quiet
 		CacheBuilder bool     //only target the builder and cache it
 		CacheRepo    string   //repo override for cache builder flag Defaults to CacheFrom[0]
