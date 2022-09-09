@@ -290,7 +290,7 @@ func run(c *cli.Context) error {
 		CardPath: c.String("drone-card-path"),
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
+			Name:        c.String("commit.sha") + "/" + c.String("repo"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
