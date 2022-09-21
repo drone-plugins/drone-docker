@@ -107,6 +107,13 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	//check that we have a valid repo name before we go any further
+	if len(p.Build.Tags) > 0 {
+		if getRepoName(p.Build) == "" {
+			return fmt.Errorf("did the docker-prep/dockerspec step run before this step? Check that they aren't running asychronously. repo name is either not explicitly set or we are unable to infer the repo name")
+		}
+	}
+
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
