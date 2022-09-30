@@ -20,8 +20,8 @@ echo $env:VERSION
 echo $env:REGISTRY
 
 # build the binary
-Write-Host "+ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}";
-go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}
+#Write-Host "+ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}";
+#go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}
 
 # build and publish the docker image
 docker login -u ${env:USERNAME} -p ${env:PASSWORD}

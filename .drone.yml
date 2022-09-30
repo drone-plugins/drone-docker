@@ -53,8 +53,12 @@ pool:
   use: windows-2022
 
 steps:
-- name: build_latest
+- name: executable
   image: golang:1.18
+  commands:
+  - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+
+- name: build_latest
   environment:
     VERSION: ltsc2022
     REGISTRY: docker
