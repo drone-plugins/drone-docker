@@ -54,8 +54,9 @@ pool:
 
 steps:
 - name: build_latest
+  image: golang:1.18
   environment:
-    VERSION: 1809
+    VERSION: ltsc2022
     REGISTRY: docker
     USERNAME:
       from_secret: docker_username
@@ -67,8 +68,9 @@ steps:
     event: [ push ]
 
 - name: build_tag
+  image: golang:1.18
   environment:
-    VERSION: 1809
+    VERSION: ltsc2022
     REGISTRY: docker
     USERNAME:
       from_secret: docker_username
