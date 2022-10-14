@@ -133,6 +133,11 @@ func main() {
 			Usage:  "default build tags",
 			EnvVar: "PLUGIN_DEFAULT_TAGS,PLUGIN_AUTO_TAG",
 		},
+		cli.BoolFlag{
+			Name:   "tags.auto-with-dry-run",
+			Usage:  "default build tags (like tags.auto, but dry runs in case it wont tag)",
+			EnvVar: "PLUGIN_AUTO_TAG_WITH_DRY_RUN",
+		},
 		cli.StringFlag{
 			Name:   "tags.suffix",
 			Usage:  "default build tags with suffix",
@@ -330,7 +335,7 @@ func run(c *cli.Context) error {
 		},
 	}
 
-	if c.Bool("tags.auto") {
+	if c.Bool("tags.auto") || c.Bool("tags.auto-with-dry-run") {
 		if docker.UseDefaultTag( // return true if tag event or default branch
 			c.String("commit.ref"),
 			c.String("repo.branch"),
@@ -344,6 +349,9 @@ func run(c *cli.Context) error {
 				return err
 			}
 			plugin.Build.Tags = tag
+		} else if c.Bool("tags.auto-with-dry-run") {
+			logrus.Printf("dry-running automated docker build for %s", c.String("commit.ref"))
+			plugin.Dryrun = true
 		} else {
 			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
