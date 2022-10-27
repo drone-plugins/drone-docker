@@ -114,6 +114,27 @@ func TestCommandBuild(t *testing.T) {
 				".",
 			),
 		},
+		{
+			name: "platform argument",
+			build: Build{
+				Name:       "plugins/drone-docker:latest",
+				Dockerfile: "Dockerfile",
+				Context:    ".",
+				Platform:   "test/platform",
+			},
+			want: exec.Command(
+				dockerExe,
+				"build",
+				"--rm=true",
+				"-f",
+				"Dockerfile",
+				"-t",
+				"plugins/drone-docker:latest",
+				".",
+				"--platform",
+				"test/platform",
+			),
+		},
 	}
 
 	for _, tc := range tcs {
