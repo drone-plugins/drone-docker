@@ -27,7 +27,5 @@ pipeline:
       - v${DRONE_BUILD_NUMBER}.${DRONE_COMMIT_SHA:0:7}
     when:
       event: push
-      branch:
-        - master
     secrets: [ codeartifact_auth_token ]
     build_args_from_env: [ codeartifact_auth_token ]
