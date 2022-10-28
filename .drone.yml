@@ -1,10 +1,14 @@
+clone:
+  clone:
+    image: 890546402176.dkr.ecr.eu-central-1.amazonaws.com/hubdockercom/plugins/git
+
 pipeline:
   build-push:
     image: golang:1.17.3
     group: QA
     environment:
-      CGO_ENABLED: 0
-      GO111MODULE: on
+      - CGO_ENABLED=0
+      - GO111MODULE=on
     commands:
       - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker"
     when:
