@@ -20,7 +20,7 @@ pipeline:
     privileged: true
     context: . 
     dockerfile: docker/docker/Dockerfile.linux.amd64
-    repo: 226747981948.dkr.ecr.eu-central-1.amazonaws.com/service/drone-docker-arm
+    repo: 130607246975.dkr.ecr.eu-central-1.amazonaws.com/service/drone-docker
     tags:
       - latest
       - ${DRONE_BRANCH}
