@@ -269,7 +269,7 @@ func main() {
 			Usage:  "card path location to write to",
 			EnvVar: "DRONE_CARD_PATH",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "platform",
 			Usage:  "platform value to pass to docker",
 			EnvVar: "PLUGIN_PLATFORM",
@@ -317,7 +317,7 @@ func run(c *cli.Context) error {
 			SecretFiles: c.StringSlice("secrets-from-file"),
 			AddHost:     c.StringSlice("add-host"),
 			Quiet:       c.Bool("quiet"),
-			Platform:    c.String("platform"),
+			Platform:    c.StringSlice("platform"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
