@@ -325,8 +325,8 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Quiet {
 		args = append(args, "--quiet")
 	}
-	if build.Platform != "" {
-		args = append(args, "--platform", build.Platform)
+	if len(build.Platform) > 0 {
+		args = append(args, "--platform", strings.Join( build.Platform,","))
 	}
 
 	if build.AutoLabel {
