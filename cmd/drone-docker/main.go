@@ -269,7 +269,7 @@ func main() {
 			Usage:  "card path location to write to",
 			EnvVar: "DRONE_CARD_PATH",
 		},
-		cli.StringSlice{
+		cli.StringSliceFlag{
 			Name:   "platform",
 			Usage:  "platform value to pass to docker",
 			EnvVar: "PLUGIN_PLATFORM",
