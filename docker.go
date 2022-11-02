@@ -63,7 +63,7 @@ type (
 		SecretFiles []string // Docker build secrets with file as source
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
-		Platform    string   // Docker build platform
+		Platform    []string   // Docker build platform
 	}
 
 	// Plugin defines the Docker plugin parameters.
