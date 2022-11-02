@@ -275,6 +275,7 @@ func commandInfo() *exec.Cmd {
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
 	args := []string{
+		"buildx",
 		"build",
 		"--rm=true",
 		"-f", build.Dockerfile,
