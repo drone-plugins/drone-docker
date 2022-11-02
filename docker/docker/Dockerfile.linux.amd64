@@ -2,5 +2,8 @@ FROM docker:20.10.14-dind
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
+COPY --from=docker/buildx-bin:latest /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+RUN docker buildx version
+
 ADD release/linux/amd64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
