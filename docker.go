@@ -277,7 +277,6 @@ func commandBuild(build Build) *exec.Cmd {
 	args := []string{
 		"buildx",
 		"build",
-		"--load",
 		"--rm=true",
 		"-f", build.Dockerfile,
 		"-t", build.Name,
