@@ -179,14 +179,8 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
-	cmds = append(cmds, commandBuild(p.Build)) // docker build
-
 	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
-
-		if !p.Dryrun {
-			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
-		}
+        cmds = append(cmds, commandBuildTagPush(p.Build, tag))
 	}
 
 	// execute all commands in batch mode.
@@ -270,6 +264,96 @@ func commandVersion() *exec.Cmd {
 // helper function to create the docker info command.
 func commandInfo() *exec.Cmd {
 	return exec.Command(dockerExe, "info")
+}
+
+// helper function to create the docker build command.
+func commandBuildTagPush(build Build, tag str) *exec.Cmd {
+	args := []string{
+		"buildx",
+		"build",
+		"--push",
+		"--rm=true",
+		"-f", build.Dockerfile,
+		"-t", tag,
+	}
+
+	args = append(args, build.Context)
+	if build.Squash {
+		args = append(args, "--squash")
+	}
+	if build.Compress {
+		args = append(args, "--compress")
+	}
+	if build.Pull {
+		args = append(args, "--pull=true")
+	}
+	if build.NoCache {
+		args = append(args, "--no-cache")
+	}
+	for _, arg := range build.CacheFrom {
+		args = append(args, "--cache-from", arg)
+	}
+	for _, arg := range build.ArgsEnv {
+		addProxyValue(&build, arg)
+	}
+	for _, arg := range build.Args {
+		args = append(args, "--build-arg", arg)
+	}
+	for _, host := range build.AddHost {
+		args = append(args, "--add-host", host)
+	}
+	if build.Secret != "" {
+		args = append(args, "--secret", build.Secret)
+	}
+	for _, secret := range build.SecretEnvs {
+		if arg, err := getSecretStringCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
+	for _, secret := range build.SecretFiles {
+		if arg, err := getSecretFileCmdArg(secret); err == nil {
+			args = append(args, "--secret", arg)
+		}
+	}
+	if build.Target != "" {
+		args = append(args, "--target", build.Target)
+	}
+	if build.Quiet {
+		args = append(args, "--quiet")
+	}
+	if len(build.Platform) > 0 {
+		args = append(args, "--platform", strings.Join( build.Platform,","))
+	}
+
+	if build.AutoLabel {
+		labelSchema := []string{
+			fmt.Sprintf("created=%s", time.Now().Format(time.RFC3339)),
+			fmt.Sprintf("revision=%s", build.Name),
+			fmt.Sprintf("source=%s", build.Remote),
+			fmt.Sprintf("url=%s", build.Link),
+		}
+		labelPrefix := "org.opencontainers.image"
+
+		if len(build.LabelSchema) > 0 {
+			labelSchema = append(labelSchema, build.LabelSchema...)
+		}
+
+		for _, label := range labelSchema {
+			args = append(args, "--label", fmt.Sprintf("%s.%s", labelPrefix, label))
+		}
+	}
+
+	if len(build.Labels) > 0 {
+		for _, label := range build.Labels {
+			args = append(args, "--label", label)
+		}
+	}
+
+	// we need to enable buildkit, for secret support
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
+		os.Setenv("DOCKER_BUILDKIT", "1")
+	}
+	return exec.Command(dockerExe, args...)
 }
 
 // helper function to create the docker build command.
