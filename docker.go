@@ -267,7 +267,7 @@ func commandInfo() *exec.Cmd {
 }
 
 // helper function to create the docker build command.
-func commandBuildTagPush(build Build, tag str) *exec.Cmd {
+func commandBuildTagPush(build Build, tag string) *exec.Cmd {
 	args := []string{
 		"buildx",
 		"build",
