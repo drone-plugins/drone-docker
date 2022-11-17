@@ -184,7 +184,7 @@ func (p Plugin) Exec() error {
 		nameTag := fmt.Sprintf("%s:%s", p.Build.Name, tag)
 		tagsList = append(tagsList, nameTag)
 	}
-	tags = strings.Join(tagsList, ",")
+	tags := strings.Join(tagsList, ",")
 	cmds = append(cmds, commandBuildTagPush(p.Build, tags))
 
 	// execute all commands in batch mode.
