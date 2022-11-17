@@ -277,7 +277,7 @@ func commandBuildTagPush(build Build) *exec.Cmd {
 	for _, tag := range build.Tags {
 		args = append(args, "-t")
 
-		repoTag := fmt.Sprintf("-t %s:%s", build.Repo, tag)
+		repoTag := fmt.Sprintf("%s:%s", build.Repo, tag)
 		args = append(args, repoTag)
 	}
 
