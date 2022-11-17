@@ -181,7 +181,7 @@ func (p Plugin) Exec() error {
 
 	var tagsList []string
 	for _, tag := range p.Build.Tags {
-		nameTag = fmt.Sprintf("%s:%s", p.Build.Name, tag)
+		nameTag := fmt.Sprintf("%s:%s", p.Build.Name, tag)
 		tagsList = append(tagsList, nameTag)
 	}
 	tags = strings.Join(tagsList, ",")
@@ -278,7 +278,7 @@ func commandBuildTagPush(build Build, tags string) *exec.Cmd {
 		"--push",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", format(image_name + ":" + tags),
+		"-t", tags,
 	}
 
 	args = append(args, build.Context)
