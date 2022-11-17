@@ -63,7 +63,7 @@ type (
 		SecretFiles []string // Docker build secrets with file as source
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
-		Platform    []string   // Docker build platform
+		Platform    []string // Docker build platform
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -179,9 +179,13 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
+	var tagsList []string
 	for _, tag := range p.Build.Tags {
-        cmds = append(cmds, commandBuildTagPush(p.Build, tag))
+		nameTag = fmt.Sprintf("%s:%s", p.Build.Name, tag)
+		tagsList = append(tagsList, nameTag)
 	}
+	tags = strings.Join(tagsList, ",")
+	cmds = append(cmds, commandBuildTagPush(p.Build, tags))
 
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
@@ -267,14 +271,14 @@ func commandInfo() *exec.Cmd {
 }
 
 // helper function to create the docker build command.
-func commandBuildTagPush(build Build, tag string) *exec.Cmd {
+func commandBuildTagPush(build Build, tags string) *exec.Cmd {
 	args := []string{
 		"buildx",
 		"build",
 		"--push",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", tag,
+		"-t", format(image_name + ":" + tags),
 	}
 
 	args = append(args, build.Context)
@@ -322,7 +326,7 @@ func commandBuildTagPush(build Build, tag string) *exec.Cmd {
 		args = append(args, "--quiet")
 	}
 	if len(build.Platform) > 0 {
-		args = append(args, "--platform", strings.Join( build.Platform,","))
+		args = append(args, "--platform", strings.Join(build.Platform, ","))
 	}
 
 	if build.AutoLabel {
@@ -411,7 +415,7 @@ func commandBuild(build Build) *exec.Cmd {
 		args = append(args, "--quiet")
 	}
 	if len(build.Platform) > 0 {
-		args = append(args, "--platform", strings.Join( build.Platform,","))
+		args = append(args, "--platform", strings.Join(build.Platform, ","))
 	}
 
 	if build.AutoLabel {
