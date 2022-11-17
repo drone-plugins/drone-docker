@@ -181,8 +181,8 @@ func (p Plugin) Exec() error {
 
 	var tagsList []string
 	for _, tag := range p.Build.Tags {
-		nameTag := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
-		tagsList = append(tagsList, nameTag)
+		repoTag := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+		tagsList = append(tagsList, repoTag)
 	}
 	tags := strings.Join(tagsList, ",")
 	cmds = append(cmds, commandBuildTagPush(p.Build, tags))
