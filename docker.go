@@ -179,13 +179,7 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
-	var tagsList []string
-	for _, tag := range p.Build.Tags {
-		repoTag := fmt.Sprintf("-t %s:%s", p.Build.Repo, tag)
-		tagsList = append(tagsList, repoTag)
-	}
-	tags := strings.Join(tagsList, " ")
-	cmds = append(cmds, commandBuildTagPush(p.Build, tags))
+	cmds = append(cmds, commandBuildTagPush(p.Build))
 
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
@@ -271,14 +265,20 @@ func commandInfo() *exec.Cmd {
 }
 
 // helper function to create the docker build command.
-func commandBuildTagPush(build Build, tags string) *exec.Cmd {
+func commandBuildTagPush(build Build) *exec.Cmd {
 	args := []string{
 		"buildx",
 		"build",
 		"--push",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		tags,
+	}
+
+	for _, tag := range build.Tags {
+		args = append(args, "-t")
+
+		repoTag := fmt.Sprintf("-t %s:%s", build.Repo, tag)
+		args = append(args, repoTag)
 	}
 
 	args = append(args, build.Context)
