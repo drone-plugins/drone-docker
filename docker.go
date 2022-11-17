@@ -181,10 +181,10 @@ func (p Plugin) Exec() error {
 
 	var tagsList []string
 	for _, tag := range p.Build.Tags {
-		repoTag := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+		repoTag := fmt.Sprintf("-t %s:%s", p.Build.Repo, tag)
 		tagsList = append(tagsList, repoTag)
 	}
-	tags := strings.Join(tagsList, ",")
+	tags := strings.Join(tagsList, " ")
 	cmds = append(cmds, commandBuildTagPush(p.Build, tags))
 
 	// execute all commands in batch mode.
@@ -278,7 +278,7 @@ func commandBuildTagPush(build Build, tags string) *exec.Cmd {
 		"--push",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", tags,
+		tags,
 	}
 
 	args = append(args, build.Context)
