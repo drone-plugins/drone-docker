@@ -1,5 +1,17 @@
 # Changelog
 
+## [v20.14.0](https://github.com/drone-plugins/drone-docker/tree/v20.14.0) (2022-11-17)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.13.0...v20.14.0)
+
+**Implemented enhancements:**
+
+- Add support for docker --platform flag [\#376](https://github.com/drone-plugins/drone-docker/pull/376) ([tphoney](https://github.com/tphoney))
+
+**Fixed bugs:**
+
+- Use full path to docker when creating card [\#373](https://github.com/drone-plugins/drone-docker/pull/373) ([donny-dont](https://github.com/donny-dont))
+
 ## [v20.13.0](https://github.com/drone-plugins/drone-docker/tree/v20.13.0) (2022-06-08)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.12.0...v20.13.0)
@@ -7,6 +19,10 @@
 **Implemented enhancements:**
 
 - update docker linux amd64/arm64 to 20.10.14 [\#365](https://github.com/drone-plugins/drone-docker/pull/365) ([tphoney](https://github.com/tphoney))
+
+**Merged pull requests:**
+
+- v20.13.0 prep [\#367](https://github.com/drone-plugins/drone-docker/pull/367) ([tphoney](https://github.com/tphoney))
 
 ## [v20.12.0](https://github.com/drone-plugins/drone-docker/tree/v20.12.0) (2022-05-16)
 
