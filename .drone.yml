@@ -568,69 +568,6 @@ depends_on:
 
 ---
 kind: pipeline
-name: linux-arm-docker
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: build-push
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
-
-- name: build-tag
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-docker ./cmd/drone-docker"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: executable
-  image: golang:1.17.3
-  commands:
-  - ./release/linux/arm/drone-docker --help
-
-- name: publish
-  image: plugins/docker:18
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-arm
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: plugins/docker
-    username:
-      from_secret: docker_username
-  when:
-    event:
-      exclude:
-      - pull_request
-
-trigger:
-  ref:
-  - refs/heads/master
-  - "refs/tags/**"
-  - "refs/pull/**"
-
-depends_on:
-- testing
-
----
-kind: pipeline
 name: notifications-docker
 
 platform:
@@ -659,7 +596,6 @@ depends_on:
 - windows-1909-docker
 - linux-amd64-docker
 - linux-arm64-docker
-- linux-arm-docker
 
 ---
 kind: pipeline
@@ -779,64 +715,6 @@ depends_on:
 
 ---
 kind: pipeline
-name: linux-arm-gcr
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: build-push
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
-
-- name: build-tag
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-gcr ./cmd/drone-gcr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: publish
-  image: plugins/docker:18
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-arm
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: plugins/gcr
-    username:
-      from_secret: docker_username
-  when:
-    event:
-      exclude:
-      - pull_request
-
-trigger:
-  ref:
-  - refs/heads/master
-  - "refs/tags/**"
-  - "refs/pull/**"
-
-depends_on:
-- linux-arm-docker
-
----
-kind: pipeline
 name: notifications-gcr
 
 platform:
@@ -865,7 +743,6 @@ depends_on:
 - windows-1909-gcr
 - linux-amd64-gcr
 - linux-arm64-gcr
-- linux-arm-gcr
 
 ---
 kind: pipeline
@@ -985,64 +862,6 @@ depends_on:
 
 ---
 kind: pipeline
-name: linux-arm-ecr
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: build-push
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
-
-- name: build-tag
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-ecr ./cmd/drone-ecr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: publish
-  image: plugins/docker:18
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-arm
-    daemon_off: false
-    dockerfile: docker/ecr/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: plugins/ecr
-    username:
-      from_secret: docker_username
-  when:
-    event:
-      exclude:
-      - pull_request
-
-trigger:
-  ref:
-  - refs/heads/master
-  - "refs/tags/**"
-  - "refs/pull/**"
-
-depends_on:
-- linux-arm-docker
-
----
-kind: pipeline
 name: notifications-ecr
 
 platform:
@@ -1071,7 +890,6 @@ depends_on:
 - windows-1909-ecr
 - linux-amd64-ecr
 - linux-arm64-ecr
-- linux-arm-ecr
 
 ---
 kind: pipeline
@@ -1191,64 +1009,6 @@ depends_on:
 
 ---
 kind: pipeline
-name: linux-arm-heroku
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: build-push
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_COMMIT_SHA:0:8}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
-
-- name: build-tag
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v}\" -a -tags netgo -o release/linux/arm/drone-heroku ./cmd/drone-heroku"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: publish
-  image: plugins/docker:18
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-arm
-    daemon_off: false
-    dockerfile: docker/heroku/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: plugins/heroku
-    username:
-      from_secret: docker_username
-  when:
-    event:
-      exclude:
-      - pull_request
-
-trigger:
-  ref:
-  - refs/heads/master
-  - "refs/tags/**"
-  - "refs/pull/**"
-
-depends_on:
-- linux-arm-docker
-
----
-kind: pipeline
 name: notifications-heroku
 
 platform:
@@ -1275,7 +1035,6 @@ trigger:
 depends_on:
 - linux-amd64-heroku
 - linux-arm64-heroku
-- linux-arm-heroku
 
 ---
 kind: pipeline
@@ -1395,64 +1154,6 @@ depends_on:
 
 ---
 kind: pipeline
-name: linux-arm-acr
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: build-push
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
-
-- name: build-tag
-  image: golang:1.17.3
-  commands:
-  - "go build -v -ldflags \"-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}\" -a -tags netgo -o release/linux/arm/drone-acr ./cmd/drone-acr"
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
-
-- name: publish
-  image: plugins/docker:18
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-arm
-    daemon_off: false
-    dockerfile: docker/acr/Dockerfile.linux.arm
-    password:
-      from_secret: docker_password
-    repo: plugins/acr
-    username:
-      from_secret: docker_username
-  when:
-    event:
-      exclude:
-      - pull_request
-
-trigger:
-  ref:
-  - refs/heads/master
-  - "refs/tags/**"
-  - "refs/pull/**"
-
-depends_on:
-- linux-arm-docker
-
----
-kind: pipeline
 name: notifications-acr
 
 platform:
@@ -1480,6 +1181,5 @@ depends_on:
 - windows-1909-acr
 - linux-amd64-acr
 - linux-arm64-acr
-- linux-arm-acr
 
 ...

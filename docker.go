@@ -64,6 +64,7 @@ type (
 		SecretFiles []string // Docker build secrets with file as source
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
+		Platform    string   // Docker build platform
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -324,6 +325,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.Quiet {
 		args = append(args, "--quiet")
+	}
+	if build.Platform != "" {
+		args = append(args, "--platform", build.Platform)
 	}
 
 	if build.AutoLabel {
