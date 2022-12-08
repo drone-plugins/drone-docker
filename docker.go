@@ -198,10 +198,6 @@ func (p Plugin) Exec() error {
 		err := cmd.Run()
 		if err != nil && isCommandPull(cmd.Args) {
 			fmt.Printf("Could not pull cache-from image %s. Ignoring...\n", cmd.Args[2])
-		} else if err != nil && isCommandPrune(cmd.Args) {
-			fmt.Printf("Could not prune system containers. Ignoring...\n")
-		} else if err != nil && isCommandRmi(cmd.Args) {
-			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
 		} else if err != nil {
 			return err
 		}
@@ -224,6 +220,13 @@ func (p Plugin) Exec() error {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			trace(cmd)
+
+			err := cmd.Run()
+			if err != nil && isCommandRmi(cmd.Args) {
+				fmt.Printf("Could not prune system containers. Ignoring...\n")
+			} else if err != nil && isCommandPrune(cmd.Args) {
+				fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
+			}
 		}
 	}
 
