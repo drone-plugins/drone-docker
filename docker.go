@@ -226,6 +226,8 @@ func (p Plugin) Exec() error {
 				fmt.Printf("Could not prune system containers. Ignoring...\n")
 			} else if err != nil && isCommandPrune(cmd.Args) {
 				fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
+			} else if err != nil {
+				return err
 			}
 		}
 	}
