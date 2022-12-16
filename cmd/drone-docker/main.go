@@ -44,6 +44,12 @@ func main() {
 			Value:  "00000000",
 		},
 		cli.StringFlag{
+			Name:   "build.name",
+			Usage:  "docker build name",
+			EnvVar: "DRONE_BUILD_NAME",
+			Value:  "",
+		},
+		cli.StringFlag{
 			Name:   "commit.ref",
 			Usage:  "git commit ref",
 			EnvVar: "DRONE_COMMIT_REF",
@@ -334,6 +340,10 @@ func run(c *cli.Context) error {
 			MTU:           c.String("daemon.mtu"),
 			Experimental:  c.Bool("daemon.experimental"),
 		},
+	}
+
+	if c.String("build.name") != "" && len(c.String("build.name")) > 0 {
+		plugin.Build.Name = c.String("build.name")
 	}
 
 	if c.Bool("tags.auto") {
