@@ -12,21 +12,21 @@ platform:
 
 steps:
   - name: vet
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - go vet ./...
     environment:
-      GO111MODULE: on
+
     volumes:
       - name: gopath
         path: /go
 
   - name: test
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - go test -cover ./...
     environment:
-      GO111MODULE: on
+
     volumes:
       - name: gopath
         path: /go
@@ -51,20 +51,27 @@ pool:
 
 platform:
   os: windows
+  arch: amd64
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/docker/Dockerfile.windows.amd64.1809
-      repo: plugins/docker
+      repo: tphoney/docker
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
-      auto_tag_suffix: windows-1809-amd64
       daemon_off: true
+      auto_tag_suffix: windows-1809-amd64
       purge: false
     when:
       event: [push, tag]
@@ -89,24 +96,28 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/ecr/Dockerfile.windows.amd64.1809
-      repo: plugins/docker
+      repo: tphoney/docker
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-1809-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
   - windows-1809-docker
 
 trigger:
@@ -126,25 +137,29 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/gcr/Dockerfile.windows.amd64.1809
-      repo: plugins/gcr
+      repo: tphoney/gcr
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-1809-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
-  - windows-1809-ecr
+  - windows-1809-docker
 
 trigger:
   ref:
@@ -163,25 +178,29 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/acr/Dockerfile.windows.amd64.1809
-      repo: plugins/acr
+      repo: tphoney/acr
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-1809-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
-  - windows-1809-gcr
+  - windows-1809-docker
 
 trigger:
   ref:
@@ -200,18 +219,23 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/docker/Dockerfile.windows.amd64.ltsc2022
-      repo: plugins/docker
+      repo: tphoney/docker
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-ltsc2022-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
@@ -236,24 +260,29 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/ecr/Dockerfile.windows.amd64.ltsc2022
-      repo: plugins/ecr
+      repo: tphoney/ecr
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-ltsc2022-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
+  - windows-ltsc2022-docker
 
 trigger:
   ref:
@@ -272,24 +301,29 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/gcr/Dockerfile.windows.amd64.ltsc2022
-      repo: plugins/gcr
+      repo: tphoney/gcr
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-ltsc2022-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
+  - windows-ltsc2022-docker
 
 trigger:
   ref:
@@ -308,24 +342,29 @@ platform:
   os: windows
 
 steps:
+  - name: go build
+    image: golang:1.17
+    environment:
+      CGO_ENABLED: 0
+    commands:
+      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
   - name: build
     image: plugins/docker
     settings:
       dockerfile: docker/acr/Dockerfile.windows.amd64.ltsc2022
-      repo: plugins/acr
+      repo: tphoney/acr
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       auto_tag_suffix: windows-ltsc2022-amd64
-      daemon_off: true
       purge: false
     when:
       event: [push, tag]
 
 depends_on:
-  - testing
+  - windows-ltsc2022-docker
 
 trigger:
   ref:
@@ -346,30 +385,28 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
 
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
 
   - name: executable
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - ./release/linux/amd64/drone-docker --help
 
@@ -382,7 +419,7 @@ steps:
       dockerfile: docker/docker/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: plugins/docker
+      repo: tphoney/docker
       username:
         from_secret: docker_username
     when:
@@ -413,30 +450,28 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
 
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
 
   - name: executable
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - ./release/linux/arm64/drone-docker --help
 
@@ -449,7 +484,7 @@ steps:
       dockerfile: docker/docker/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: plugins/docker
+      repo: tphoney/docker
       username:
         from_secret: docker_username
     when:
@@ -515,24 +550,22 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
 
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
@@ -546,7 +579,7 @@ steps:
       dockerfile: docker/gcr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: plugins/gcr
+      repo: tphoney/gcr
       username:
         from_secret: docker_username
     when:
@@ -577,24 +610,22 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
 
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/arm64/drone-gcr ./cmd/drone-gcr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
@@ -608,7 +639,7 @@ steps:
       dockerfile: docker/gcr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: plugins/gcr
+      repo: tphoney/gcr
       username:
         from_secret: docker_username
     when:
@@ -674,28 +705,24 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
-
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
-
   - name: publish
     image: plugins/docker:18
     settings:
@@ -705,7 +732,7 @@ steps:
       dockerfile: docker/ecr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: plugins/ecr
+      repo: tphoney/ecr
       username:
         from_secret: docker_username
     when:
@@ -736,28 +763,24 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
-
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/arm64/drone-ecr ./cmd/drone-ecr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
-
   - name: publish
     image: plugins/docker:18
     settings:
@@ -767,7 +790,7 @@ steps:
       dockerfile: docker/ecr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: plugins/ecr
+      repo: tphoney/ecr
       username:
         from_secret: docker_username
     when:
@@ -833,24 +856,21 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
-
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
@@ -864,7 +884,7 @@ steps:
       dockerfile: docker/heroku/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: plugins/heroku
+      repo: tphoney/heroku
       username:
         from_secret: docker_username
     when:
@@ -895,28 +915,24 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
-
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/arm64/drone-heroku ./cmd/drone-heroku'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
-
   - name: publish
     image: plugins/docker:18
     settings:
@@ -926,7 +942,7 @@ steps:
       dockerfile: docker/heroku/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: plugins/heroku
+      repo: tphoney/heroku
       username:
         from_secret: docker_username
     when:
@@ -943,38 +959,38 @@ trigger:
 depends_on:
   - linux-arm64-docker
 
----
-kind: pipeline
-name: notifications-heroku
-type: vm
+# ---
+# kind: pipeline
+# name: notifications-heroku
+# type: vm
 
-pool:
-  use: ubuntu
+# pool:
+#   use: ubuntu
 
-platform:
-  os: linux
-  arch: amd64
+# platform:
+#   os: linux
+#   arch: amd64
 
-steps:
-  - name: manifest
-    image: plugins/manifest
-    settings:
-      auto_tag: true
-      ignore_missing: true
-      password:
-        from_secret: docker_password
-      spec: docker/heroku/manifest.tmpl
-      username:
-        from_secret: docker_username
+# steps:
+#   - name: manifest
+#     image: plugins/manifest
+#     settings:
+#       auto_tag: true
+#       ignore_missing: true
+#       password:
+#         from_secret: docker_password
+#       spec: docker/heroku/manifest.tmpl
+#       username:
+#         from_secret: docker_username
 
-trigger:
-  ref:
-    - refs/heads/master
-    - "refs/tags/**"
+# trigger:
+#   ref:
+#     - refs/heads/master
+#     - "refs/tags/**"
 
-depends_on:
-  - linux-amd64-heroku
-  - linux-arm64-heroku
+# depends_on:
+#   - linux-amd64-heroku
+#   - linux-arm64-heroku
 
 ---
 kind: pipeline
@@ -990,28 +1006,24 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.build=${DRONE_BUILD_NUMBER}" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
-
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}" -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
-
   - name: publish
     image: plugins/docker:18
     settings:
@@ -1021,7 +1033,7 @@ steps:
       dockerfile: docker/acr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: plugins/acr
+      repo: tphoney/acr
       username:
         from_secret: docker_username
     when:
@@ -1052,24 +1064,22 @@ platform:
 
 steps:
   - name: build-push
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.build=${DRONE_BUILD_NUMBER}" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         exclude:
           - tag
 
   - name: build-tag
-    image: golang:1.17.3
+    image: golang:1.17
     commands:
       - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v} -X main.build=${DRONE_BUILD_NUMBER}" -a -tags netgo -o release/linux/arm64/drone-acr ./cmd/drone-acr'
     environment:
       CGO_ENABLED: 0
-      GO111MODULE: on
     when:
       event:
         - tag
@@ -1083,7 +1093,7 @@ steps:
       dockerfile: docker/acr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: plugins/acr
+      repo: tphoney/acr
       username:
         from_secret: docker_username
     when:
