@@ -44,7 +44,7 @@ trigger:
 ---
 kind: pipeline
 type: vm
-name: windows-1809-docker
+name: windows-1809
 
 pool:
   use: windows
@@ -60,17 +60,62 @@ steps:
       CGO_ENABLED: 0
     commands:
       - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-  - name: build
+      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
+      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
+      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
+  - name: build docker plugin
     image: plugins/docker
     settings:
       dockerfile: docker/docker/Dockerfile.windows.amd64.1809
-      repo: tphoney/docker
+      repo: plugins/docker
       username:
         from_secret: docker_username
       password:
         from_secret: docker_password
       auto_tag: true
       daemon_off: true
+      auto_tag_suffix: windows-1809-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build ecr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/ecr/Dockerfile.windows.amd64.1809
+      repo: plugins/docker
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
+      auto_tag_suffix: windows-1809-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build gcr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/gcr/Dockerfile.windows.amd64.1809
+      repo: plugins/gcr
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
+      auto_tag_suffix: windows-1809-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build acr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/acr/Dockerfile.windows.amd64.1809
+      repo: plugins/acr
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
       auto_tag_suffix: windows-1809-amd64
       purge: false
     when:
@@ -83,134 +128,12 @@ trigger:
   ref:
     - refs/heads/master
     - refs/tags/*
+    - "refs/pull/**"
 
 ---
 kind: pipeline
 type: vm
-name: windows-1809-ecr
-
-pool:
-  use: windows
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/ecr/Dockerfile.windows.amd64.1809
-      repo: tphoney/docker
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-1809-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-1809-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-1809-gcr
-
-pool:
-  use: windows
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/gcr/Dockerfile.windows.amd64.1809
-      repo: tphoney/gcr
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-1809-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-1809-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-1809-acr
-
-pool:
-  use: windows
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/acr/Dockerfile.windows.amd64.1809
-      repo: tphoney/acr
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-1809-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-1809-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-ltsc2022-docker
+name: windows-ltsc2022
 
 pool:
   use: windows-2022
@@ -225,11 +148,56 @@ steps:
       CGO_ENABLED: 0
     commands:
       - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-  - name: build
+      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
+      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
+      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
+  - name: build docker plugin
     image: plugins/docker
     settings:
       dockerfile: docker/docker/Dockerfile.windows.amd64.ltsc2022
-      repo: tphoney/docker
+      repo: plugins/docker
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
+      auto_tag_suffix: windows-ltsc2022-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build ecr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/ecr/Dockerfile.windows.amd64.ltsc2022
+      repo: plugins/ecr
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
+      auto_tag_suffix: windows-ltsc2022-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build gcr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/gcr/Dockerfile.windows.amd64.ltsc2022
+      repo: plugins/gcr
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      auto_tag: true
+      auto_tag_suffix: windows-ltsc2022-amd64
+      purge: false
+    when:
+      event: [push, tag]
+  - name: build acr plugin
+    image: plugins/docker
+    settings:
+      dockerfile: docker/acr/Dockerfile.windows.amd64.ltsc2022
+      repo: plugins/acr
       username:
         from_secret: docker_username
       password:
@@ -247,129 +215,7 @@ trigger:
   ref:
     - refs/heads/master
     - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-ltsc2022-ecr
-
-pool:
-  use: windows-2022
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/ecr/Dockerfile.windows.amd64.ltsc2022
-      repo: tphoney/ecr
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-ltsc2022-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-ltsc2022-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-ltsc2022-gcr
-
-pool:
-  use: windows-2022
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/gcr/Dockerfile.windows.amd64.ltsc2022
-      repo: tphoney/gcr
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-ltsc2022-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-ltsc2022-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
-
----
-kind: pipeline
-type: vm
-name: windows-ltsc2022-acr
-
-pool:
-  use: windows-2022
-
-platform:
-  os: windows
-
-steps:
-  - name: go build
-    image: golang:1.17
-    environment:
-      CGO_ENABLED: 0
-    commands:
-      - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-  - name: build
-    image: plugins/docker
-    settings:
-      dockerfile: docker/acr/Dockerfile.windows.amd64.ltsc2022
-      repo: tphoney/acr
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      auto_tag: true
-      auto_tag_suffix: windows-ltsc2022-amd64
-      purge: false
-    when:
-      event: [push, tag]
-
-depends_on:
-  - windows-ltsc2022-docker
-
-trigger:
-  ref:
-    - refs/heads/master
-    - refs/tags/*
+    - "refs/pull/**"
 
 ---
 kind: pipeline
@@ -419,7 +265,7 @@ steps:
       dockerfile: docker/docker/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: tphoney/docker
+      repo: plugins/docker
       username:
         from_secret: docker_username
     when:
@@ -442,7 +288,7 @@ name: linux-arm64-docker
 type: vm
 
 pool:
-  use: ubuntu
+  use: ubuntu_arm64
 
 platform:
   os: linux
@@ -484,7 +330,7 @@ steps:
       dockerfile: docker/docker/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: tphoney/docker
+      repo: plugins/docker
       username:
         from_secret: docker_username
     when:
@@ -531,8 +377,8 @@ trigger:
     - "refs/tags/**"
 
 depends_on:
-  - windows-1809-docker
-  - windows-ltsc2022-docker
+  - windows-1809
+  - windows-ltsc2022
   - linux-amd64-docker
   - linux-arm64-docker
 
@@ -579,7 +425,7 @@ steps:
       dockerfile: docker/gcr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: tphoney/gcr
+      repo: plugins/gcr
       username:
         from_secret: docker_username
     when:
@@ -602,7 +448,7 @@ name: linux-arm64-gcr
 type: vm
 
 pool:
-  use: ubuntu
+  use: ubuntu_arm64
 
 platform:
   os: linux
@@ -639,7 +485,7 @@ steps:
       dockerfile: docker/gcr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: tphoney/gcr
+      repo: plugins/gcr
       username:
         from_secret: docker_username
     when:
@@ -686,8 +532,8 @@ trigger:
     - "refs/tags/**"
 
 depends_on:
-  - windows-1809-gcr
-  - windows-ltsc2022-gcr
+  - windows-1809
+  - windows-ltsc2022
   - linux-amd64-gcr
   - linux-arm64-gcr
 
@@ -732,7 +578,7 @@ steps:
       dockerfile: docker/ecr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: tphoney/ecr
+      repo: plugins/ecr
       username:
         from_secret: docker_username
     when:
@@ -755,7 +601,7 @@ name: linux-arm64-ecr
 type: vm
 
 pool:
-  use: ubuntu
+  use: ubuntu_arm64
 
 platform:
   os: linux
@@ -790,7 +636,7 @@ steps:
       dockerfile: docker/ecr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: tphoney/ecr
+      repo: plugins/ecr
       username:
         from_secret: docker_username
     when:
@@ -837,8 +683,8 @@ trigger:
     - "refs/tags/**"
 
 depends_on:
-  - windows-1809-ecr
-  - windows-ltsc2022-ecr
+  - windows-1809
+  - windows-ltsc2022
   - linux-amd64-ecr
   - linux-arm64-ecr
 
@@ -884,7 +730,7 @@ steps:
       dockerfile: docker/heroku/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: tphoney/heroku
+      repo: plugins/heroku
       username:
         from_secret: docker_username
     when:
@@ -907,7 +753,7 @@ name: linux-arm64-heroku
 type: vm
 
 pool:
-  use: ubuntu
+  use: ubuntu_arm64
 
 platform:
   os: linux
@@ -942,7 +788,7 @@ steps:
       dockerfile: docker/heroku/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: tphoney/heroku
+      repo: plugins/heroku
       username:
         from_secret: docker_username
     when:
@@ -959,38 +805,38 @@ trigger:
 depends_on:
   - linux-arm64-docker
 
-# ---
-# kind: pipeline
-# name: notifications-heroku
-# type: vm
+---
+kind: pipeline
+name: notifications-heroku
+type: vm
 
-# pool:
-#   use: ubuntu
+pool:
+  use: ubuntu
 
-# platform:
-#   os: linux
-#   arch: amd64
+platform:
+  os: linux
+  arch: amd64
 
-# steps:
-#   - name: manifest
-#     image: plugins/manifest
-#     settings:
-#       auto_tag: true
-#       ignore_missing: true
-#       password:
-#         from_secret: docker_password
-#       spec: docker/heroku/manifest.tmpl
-#       username:
-#         from_secret: docker_username
+steps:
+  - name: manifest
+    image: plugins/manifest
+    settings:
+      auto_tag: true
+      ignore_missing: true
+      password:
+        from_secret: docker_password
+      spec: docker/heroku/manifest.tmpl
+      username:
+        from_secret: docker_username
 
-# trigger:
-#   ref:
-#     - refs/heads/master
-#     - "refs/tags/**"
+trigger:
+  ref:
+    - refs/heads/master
+    - "refs/tags/**"
 
-# depends_on:
-#   - linux-amd64-heroku
-#   - linux-arm64-heroku
+depends_on:
+  - linux-amd64-heroku
+  - linux-arm64-heroku
 
 ---
 kind: pipeline
@@ -1033,7 +879,7 @@ steps:
       dockerfile: docker/acr/Dockerfile.linux.amd64
       password:
         from_secret: docker_password
-      repo: tphoney/acr
+      repo: plugins/acr
       username:
         from_secret: docker_username
     when:
@@ -1056,7 +902,7 @@ name: linux-arm64-acr
 type: vm
 
 pool:
-  use: ubuntu
+  use: ubuntu_arm64
 
 platform:
   os: linux
@@ -1093,7 +939,7 @@ steps:
       dockerfile: docker/acr/Dockerfile.linux.arm64
       password:
         from_secret: docker_password
-      repo: tphoney/acr
+      repo: plugins/acr
       username:
         from_secret: docker_username
     when:
@@ -1139,7 +985,7 @@ trigger:
     - "refs/tags/**"
 
 depends_on:
-  - windows-1809-acr
-  - windows-ltsc2022-acr
+  - windows-1809
+  - windows-ltsc2022
   - linux-amd64-acr
   - linux-arm64-acr
