@@ -1,3 +1,5 @@
 release
 coverage.out
 vendor
+.vscode/
+Dockerfile

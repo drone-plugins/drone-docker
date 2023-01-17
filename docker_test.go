@@ -135,6 +135,26 @@ func TestCommandBuild(t *testing.T) {
 				"test/platform",
 			),
 		},
+		{
+			name: "ssh agent",
+			build: Build{
+				Name:       "plugins/drone-docker:latest",
+				Dockerfile: "Dockerfile",
+				Context:    ".",
+				SSHKeyPath: "id_rsa=/root/.ssh/id_rsa",
+			},
+			want: exec.Command(
+				dockerExe,
+				"build",
+				"--rm=true",
+				"-f",
+				"Dockerfile",
+				"-t",
+				"plugins/drone-docker:latest",
+				".",
+				"--ssh id_rsa=/root/.ssh/id_rsa",
+			),
+		},
 	}
 
 	for _, tc := range tcs {
