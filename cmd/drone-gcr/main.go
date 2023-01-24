@@ -1,20 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2/google"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
 
 // gcr default username
-const username = "_json_key"
+var username = "_json_key"
 
 func main() {
 	// Load env-file if it exists first
@@ -31,12 +34,28 @@ func main() {
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
+		is_workload_identity = getenv("PLUGIN_IS_WORKLOAD_IDENTITY")
+		is_wi                = false
 	)
-
+	if is_workload_identity != "" {
+		if b, err_parse := strconv.ParseBool(is_workload_identity); err_parse == nil {
+			is_wi = b
+		}
+	}
 	// decode the token if base64 encoded
 	decoded, err := base64.StdEncoding.DecodeString(password)
 	if err == nil {
-		password = string(decoded)
+		if is_wi {
+			password = getOauthToken(decoded)
+			username = "oauth2accesstoken"
+		} else {
+			password = string(decoded)
+		}
+	}
+	if is_wi {
+		data := []byte(password)
+		password = getOauthToken(data)
+		username = "oauth2accesstoken"
 	}
 
 	// default registry value
@@ -64,6 +83,21 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func getOauthToken(data []byte) (s string) {
+	scopes := []string{
+		"https://www.googleapis.com/auth/cloud-platform",
+	}
+	ctx := context.Background()
+	credentials, err := google.CredentialsFromJSON(ctx, data, scopes...)
+	if err == nil {
+		token, err := credentials.TokenSource.Token()
+		if err == nil {
+			return token.AccessToken
+		}
+	}
+	return
 }
 
 func getenv(key ...string) (s string) {
