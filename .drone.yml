@@ -66,7 +66,7 @@ steps:
   - name: build docker plugin
     image: plugins/docker
     settings:
-      dockerfile: docker/docker/Dockerfile.windows.amd64.1809
+      dockerfile: docker/docker/Dockerfile.windows.amd64.1809@sha256-61b98908250468edd34a80194cc2868cf7b30badd2ab2ff473c4497e28ddc799
       repo: plugins/docker
       username:
         from_secret: docker_username
