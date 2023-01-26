@@ -1,9 +1,10 @@
+//go:build !windows
 // +build !windows
 
 package docker
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -17,8 +18,8 @@ func (p Plugin) startDaemon() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	} else {
-		cmd.Stdout = ioutil.Discard
-		cmd.Stderr = ioutil.Discard
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
 	}
 	go func() {
 		trace(cmd)
