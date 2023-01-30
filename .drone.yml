@@ -79,7 +79,7 @@ steps:
     when:
       event: [push, tag]
   - name: build ecr plugin
-    image: tphoney/docker:windows-1809-amd64
+    image: plugins/docker:windows-1809-amd64
     pull: never
     settings:
       dockerfile: docker/ecr/Dockerfile.windows.amd64.1809
@@ -94,7 +94,7 @@ steps:
     when:
       event: [push, tag]
   - name: build gcr plugin
-    image: tphoney/docker:windows-1809-amd64
+    image: plugins/docker:windows-1809-amd64
     pull: never
     settings:
       dockerfile: docker/gcr/Dockerfile.windows.amd64.1809
@@ -109,7 +109,7 @@ steps:
     when:
       event: [push, tag]
   - name: build acr plugin
-    image: tphoney/docker:windows-1809-amd64
+    image: plugins/docker:windows-1809-amd64
     pull: never
     settings:
       dockerfile: docker/acr/Dockerfile.windows.amd64.1809
