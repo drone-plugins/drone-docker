@@ -164,6 +164,10 @@ func (p Plugin) Exec() error {
 		}
 	}
 
+	// otherwise there is a possibility of parallel plugin execution in the same CI build
+	// resulting in different images having the same contents
+	setUniqueBuildName(&p.Build)
+
 	if p.Build.Squash && !p.Daemon.Experimental {
 		fmt.Println("Squash build flag is only available when Docker deamon is started with experimental flag. Ignoring...")
 		p.Build.Squash = false
@@ -372,6 +376,12 @@ func commandBuild(build Build) *exec.Cmd {
 		os.Setenv("DOCKER_BUILDKIT", "1")
 	}
 	return exec.Command(dockerExe, args...)
+}
+
+func setUniqueBuildName(build *Build) {
+	shortenCommitSHA := build.Name[0:8]
+	imageName := build.Repo[strings.LastIndex(build.Repo, "/")+1 : len(build.Repo)]
+	build.Name = fmt.Sprintf("%s-%s", imageName, shortenCommitSHA)
 }
 
 func getSecretStringCmdArg(kvp string) (string, error) {
