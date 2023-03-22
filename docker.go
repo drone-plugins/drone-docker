@@ -65,6 +65,8 @@ type (
 		Platform    string   // Docker build platform
 		SSHAgentKey string   // Docker build ssh agent key
 		SSHKeyPath  string   // Docker build ssh key path
+		ImportCache []string // Docker buildx import cache
+		ExportCache string   // Docker buildx export cache
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -181,6 +183,11 @@ func (p Plugin) Exec() error {
 		cmds = append(cmds, commandPull(img))
 	}
 
+	// cache export feature is currently not supported for docker driver
+	if p.Build.ExportCache != "" {
+		cmds = append(cmds, commandBuildxCreate())
+	}
+
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
 	if p.Build.SSHAgentKey != "" {
 		var sshErr error
@@ -283,8 +290,13 @@ func commandInfo() *exec.Cmd {
 	return exec.Command(dockerExe, "info")
 }
 
+func commandBuildxCreate() *exec.Cmd {
+	return exec.Command(dockerExe, "buildx", "create", "--use")
+}
+
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
+	addBuildxCmd := false
 	args := []string{
 		"build",
 		"--rm=true",
@@ -307,6 +319,14 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
+	}
+	for _, arg := range build.ImportCache {
+		addBuildxCmd = true
+		args = append(args, fmt.Sprintf("--cache-from=%s", arg))
+	}
+	if build.ExportCache != "" {
+		addBuildxCmd = true
+		args = append(args, fmt.Sprintf("--cache-to=%s", build.ExportCache))
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
@@ -370,6 +390,10 @@ func commandBuild(build Build) *exec.Cmd {
 	// we need to enable buildkit, for secret support and ssh agent support
 	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 || build.SSHAgentKey != "" {
 		os.Setenv("DOCKER_BUILDKIT", "1")
+	}
+	if addBuildxCmd {
+		args = append([]string{"buildx"}, args...)
+		args = append(args, "--load")
 	}
 	return exec.Command(dockerExe, args...)
 }

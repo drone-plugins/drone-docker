@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -162,6 +163,16 @@ func main() {
 			Name:   "cache-from",
 			Usage:  "images to consider as cache sources",
 			EnvVar: "PLUGIN_CACHE_FROM",
+		},
+		cli.StringFlag{
+			Name:   "import-cache",
+			Usage:  "cache import location",
+			EnvVar: "PLUGIN_IMPORT_CACHE",
+		},
+		cli.StringFlag{
+			Name:   "export-cache",
+			Usage:  "cache export location",
+			EnvVar: "PLUGIN_EXPORT_CACHE",
 		},
 		cli.BoolFlag{
 			Name:   "squash",
@@ -324,6 +335,8 @@ func run(c *cli.Context) error {
 			Quiet:       c.Bool("quiet"),
 			Platform:    c.String("platform"),
 			SSHAgentKey: c.String("ssh-agent-key"),
+			ImportCache: decodeImportCache(c.String("import-cache")),
+			ExportCache: c.String("export-cache"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -363,6 +376,15 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func decodeImportCache(importCacheStr string) []string {
+	importCache := make([]string, 0)
+	for _, s := range strings.Split(importCacheStr, ";") {
+		s = strings.TrimSpace(s)
+		importCache = append(importCache, s)
+	}
+	return importCache
 }
 
 func GetExecCmd() string {
