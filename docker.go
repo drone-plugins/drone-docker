@@ -320,10 +320,12 @@ func commandBuild(build Build) *exec.Cmd {
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
 	}
+	// Buildkit cache import
 	for _, arg := range build.ImportCache {
 		addBuildxCmd = true
 		args = append(args, fmt.Sprintf("--cache-from=%s", arg))
 	}
+	// Buildkit cache export
 	if build.ExportCache != "" {
 		addBuildxCmd = true
 		args = append(args, fmt.Sprintf("--cache-to=%s", build.ExportCache))

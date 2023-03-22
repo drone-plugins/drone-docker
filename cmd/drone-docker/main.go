@@ -164,10 +164,11 @@ func main() {
 			Usage:  "images to consider as cache sources",
 			EnvVar: "PLUGIN_CACHE_FROM",
 		},
-		cli.StringFlag{
+		cli.GenericFlag{
 			Name:   "import-cache",
 			Usage:  "cache import location",
 			EnvVar: "PLUGIN_IMPORT_CACHE",
+			Value:  new(docker.CustomStringFlag),
 		},
 		cli.StringFlag{
 			Name:   "export-cache",
@@ -335,7 +336,7 @@ func run(c *cli.Context) error {
 			Quiet:       c.Bool("quiet"),
 			Platform:    c.String("platform"),
 			SSHAgentKey: c.String("ssh-agent-key"),
-			ImportCache: decodeImportCache(c.String("import-cache")),
+			ImportCache: c.Generic("import-cache").(*docker.CustomStringFlag).GetValue(),
 			ExportCache: c.String("export-cache"),
 		},
 		Daemon: docker.Daemon{
