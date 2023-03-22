@@ -66,7 +66,7 @@ type (
 		SSHAgentKey string   // Docker build ssh agent key
 		SSHKeyPath  string   // Docker build ssh key path
 		ImportCache []string // Docker buildx import cache
-		ExportCache string   // Docker buildx export cache
+		ExportCache []string // Docker buildx export cache
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -184,7 +184,8 @@ func (p Plugin) Exec() error {
 	}
 
 	// cache export feature is currently not supported for docker driver
-	if p.Build.ExportCache != "" {
+	// hence we have to create docker-container driver
+	if len(p.Build.ExportCache) > 0 {
 		cmds = append(cmds, commandBuildxCreate())
 	}
 
@@ -326,9 +327,9 @@ func commandBuild(build Build) *exec.Cmd {
 		args = append(args, fmt.Sprintf("--cache-from=%s", arg))
 	}
 	// Buildkit cache export
-	if build.ExportCache != "" {
+	for _, arg := range build.ExportCache {
 		addBuildxCmd = true
-		args = append(args, fmt.Sprintf("--cache-to=%s", build.ExportCache))
+		args = append(args, fmt.Sprintf("--cache-to=%s", arg))
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)

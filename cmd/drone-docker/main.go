@@ -1,13 +1,11 @@
 package main
 
 import (
-	"os"
-	"runtime"
-	"strings"
-
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"os"
+	"runtime"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
@@ -168,12 +166,13 @@ func main() {
 			Name:   "import-cache",
 			Usage:  "cache import location",
 			EnvVar: "PLUGIN_IMPORT_CACHE",
-			Value:  new(docker.CustomStringFlag),
+			Value:  new(docker.CustomStringSliceFlag),
 		},
-		cli.StringFlag{
+		cli.GenericFlag{
 			Name:   "export-cache",
 			Usage:  "cache export location",
 			EnvVar: "PLUGIN_EXPORT_CACHE",
+			Value:  new(docker.CustomStringSliceFlag),
 		},
 		cli.BoolFlag{
 			Name:   "squash",
@@ -336,8 +335,8 @@ func run(c *cli.Context) error {
 			Quiet:       c.Bool("quiet"),
 			Platform:    c.String("platform"),
 			SSHAgentKey: c.String("ssh-agent-key"),
-			ImportCache: c.Generic("import-cache").(*docker.CustomStringFlag).GetValue(),
-			ExportCache: c.String("export-cache"),
+			ImportCache: c.Generic("import-cache").(*docker.CustomStringSliceFlag).GetValue(),
+			ExportCache: c.Generic("export-cache").(*docker.CustomStringSliceFlag).GetValue(),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
@@ -377,15 +376,6 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
-}
-
-func decodeImportCache(importCacheStr string) []string {
-	importCache := make([]string, 0)
-	for _, s := range strings.Split(importCacheStr, ";") {
-		s = strings.TrimSpace(s)
-		importCache = append(importCache, s)
-	}
-	return importCache
 }
 
 func GetExecCmd() string {
