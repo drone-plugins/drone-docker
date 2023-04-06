@@ -2,7 +2,6 @@ package docker
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,6 +63,8 @@ type (
 		AddHost     []string // Docker build add-host
 		Quiet       bool     // Docker build quiet
 		Platform    string   // Docker build platform
+		SSHAgentKey string   // Docker build ssh agent key
+		SSHKeyPath  string   // Docker build ssh key path
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -106,6 +107,7 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -144,7 +146,7 @@ func (p Plugin) Exec() error {
 		os.MkdirAll(dockerHome, 0600)
 
 		path := filepath.Join(dockerHome, "config.json")
-		err := ioutil.WriteFile(path, []byte(p.Login.Config), 0600)
+		err := os.WriteFile(path, []byte(p.Login.Config), 0600)
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
@@ -177,6 +179,15 @@ func (p Plugin) Exec() error {
 	// pre-pull cache images
 	for _, img := range p.Build.CacheFrom {
 		cmds = append(cmds, commandPull(img))
+	}
+
+	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
+	if p.Build.SSHAgentKey != "" {
+		var sshErr error
+		p.Build.SSHKeyPath, sshErr = writeSSHPrivateKey(p.Build.SSHAgentKey)
+		if sshErr != nil {
+			return sshErr
+		}
 	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
@@ -328,6 +339,9 @@ func commandBuild(build Build) *exec.Cmd {
 	if build.Platform != "" {
 		args = append(args, "--platform", build.Platform)
 	}
+	if build.SSHKeyPath != "" {
+		args = append(args, "--ssh", build.SSHKeyPath)
+	}
 
 	if build.AutoLabel {
 		labelSchema := []string{
@@ -353,8 +367,8 @@ func commandBuild(build Build) *exec.Cmd {
 		}
 	}
 
-	// we need to enable buildkit, for secret support
-	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 {
+	// we need to enable buildkit, for secret support and ssh agent support
+	if build.Secret != "" || len(build.SecretEnvs) > 0 || len(build.SecretFiles) > 0 || build.SSHAgentKey != "" {
 		os.Setenv("DOCKER_BUILDKIT", "1")
 	}
 	return exec.Command(dockerExe, args...)
@@ -505,6 +519,23 @@ func isCommandRmi(args []string) bool {
 
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
+}
+
+func writeSSHPrivateKey(key string) (path string, err error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("unable to determine home directory: %s", err)
+	}
+	if err := os.MkdirAll(filepath.Join(home, ".ssh"), 0700); err != nil {
+		return "", fmt.Errorf("unable to create .ssh directory: %s", err)
+	}
+	pathToKey := filepath.Join(home, ".ssh", "id_rsa")
+	if err := os.WriteFile(pathToKey, []byte(key), 0400); err != nil {
+		return "", fmt.Errorf("unable to write ssh key %s: %s", pathToKey, err)
+	}
+	path = fmt.Sprintf("default=%s", pathToKey)
+
+	return path, nil
 }
 
 // trace writes each command to stdout with the command wrapped in an xml
