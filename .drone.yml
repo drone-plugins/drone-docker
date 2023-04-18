@@ -79,7 +79,7 @@ steps:
     when:
       event: [push, tag]
   - name: build ecr plugin
-    image: plugins/docker:windows-1809-amd64
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     pull: never
     settings:
       dockerfile: docker/ecr/Dockerfile.windows.amd64.1809
@@ -94,7 +94,7 @@ steps:
     when:
       event: [push, tag]
   - name: build gcr plugin
-    image: plugins/docker:windows-1809-amd64
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     pull: never
     settings:
       dockerfile: docker/gcr/Dockerfile.windows.amd64.1809
@@ -109,7 +109,7 @@ steps:
     when:
       event: [push, tag]
   - name: build acr plugin
-    image: plugins/docker:windows-1809-amd64
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     pull: never
     settings:
       dockerfile: docker/acr/Dockerfile.windows.amd64.1809
