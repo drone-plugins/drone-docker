@@ -13,19 +13,20 @@ import (
 type (
 	// Daemon defines Docker daemon parameters.
 	Daemon struct {
-		Registry      string   // Docker registry
-		Mirror        string   // Docker registry mirror
-		Insecure      bool     // Docker daemon enable insecure registries
-		StorageDriver string   // Docker daemon storage driver
-		StoragePath   string   // Docker daemon storage path
-		Disabled      bool     // DOcker daemon is disabled (already running)
-		Debug         bool     // Docker daemon started in debug mode
-		Bip           string   // Docker daemon network bridge IP address
-		DNS           []string // Docker daemon dns server
-		DNSSearch     []string // Docker daemon dns search domain
-		MTU           string   // Docker daemon mtu setting
-		IPv6          bool     // Docker daemon IPv6 networking
-		Experimental  bool     // Docker daemon enable experimental mode
+		Registry       string   // Docker registry
+		Mirror         string   // Docker registry mirror
+		Insecure       bool     // Docker daemon enable insecure registries
+		InsecureMirror bool     // Docker daemon enable insecure mirror registries
+		StorageDriver  string   // Docker daemon storage driver
+		StoragePath    string   // Docker daemon storage path
+		Disabled       bool     // DOcker daemon is disabled (already running)
+		Debug          bool     // Docker daemon started in debug mode
+		Bip            string   // Docker daemon network bridge IP address
+		DNS            []string // Docker daemon dns server
+		DNSSearch      []string // Docker daemon dns search domain
+		MTU            string   // Docker daemon mtu setting
+		IPv6           bool     // Docker daemon IPv6 networking
+		Experimental   bool     // Docker daemon enable experimental mode
 	}
 
 	// Login defines Docker login parameters.
@@ -484,6 +485,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	if len(daemon.Mirror) != 0 {
 		args = append(args, "--registry-mirror", daemon.Mirror)
+	}
+	if daemon.InsecureMirror && daemon.Mirror != "" {
+		args = append(args, "--insecure-registry", daemon.Mirror)
 	}
 	if len(daemon.Bip) != 0 {
 		args = append(args, "--bip", daemon.Bip)
