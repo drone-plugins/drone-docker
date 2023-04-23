@@ -22,6 +22,7 @@ type (
 		Debug         bool     // Docker daemon started in debug mode
 		Bip           string   // Docker daemon network bridge IP address
 		DNS           []string // Docker daemon dns server
+		IPTablesOff   bool     // docker daemon enable/disable addition of iptables rules
 		DNSSearch     []string // Docker daemon dns search domain
 		MTU           string   // Docker daemon mtu setting
 		IPv6          bool     // Docker daemon IPv6 networking
@@ -499,6 +500,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	}
 	if daemon.Experimental {
 		args = append(args, "--experimental")
+	}
+	if daemon.IPTablesOff {
+		args = append(args, "--iptables=false")
 	}
 	return exec.Command(dockerdExe, args...)
 }

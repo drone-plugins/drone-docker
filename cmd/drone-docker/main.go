@@ -105,6 +105,11 @@ func main() {
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
 		},
 		cli.BoolFlag{
+			Name:   "daemon.iptables",
+			Usage:  "docker daemon disable addition of iptables rules if set to true. Default false",
+			EnvVar: "PLUGIN_IPTABLES_OFF",
+		},
+		cli.BoolFlag{
 			Name:   "daemon.off",
 			Usage:  "don't start the docker daemon",
 			EnvVar: "PLUGIN_DAEMON_OFF",
@@ -333,6 +338,7 @@ func run(c *cli.Context) error {
 			Insecure:      c.Bool("daemon.insecure"),
 			Disabled:      c.Bool("daemon.off"),
 			IPv6:          c.Bool("daemon.ipv6"),
+			IPTablesOff:   c.Bool("daemon.iptables"),
 			Debug:         c.Bool("daemon.debug"),
 			Bip:           c.String("daemon.bip"),
 			DNS:           c.StringSlice("daemon.dns"),
