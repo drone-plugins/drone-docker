@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
 
 type (
@@ -69,12 +72,13 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login    Login  // Docker login configuration
-		Build    Build  // Docker build configuration
-		Daemon   Daemon // Docker daemon configuration
-		Dryrun   bool   // Docker push is skipped
-		Cleanup  bool   // Docker purge is enabled
-		CardPath string // Card path to write file to
+		Login        Login  // Docker login configuration
+		Build        Build  // Docker build configuration
+		Daemon       Daemon // Docker daemon configuration
+		Dryrun       bool   // Docker push is skipped
+		Cleanup      bool   // Docker purge is enabled
+		CardPath     string // Card path to write file to
+		ArtifactFile string // Artifact path to write file to
 	}
 
 	Card []struct {
@@ -221,6 +225,16 @@ func (p Plugin) Exec() error {
 	// output the adaptive card
 	if err := p.writeCard(); err != nil {
 		fmt.Printf("Could not create adaptive card. %s\n", err)
+	}
+
+	if p.ArtifactFile != "" {
+		if digest, err := getDigest(p.Build.Name); err == nil {
+			if err = drone.WritePluginArtifactFile(drone.Docker, p.ArtifactFile, p.Daemon.Registry, p.Build.Repo, digest, p.Build.Tags); err != nil {
+				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
+			}
+		} else {
+			fmt.Printf("Could not fetch the digest. %s\n", err)
+		}
 	}
 
 	// execute cleanup routines in batch mode
@@ -550,4 +564,20 @@ func GetDroneDockerExecCmd() string {
 	}
 
 	return "drone-docker"
+}
+
+func getDigest(buildName string) (string, error) {
+	cmd := exec.Command("docker", "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	// Parse the output to extract the repo digest.
+	digest := strings.Trim(string(output), "'\n")
+	parts := strings.Split(digest, "@")
+	if len(parts) > 1 {
+		return parts[1], nil
+	}
+	return "", errors.New("unable to fetch digest")
 }
