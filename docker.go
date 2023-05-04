@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,24 +9,27 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
 
 type (
 	// Daemon defines Docker daemon parameters.
 	Daemon struct {
-		Registry      string   // Docker registry
-		Mirror        string   // Docker registry mirror
-		Insecure      bool     // Docker daemon enable insecure registries
-		StorageDriver string   // Docker daemon storage driver
-		StoragePath   string   // Docker daemon storage path
-		Disabled      bool     // DOcker daemon is disabled (already running)
-		Debug         bool     // Docker daemon started in debug mode
-		Bip           string   // Docker daemon network bridge IP address
-		DNS           []string // Docker daemon dns server
-		DNSSearch     []string // Docker daemon dns search domain
-		MTU           string   // Docker daemon mtu setting
-		IPv6          bool     // Docker daemon IPv6 networking
-		Experimental  bool     // Docker daemon enable experimental mode
+		Registry      string             // Docker registry
+		Mirror        string             // Docker registry mirror
+		Insecure      bool               // Docker daemon enable insecure registries
+		StorageDriver string             // Docker daemon storage driver
+		StoragePath   string             // Docker daemon storage path
+		Disabled      bool               // DOcker daemon is disabled (already running)
+		Debug         bool               // Docker daemon started in debug mode
+		Bip           string             // Docker daemon network bridge IP address
+		DNS           []string           // Docker daemon dns server
+		DNSSearch     []string           // Docker daemon dns search domain
+		MTU           string             // Docker daemon mtu setting
+		IPv6          bool               // Docker daemon IPv6 networking
+		Experimental  bool               // Docker daemon enable experimental mode
+		RegistryType  drone.RegistryType // Docker registry type
 	}
 
 	// Login defines Docker login parameters.
@@ -69,12 +73,13 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login    Login  // Docker login configuration
-		Build    Build  // Docker build configuration
-		Daemon   Daemon // Docker daemon configuration
-		Dryrun   bool   // Docker push is skipped
-		Cleanup  bool   // Docker purge is enabled
-		CardPath string // Card path to write file to
+		Login        Login  // Docker login configuration
+		Build        Build  // Docker build configuration
+		Daemon       Daemon // Docker daemon configuration
+		Dryrun       bool   // Docker push is skipped
+		Cleanup      bool   // Docker purge is enabled
+		CardPath     string // Card path to write file to
+		ArtifactFile string // Artifact path to write file to
 	}
 
 	Card []struct {
@@ -221,6 +226,16 @@ func (p Plugin) Exec() error {
 	// output the adaptive card
 	if err := p.writeCard(); err != nil {
 		fmt.Printf("Could not create adaptive card. %s\n", err)
+	}
+
+	if p.ArtifactFile != "" {
+		if digest, err := getDigest(p.Build.Name); err == nil {
+			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.Registry, p.Build.Repo, digest, p.Build.Tags); err != nil {
+				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
+			}
+		} else {
+			fmt.Printf("Could not fetch the digest. %s\n", err)
+		}
 	}
 
 	// execute cleanup routines in batch mode
@@ -550,4 +565,20 @@ func GetDroneDockerExecCmd() string {
 	}
 
 	return "drone-docker"
+}
+
+func getDigest(buildName string) (string, error) {
+	cmd := exec.Command("docker", "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	// Parse the output to extract the repo digest.
+	digest := strings.Trim(string(output), "'\n")
+	parts := strings.Split(digest, "@")
+	if len(parts) > 1 {
+		return parts[1], nil
+	}
+	return "", errors.New("unable to fetch digest")
 }

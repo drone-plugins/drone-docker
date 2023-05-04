@@ -55,6 +55,7 @@ func main() {
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)
+	os.Setenv("PLUGIN_REGISTRY_TYPE", "GCR")
 
 	// invoke the base docker plugin binary
 	cmd := exec.Command(docker.GetDroneDockerExecCmd())
