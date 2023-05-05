@@ -303,11 +303,15 @@ func commandBuild(build Build) *exec.Cmd {
 	args := []string{
 		"build",
 		"--rm=true",
-		"-f", build.Dockerfile,
 		"-t", build.Name,
 	}
 
+	if build.Dockerfile != "Dockerfile" {
+		args = append(args, "-f", build.Dockerfile)
+	}
+
 	args = append(args, build.Context)
+
 	if build.Squash {
 		args = append(args, "--squash")
 	}
