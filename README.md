@@ -10,6 +10,12 @@
 
 Drone plugin uses Docker-in-Docker to build and publish Docker images to a container registry. For the usage information and a listing of the available options please take a look at [the docs](http://plugins.drone.io/drone-plugins/drone-docker/).
 
+## 修改记录
+修复如下问题：
+1. 当一个多模块java项目中，会产生多个 jar 包，并分别打包镜像时，镜像因为同名称被覆盖的问题
+2. 问题在于，原官方代码，使用 docker -t {commit.sha} -f xxx {context } 这样的格式打包镜像，再 docker tag 为目标标签。导致在 drone 使用并行打包镜像时，各个模块都 -t {commit.sha} ，即镜像被覆盖
+3. 解决方法：在 -t 后面的参数，改为 {commit.sha} + "/" + {"repo"} 。其实改为随机数 / UUID 都可以，只要保证它不重复即可
+
 ## Build
 
 Build the binaries with the following commands:

@@ -317,7 +317,7 @@ func run(c *cli.Context) error {
 		ArtifactFile: c.String("artifact-file"),
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
-			Name:        c.String("commit.sha"),
+			Name:        c.String("commit.sha") + "/" + c.String("repo"),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
