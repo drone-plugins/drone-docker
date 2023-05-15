@@ -195,10 +195,11 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	cmds = append(cmds, commandBuild(p.Build)) // docker build
+	buildName := getUniqueBuildName(p.Build.Repo, p.Build.Name)
+	cmds = append(cmds, commandBuild(p.Build, buildName)) // docker build
 
 	for _, tag := range p.Build.Tags {
-		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
+		cmds = append(cmds, commandTag(p.Build, tag, buildName)) // docker tag
 
 		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
@@ -299,12 +300,12 @@ func commandInfo() *exec.Cmd {
 }
 
 // helper function to create the docker build command.
-func commandBuild(build Build) *exec.Cmd {
+func commandBuild(build Build, buildName string) *exec.Cmd {
 	args := []string{
 		"build",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", build.Name,
+		"-t", buildName,
 	}
 
 	args = append(args, build.Context)
@@ -461,9 +462,9 @@ func hasProxyBuildArg(build *Build, key string) bool {
 }
 
 // helper function to create the docker tag command.
-func commandTag(build Build, tag string) *exec.Cmd {
+func commandTag(build Build, tag, buildName string) *exec.Cmd {
 	var (
-		source = build.Name
+		source = buildName
 		target = fmt.Sprintf("%s:%s", build.Repo, tag)
 	)
 	return exec.Command(
@@ -581,4 +582,15 @@ func getDigest(buildName string) (string, error) {
 		return parts[1], nil
 	}
 	return "", errors.New("unable to fetch digest")
+}
+
+func getUniqueBuildName(repo, buildName string) string {
+	var shortenCommitSHA string
+	if len(buildName) <= 8 {
+		shortenCommitSHA = buildName
+	} else {
+		shortenCommitSHA = buildName[:8]
+	}
+	imageName := repo[strings.LastIndex(repo, "/")+1:]
+	return fmt.Sprintf("%s-%s", imageName, shortenCommitSHA)
 }
