@@ -225,12 +225,12 @@ func (p Plugin) Exec() error {
 	}
 
 	// output the adaptive card
-	if err := p.writeCard(); err != nil {
+	if err := p.writeCard(buildName); err != nil {
 		fmt.Printf("Could not create adaptive card. %s\n", err)
 	}
 
 	if p.ArtifactFile != "" {
-		if digest, err := getDigest(p.Build.Name); err == nil {
+		if digest, err := getDigest(buildName); err == nil {
 			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.Registry, p.Build.Repo, digest, p.Build.Tags); err != nil {
 				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
 			}
@@ -244,8 +244,8 @@ func (p Plugin) Exec() error {
 		// clear the slice
 		cmds = nil
 
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
+		cmds = append(cmds, commandRmi(buildName)) // docker rmi
+		cmds = append(cmds, commandPrune())        // docker system prune -f
 
 		for _, cmd := range cmds {
 			cmd.Stdout = os.Stdout
