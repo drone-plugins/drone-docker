@@ -1,5 +1,42 @@
 # Changelog
 
+## [v20.14.4](https://github.com/drone-plugins/drone-docker/tree/v20.14.4) (2023-05-16)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.3...v20.14.4)
+
+**Fixed bugs:**
+
+- fix: Use unique build name for build and tag [\#390](https://github.com/drone-plugins/drone-docker/pull/390) ([rutvijmehta-harness](https://github.com/rutvijmehta-harness))
+
+## [v20.14.3](https://github.com/drone-plugins/drone-docker/tree/v20.14.3) (2023-05-04)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.2...v20.14.3)
+
+**Merged pull requests:**
+
+- Write artifacts to input artifact file [\#389](https://github.com/drone-plugins/drone-docker/pull/389) ([raghavharness](https://github.com/raghavharness))
+
+## [v20.14.2](https://github.com/drone-plugins/drone-docker/tree/v20.14.2) (2023-04-18)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.1...v20.14.2)
+
+**Merged pull requests:**
+
+- fix windows drone yml [\#388](https://github.com/drone-plugins/drone-docker/pull/388) ([shubham149](https://github.com/shubham149))
+
+## [v20.14.1](https://github.com/drone-plugins/drone-docker/tree/v20.14.1) (2023-01-30)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.0...v20.14.1)
+
+**Implemented enhancements:**
+
+- Add option to mount host ssh agent \(--ssh\) [\#382](https://github.com/drone-plugins/drone-docker/pull/382) ([tphoney](https://github.com/tphoney))
+
+**Fixed bugs:**
+
+- windows 1809 docker build pin [\#384](https://github.com/drone-plugins/drone-docker/pull/384) ([tphoney](https://github.com/tphoney))
+- \(maint\) move to harness.drone.io [\#381](https://github.com/drone-plugins/drone-docker/pull/381) ([tphoney](https://github.com/tphoney))
+
 ## [v20.14.0](https://github.com/drone-plugins/drone-docker/tree/v20.14.0) (2022-11-17)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.13.0...v20.14.0)
@@ -11,6 +48,10 @@
 **Fixed bugs:**
 
 - Use full path to docker when creating card [\#373](https://github.com/drone-plugins/drone-docker/pull/373) ([donny-dont](https://github.com/donny-dont))
+
+**Merged pull requests:**
+
+- \(maint\) prep for v20.14.0 [\#377](https://github.com/drone-plugins/drone-docker/pull/377) ([tphoney](https://github.com/tphoney))
 
 ## [v20.13.0](https://github.com/drone-plugins/drone-docker/tree/v20.13.0) (2022-06-08)
 
