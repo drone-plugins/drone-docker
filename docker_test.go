@@ -1,11 +1,12 @@
 package docker
 
 import (
-	"github.com/dchest/uniuri"
 	"os/exec"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/dchest/uniuri"
 )
 
 func TestCommandBuild(t *testing.T) {
