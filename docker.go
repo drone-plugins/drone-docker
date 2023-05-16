@@ -583,14 +583,3 @@ func getDigest(buildName string) (string, error) {
 	}
 	return "", errors.New("unable to fetch digest")
 }
-
-func getUniqueBuildName(repo, buildName string) string {
-	var shortenCommitSHA string
-	if len(buildName) <= 8 {
-		shortenCommitSHA = buildName
-	} else {
-		shortenCommitSHA = buildName[:8]
-	}
-	imageName := repo[strings.LastIndex(repo, "/")+1:]
-	return fmt.Sprintf("%s-%s", imageName, shortenCommitSHA)
-}
