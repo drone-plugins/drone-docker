@@ -1,22 +1,20 @@
 package main
 
 import (
-	"math/rand"
 	"os"
 	"runtime"
-	"time"
+	"strings"
 
+	"github.com/dchest/uniuri"
+	docker "github.com/drone-plugins/drone-docker"
+	"github.com/drone-plugins/drone-plugin-lib/drone"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-
-	docker "github.com/drone-plugins/drone-docker"
-	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
 
 var (
 	version = "unknown"
-	charset = []byte("abcdefghijklmnopqrstuvwxyz")
 )
 
 func main() {
@@ -388,17 +386,7 @@ func run(c *cli.Context) error {
 }
 
 func generateTempTag() string {
-	tagLength := 8
-	return randomString(tagLength)
-}
-
-func randomString(n int) string {
-	rand.Seed(time.Now().UTC().UnixNano())
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
+	return strings.ToLower(uniuri.New())
 }
 
 func GetExecCmd() string {
