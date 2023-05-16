@@ -45,6 +45,7 @@ type (
 	Build struct {
 		Remote      string   // Git remote URL
 		Name        string   // Docker build using default named tag
+		TempTag     string   // Temporary tag used during docker build
 		Dockerfile  string   // Docker build Dockerfile
 		Context     string   // Docker build context
 		Tags        []string // Docker build tags
@@ -229,7 +230,7 @@ func (p Plugin) Exec() error {
 	}
 
 	if p.ArtifactFile != "" {
-		if digest, err := getDigest(p.Build.Name); err == nil {
+		if digest, err := getDigest(p.Build.TempTag); err == nil {
 			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.Registry, p.Build.Repo, digest, p.Build.Tags); err != nil {
 				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
 			}
@@ -243,8 +244,8 @@ func (p Plugin) Exec() error {
 		// clear the slice
 		cmds = nil
 
-		cmds = append(cmds, commandRmi(p.Build.Name)) // docker rmi
-		cmds = append(cmds, commandPrune())           // docker system prune -f
+		cmds = append(cmds, commandRmi(p.Build.TempTag)) // docker rmi
+		cmds = append(cmds, commandPrune())              // docker system prune -f
 
 		for _, cmd := range cmds {
 			cmd.Stdout = os.Stdout
@@ -304,7 +305,7 @@ func commandBuild(build Build) *exec.Cmd {
 		"build",
 		"--rm=true",
 		"-f", build.Dockerfile,
-		"-t", build.Name,
+		"-t", build.TempTag,
 	}
 
 	args = append(args, build.Context)
@@ -463,7 +464,7 @@ func hasProxyBuildArg(build *Build, key string) bool {
 // helper function to create the docker tag command.
 func commandTag(build Build, tag string) *exec.Cmd {
 	var (
-		source = build.Name
+		source = build.TempTag
 		target = fmt.Sprintf("%s:%s", build.Repo, tag)
 	)
 	return exec.Command(

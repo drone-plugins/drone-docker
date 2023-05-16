@@ -3,7 +3,9 @@ package main
 import (
 	"os"
 	"runtime"
+	"strings"
 
+	"github.com/dchest/uniuri"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -318,6 +320,7 @@ func run(c *cli.Context) error {
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
 			Name:        c.String("commit.sha"),
+			TempTag:     generateTempTag(),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
@@ -381,6 +384,10 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func generateTempTag() string {
+	return strings.ToLower(uniuri.New())
 }
 
 func GetExecCmd() string {
