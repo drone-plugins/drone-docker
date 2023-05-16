@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/dchest/uniuri"
-	docker "github.com/drone-plugins/drone-docker"
-	"github.com/drone-plugins/drone-plugin-lib/drone"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+
+	docker "github.com/drone-plugins/drone-docker"
+	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
 
 var (
