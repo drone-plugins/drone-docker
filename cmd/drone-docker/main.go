@@ -1,8 +1,10 @@
 package main
 
 import (
+	"math/rand"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -14,6 +16,7 @@ import (
 
 var (
 	version = "unknown"
+	charset = []byte("abcdefghijklmnopqrstuvwxyz")
 )
 
 func main() {
@@ -318,6 +321,7 @@ func run(c *cli.Context) error {
 		Build: docker.Build{
 			Remote:      c.String("remote.url"),
 			Name:        c.String("commit.sha"),
+			TempTag:     generateTempTag(),
 			Dockerfile:  c.String("dockerfile"),
 			Context:     c.String("context"),
 			Tags:        c.StringSlice("tags"),
@@ -381,6 +385,20 @@ func run(c *cli.Context) error {
 	}
 
 	return plugin.Exec()
+}
+
+func generateTempTag() string {
+	tagLength := 8
+	return randomString(tagLength)
+}
+
+func randomString(n int) string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
 func GetExecCmd() string {

@@ -17,8 +17,8 @@ import (
 	"github.com/inhies/go-bytesize"
 )
 
-func (p Plugin) writeCard(buildName string) error {
-	cmd := exec.Command(dockerExe, "inspect", buildName)
+func (p Plugin) writeCard() error {
+	cmd := exec.Command(dockerExe, "inspect", p.Build.TempTag)
 	data, err := cmd.CombinedOutput()
 	if err != nil {
 		return err

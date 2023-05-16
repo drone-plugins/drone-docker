@@ -16,6 +16,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "secret from env var",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -29,7 +30,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 				"--secret id=foo_secret,env=FOO_SECRET_ENV_VAR",
 			),
@@ -38,6 +39,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "secret from file",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretFiles: []string{
@@ -51,7 +53,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 				"--secret id=foo_secret,src=/path/to/foo_secret",
 			),
@@ -60,6 +62,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "multiple mixed secrets",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -78,7 +81,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 				"--secret id=foo_secret,env=FOO_SECRET_ENV_VAR",
 				"--secret id=bar_secret,env=BAR_SECRET_ENV_VAR",
@@ -90,6 +93,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "invalid mixed secrets",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -110,7 +114,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 			),
 		},
@@ -118,6 +122,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "platform argument",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				Platform:   "test/platform",
@@ -129,7 +134,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 				"--platform",
 				"test/platform",
@@ -139,6 +144,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "ssh agent",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    "abcdefgh",
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SSHKeyPath: "id_rsa=/root/.ssh/id_rsa",
@@ -150,7 +156,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				"abcdefgh",
 				".",
 				"--ssh id_rsa=/root/.ssh/id_rsa",
 			),
@@ -161,7 +167,7 @@ func TestCommandBuild(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := commandBuild(tc.build, "plugins/drone-docker:latest")
+			cmd := commandBuild(tc.build)
 
 			if !reflect.DeepEqual(cmd.String(), tc.want.String()) {
 				t.Errorf("Got cmd %v, want %v", cmd, tc.want)
