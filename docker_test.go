@@ -3,10 +3,14 @@ package docker
 import (
 	"os/exec"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/dchest/uniuri"
 )
 
 func TestCommandBuild(t *testing.T) {
+	tempTag := strings.ToLower(uniuri.New())
 	tcs := []struct {
 		name  string
 		build Build
@@ -16,6 +20,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "secret from env var",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -29,7 +34,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 				"--secret id=foo_secret,env=FOO_SECRET_ENV_VAR",
 			),
@@ -38,6 +43,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "secret from file",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretFiles: []string{
@@ -51,7 +57,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 				"--secret id=foo_secret,src=/path/to/foo_secret",
 			),
@@ -60,6 +66,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "multiple mixed secrets",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -78,7 +85,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 				"--secret id=foo_secret,env=FOO_SECRET_ENV_VAR",
 				"--secret id=bar_secret,env=BAR_SECRET_ENV_VAR",
@@ -90,6 +97,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "invalid mixed secrets",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SecretEnvs: []string{
@@ -110,7 +118,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 			),
 		},
@@ -118,6 +126,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "platform argument",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				Platform:   "test/platform",
@@ -129,7 +138,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 				"--platform",
 				"test/platform",
@@ -139,6 +148,7 @@ func TestCommandBuild(t *testing.T) {
 			name: "ssh agent",
 			build: Build{
 				Name:       "plugins/drone-docker:latest",
+				TempTag:    tempTag,
 				Dockerfile: "Dockerfile",
 				Context:    ".",
 				SSHKeyPath: "id_rsa=/root/.ssh/id_rsa",
@@ -150,7 +160,7 @@ func TestCommandBuild(t *testing.T) {
 				"-f",
 				"Dockerfile",
 				"-t",
-				"plugins/drone-docker:latest",
+				tempTag,
 				".",
 				"--ssh id_rsa=/root/.ssh/id_rsa",
 			),
