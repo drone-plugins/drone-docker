@@ -1,4 +1,4 @@
-FROM docker:23.0.1-dind
+FROM docker:23.0.6-dind
 
 COPY docker/docker/config.json /root/.docker/
 COPY docker/docker/daemon.json /etc/docker/
