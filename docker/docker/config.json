@@ -8,6 +8,9 @@
     },
     "harbor.gcp.shipttech.com": {
        "auth": "HARBORCREDS"
+    },
+    "artifactory.shipt.com": {
+      "auth": "ARTIFACTORYCREDS"
     }
   }
 }

@@ -1,5 +1,6 @@
 ---
 kind: pipeline
+type: docker
 name: linux-amd64-docker
 
 steps:
@@ -36,6 +37,7 @@ steps:
   commands:
   - sed -i 's@DOCKERCREDS@'"$DOCKER_CREDS"'@' docker/docker/config.json
   - sed -i 's@HARBORCREDS@'"$HARBOR_CREDS"'@' docker/docker/config.json
+  - sed -i 's@ARTIFACTORYCREDS@'"$ARTIFACTORY_CREDS"'@' docker/docker/config.json
   - sed -i 's@HARBORMIRROR@'"$HARBOR_MIRROR"'@' docker/docker/daemon.json
   environment:
     DOCKER_CREDS:
@@ -44,6 +46,8 @@ steps:
       from_secret: HARBOR_CREDS
     HARBOR_MIRROR:
       from_secret: HARBOR_MIRROR
+    ARTIFACTORY_CREDS:
+      from_secret: ARTIFACTORY_CREDS
 
 - name: docker-build-and-push
   image: plugins/docker:19.03.8
