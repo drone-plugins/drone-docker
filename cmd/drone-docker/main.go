@@ -113,6 +113,12 @@ func main() {
 			EnvVar: "PLUGIN_DAEMON_OFF",
 		},
 		cli.StringFlag{
+			Name:   "daemon.registry",
+			Usage:  "daemon registry",
+			Value:  "https://index.docker.io/v1/",
+			EnvVar: "DAEMON_REGISTRY,PLUGIN_REGISTRY,DOCKER_REGISTRY",
+		},
+		cli.StringFlag{
 			Name:   "dockerfile",
 			Usage:  "build dockerfile",
 			Value:  "Dockerfile",
@@ -346,7 +352,7 @@ func run(c *cli.Context) error {
 			SSHAgentKey: c.String("ssh-agent-key"),
 		},
 		Daemon: docker.Daemon{
-			Registry:      c.String("docker.registry"),
+			Registry:      c.String("daemon.registry"),
 			Mirror:        c.String("daemon.mirror"),
 			StorageDriver: c.String("daemon.storage-driver"),
 			StoragePath:   c.String("daemon.storage-path"),
