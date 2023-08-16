@@ -90,7 +90,7 @@ func main() {
 	if publicUrl != "" {
 		// Set this env variable if public URL for artifact is available
 		// If not, we will fall back to registry url
-		os.Setenv("DAEMON_REGISTRY", publicUrl)
+		os.Setenv("ARTIFACT_REGISTRY", publicUrl)
 	}
 
 	// invoke the base docker plugin binary
