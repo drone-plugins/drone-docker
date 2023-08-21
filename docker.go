@@ -232,7 +232,8 @@ func (p Plugin) Exec() error {
 
 	if p.ArtifactFile != "" {
 		if digest, err := getDigest(p.Build.TempTag); err == nil {
-			fmt.Printf("Got artifact reg %s and digest %s\n", p.Daemon.ArtifactRegistry, digest)
+			// ArtifactRegistry here will be read from env variable ARTIFACT_REGISTRY (valid for ACR). If this env
+			// variable is not present, it'll be read from PLUGIN_REGISTRY which is valid for docker / ecr / gcr.
 			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.ArtifactRegistry, p.Build.Repo, digest, p.Build.Tags); err != nil {
 				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
 			}

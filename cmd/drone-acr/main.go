@@ -239,7 +239,7 @@ func getPublicUrl(token, registryUrl, subscriptionId string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	var response strct
+	var response subscriptionUrlResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to send request for getting container registry setting")
@@ -264,7 +264,7 @@ func getenv(key ...string) (s string) {
 	return
 }
 
-type strct struct {
+type subscriptionUrlResponse struct {
 	Value []struct {
 		ID string `json:"id"`
 	} `json:"value"`
