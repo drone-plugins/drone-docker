@@ -572,7 +572,7 @@ func GetDroneDockerExecCmd() string {
 }
 
 func getDigest(buildName string) (string, error) {
-	cmd := exec.Command("docker", "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
+	cmd := exec.Command(dockerExe, "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
