@@ -16,21 +16,20 @@ import (
 type (
 	// Daemon defines Docker daemon parameters.
 	Daemon struct {
-		Registry         string             // Docker registry
-		Mirror           string             // Docker registry mirror
-		Insecure         bool               // Docker daemon enable insecure registries
-		StorageDriver    string             // Docker daemon storage driver
-		StoragePath      string             // Docker daemon storage path
-		Disabled         bool               // DOcker daemon is disabled (already running)
-		Debug            bool               // Docker daemon started in debug mode
-		Bip              string             // Docker daemon network bridge IP address
-		DNS              []string           // Docker daemon dns server
-		DNSSearch        []string           // Docker daemon dns search domain
-		MTU              string             // Docker daemon mtu setting
-		IPv6             bool               // Docker daemon IPv6 networking
-		Experimental     bool               // Docker daemon enable experimental mode
-		RegistryType     drone.RegistryType // Docker registry type
-		ArtifactRegistry string             // Docker registry where artifact can be viewed
+		Registry      string             // Docker registry
+		Mirror        string             // Docker registry mirror
+		Insecure      bool               // Docker daemon enable insecure registries
+		StorageDriver string             // Docker daemon storage driver
+		StoragePath   string             // Docker daemon storage path
+		Disabled      bool               // DOcker daemon is disabled (already running)
+		Debug         bool               // Docker daemon started in debug mode
+		Bip           string             // Docker daemon network bridge IP address
+		DNS           []string           // Docker daemon dns server
+		DNSSearch     []string           // Docker daemon dns search domain
+		MTU           string             // Docker daemon mtu setting
+		IPv6          bool               // Docker daemon IPv6 networking
+		Experimental  bool               // Docker daemon enable experimental mode
+		RegistryType  drone.RegistryType // Docker registry type
 	}
 
 	// Login defines Docker login parameters.
@@ -232,9 +231,7 @@ func (p Plugin) Exec() error {
 
 	if p.ArtifactFile != "" {
 		if digest, err := getDigest(p.Build.TempTag); err == nil {
-			// ArtifactRegistry here will be read from env variable ARTIFACT_REGISTRY (valid for ACR). If this env
-			// variable is not present, it'll be read from PLUGIN_REGISTRY then finally DOCKER_REGISTRY both are  valid for docker / ecr / gcr / heroku.
-			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.ArtifactRegistry, p.Build.Repo, digest, p.Build.Tags); err != nil {
+			if err = drone.WritePluginArtifactFile(p.Daemon.RegistryType, p.ArtifactFile, p.Daemon.Registry, p.Build.Repo, digest, p.Build.Tags); err != nil {
 				fmt.Printf("failed to write plugin artifact file at path: %s with error: %s\n", p.ArtifactFile, err)
 			}
 		} else {
