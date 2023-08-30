@@ -10,16 +10,26 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 const defaultRegion = "us-east-1"
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	var (
 		repo             = getenv("PLUGIN_REPO")
 		registry         = getenv("PLUGIN_REGISTRY")
@@ -30,6 +40,8 @@ func main() {
 		lifecyclePolicy  = getenv("PLUGIN_LIFECYCLE_POLICY")
 		repositoryPolicy = getenv("PLUGIN_REPOSITORY_POLICY")
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
+		externalId       = getenv("PLUGIN_EXTERNAL_ID")
+		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
 	)
 
 	// set the region
@@ -49,7 +61,7 @@ func main() {
 		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
 	}
 
-	svc := getECRClient(sess, assumeRole)
+	svc := getECRClient(sess, assumeRole, externalId)
 	username, password, defaultRegistry, err := getAuthInfo(svc)
 
 	if registry == "" {
@@ -65,9 +77,13 @@ func main() {
 	}
 
 	if create {
-		err = ensureRepoExists(svc, trimHostname(repo, registry))
+		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
+		}
+		err = updateImageScannningConfig(svc, trimHostname(repo, registry), scanOnPush)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("error updating scan on push for ECR repo: %v", err))
 		}
 	}
 
@@ -95,13 +111,14 @@ func main() {
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)
+	os.Setenv("PLUGIN_REGISTRY_TYPE", "ECR")
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 
@@ -111,9 +128,10 @@ func trimHostname(repo, registry string) string {
 	return repo
 }
 
-func ensureRepoExists(svc *ecr.ECR, name string) (err error) {
+func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
 	input := &ecr.CreateRepositoryInput{}
 	input.SetRepositoryName(name)
+	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
 	_, err = svc.CreateRepository(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ecr.ErrCodeRepositoryAlreadyExistsException {
@@ -123,6 +141,15 @@ func ensureRepoExists(svc *ecr.ECR, name string) (err error) {
 	}
 
 	return
+}
+
+func updateImageScannningConfig(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
+	input := &ecr.PutImageScanningConfigurationInput{}
+	input.SetRepositoryName(name)
+	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
+	_, err = svc.PutImageScanningConfiguration(input)
+
+	return err
 }
 
 func uploadLifeCyclePolicy(svc *ecr.ECR, lifecyclePolicy string, name string) (err error) {
@@ -186,11 +213,19 @@ func getenv(key ...string) (s string) {
 	return
 }
 
-func getECRClient(sess *session.Session, role string) *ecr.ECR {
+func getECRClient(sess *session.Session, role string, externalId string) *ecr.ECR {
 	if role == "" {
 		return ecr.New(sess)
 	}
-	return ecr.New(sess, &aws.Config{
-		Credentials: stscreds.NewCredentials(sess, role),
-	})
+	if externalId != "" {
+		return ecr.New(sess, &aws.Config{
+			Credentials: stscreds.NewCredentials(sess, role, func(p *stscreds.AssumeRoleProvider) {
+				p.ExternalID = &externalId
+			}),
+		})
+	} else {
+		return ecr.New(sess, &aws.Config{
+			Credentials: stscreds.NewCredentials(sess, role),
+		})
+	}
 }
