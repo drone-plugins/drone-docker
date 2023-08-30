@@ -2,37 +2,39 @@
 kind: pipeline
 type: kubernetes
 name: testing
+type: vm
+
+pool:
+  use: ubuntu
 
 platform:
   os: linux
   arch: amd64
 
 steps:
-- name: vet
-  pull: always
-  image: golang:1.11
-  commands:
-  - go vet ./...
-  environment:
-    GO111MODULE: on
-  volumes:
-  - name: gopath
-    path: /go
+  - name: vet
+    image: golang:1.17
+    commands:
+      - go vet ./...
+    environment:
 
-- name: test
-  pull: always
-  image: golang:1.11
-  commands:
-  - go test -cover ./...
-  environment:
-    GO111MODULE: on
-  volumes:
-  - name: gopath
-    path: /go
+    volumes:
+      - name: gopath
+        path: /go
+
+  - name: test
+    image: golang:1.17
+    commands:
+      - go test -cover ./...
+    environment:
+
+    volumes:
+      - name: gopath
+        path: /go
 
 volumes:
-- name: gopath
-  temp: {}
+  - name: gopath
+    temp: {}
 
 trigger:
   ref:
@@ -44,168 +46,192 @@ trigger:
 kind: pipeline
 type: kubernetes
 name: linux-amd64-docker
+type: vm
+
+pool:
+  use: ubuntu
 
 platform:
   os: linux
   arch: amd64
 
 steps:
-- name: build-push
-  pull: always
-  image: golang:1.11
-  commands:
-  - go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
+  - name: build-push
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        exclude:
+          - tag
 
-- name: build-tag
-  pull: always
-  image: golang:1.11
-  commands:
-  - go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
+  - name: build-tag
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-docker ./cmd/drone-docker'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        - tag
 
-- name: executable
-  pull: always
-  image: golang:1.11
-  commands:
-  - ./release/linux/amd64/drone-docker --help
+  - name: executable
+    image: golang:1.17
+    commands:
+      - ./release/linux/amd64/drone-docker --help
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    registry: gcr.io
-    repo: gcr.io/cyrus-containers/drone-plugins/docker
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
-- name: publish
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-amd64
-    daemon_off: false
-    dockerfile: docker/docker/Dockerfile.linux.amd64
-    password:
-      from_secret: dockerconfigjson
-    registry: gcr.io
-    repo: gcr.io/cyrus-containers/drone-plugins/docker
-    username: _json_key
-  privileged: true
-  when:
-    event:
-      exclude:
-      - pull_request
+  - name: publish
+    image: plugins/docker:18
+    settings:
+      auto_tag: true
+      auto_tag_suffix: linux-amd64
+      daemon_off: false
+      dockerfile: docker/docker/Dockerfile.linux.amd64
+      password:
+        from_secret: docker_password
+      repo: plugins/docker
+      username:
+        from_secret: docker_username
+    when:
+      event:
+        exclude:
+          - pull_request
 
 trigger:
   ref:
-  - refs/heads/master
-  - refs/tags/**
-  - refs/pull/**
+    - refs/heads/master
+    - "refs/tags/**"
+    - "refs/pull/**"
 
 depends_on:
-- testing
+  - testing
+
+---
+kind: pipeline
+name: linux-arm64-docker
+type: vm
+
+pool:
+  use: ubuntu_arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build-push
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        exclude:
+          - tag
+
+  - name: build-tag
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/arm64/drone-docker ./cmd/drone-docker'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        - tag
+
+  - name: executable
+    image: golang:1.17
+    commands:
+      - ./release/linux/arm64/drone-docker --help
+
+  - name: publish
+    image: plugins/docker:18
+    settings:
+      auto_tag: true
+      auto_tag_suffix: linux-arm64
+      daemon_off: false
+      dockerfile: docker/docker/Dockerfile.linux.arm64
+      password:
+        from_secret: docker_password
+      repo: plugins/docker
+      username:
+        from_secret: docker_username
+    when:
+      event:
+        exclude:
+          - pull_request
+
+trigger:
+  ref:
+    - refs/heads/master
+    - "refs/tags/**"
+    - "refs/pull/**"
+
+depends_on:
+  - testing
 
 ---
 kind: pipeline
 type: kubernetes
 name: linux-amd64-gcr
+type: vm
+
+pool:
+  use: ubuntu
 
 platform:
   os: linux
   arch: amd64
 
 steps:
-- name: build-push
-  pull: always
-  image: golang:1.11
-  commands:
-  - go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-      exclude:
-      - tag
+  - name: build-push
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        exclude:
+          - tag
 
-- name: build-tag
-  pull: always
-  image: golang:1.11
-  commands:
-  - go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
-  environment:
-    CGO_ENABLED: 0
-    GO111MODULE: on
-  when:
-    event:
-    - tag
+  - name: build-tag
+    image: golang:1.17
+    commands:
+      - 'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr'
+    environment:
+      CGO_ENABLED: 0
+    when:
+      event:
+        - tag
 
-- name: dryrun
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.amd64
-    dry_run: true
-    password:
-      from_secret: docker_password
-    registry: gcr.io
-    repo: gcr.io/cyrus-containers/drone-plugins/gcr
-    tags: linux-amd64
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - pull_request
-
-- name: publish
-  pull: always
-  image: plugins/docker:linux-amd64
-  settings:
-    auto_tag: true
-    auto_tag_suffix: linux-amd64
-    daemon_off: false
-    dockerfile: docker/gcr/Dockerfile.linux.amd64
-    password:
-      from_secret: dockerconfigjson
-    registry: gcr.io
-    repo: gcr.io/cyrus-containers/drone-plugins/gcr
-    username: _json_key
-  privileged: true
-  when:
-    event:
-      exclude:
-      - pull_request
+  - name: publish
+    image: plugins/docker:18
+    settings:
+      auto_tag: true
+      auto_tag_suffix: linux-amd64
+      daemon_off: false
+      dockerfile: docker/gcr/Dockerfile.linux.amd64
+      password:
+        from_secret: docker_password
+      repo: plugins/gcr
+      username:
+        from_secret: docker_username
+    when:
+      event:
+        exclude:
+          - pull_request
 
 trigger:
   ref:
-  - refs/heads/master
-  - refs/tags/**
-  - refs/pull/**
+    - refs/heads/master
+    - "refs/tags/**"
+    - "refs/pull/**"
 
 depends_on:
-- linux-amd64-docker
+  - linux-amd64-docker
 
 ...

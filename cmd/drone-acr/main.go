@@ -5,9 +5,19 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 func main() {
+	// Load env-file if it exists first
+	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
+		godotenv.Load(env)
+	}
+
 	var (
 		repo     = getenv("PLUGIN_REPO")
 		registry = getenv("PLUGIN_REGISTRY")
@@ -31,14 +41,15 @@ func main() {
 	os.Setenv("PLUGIN_REGISTRY", registry)
 	os.Setenv("DOCKER_USERNAME", username)
 	os.Setenv("DOCKER_PASSWORD", password)
+	os.Setenv("PLUGIN_REGISTRY_TYPE", "ACR")
 
 	// invoke the base docker plugin binary
-	cmd := exec.Command("drone-docker")
+	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 }
 
