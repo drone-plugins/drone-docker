@@ -197,7 +197,7 @@ func parseBoolOrDefault(defaultValue bool, s string) (result bool) {
 	var err error
 	result, err = strconv.ParseBool(s)
 	if err != nil {
-		result = false
+		result = defaultValue
 	}
 
 	return

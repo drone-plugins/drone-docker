@@ -34,30 +34,10 @@ func main() {
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
-		is_workload_identity = getenv("PLUGIN_IS_WORKLOAD_IDENTITY")
-		is_wi                = false
+		is_workload_identity = parseBoolOrDefault(false, getenv("PLUGIN_IS_WORKLOAD_IDENTITY"))
 	)
-	if is_workload_identity != "" {
-		if b, err_parse := strconv.ParseBool(is_workload_identity); err_parse == nil {
-			is_wi = b
-		}
-	}
-	// decode the token if base64 encoded
-	decoded, err := base64.StdEncoding.DecodeString(password)
-	if err == nil {
-		if is_wi {
-			password = getOauthToken(decoded)
-			username = "oauth2accesstoken"
-		} else {
-			password = string(decoded)
-		}
-	}
-	if is_wi {
-		data := []byte(password)
-		password = getOauthToken(data)
-		username = "oauth2accesstoken"
-	}
-
+	// set username and password
+	username, password = setUsernameAndPassword(username, password, is_workload_identity)
 	// default registry value
 	if registry == "" {
 		registry = "gcr.io"
@@ -80,7 +60,7 @@ func main() {
 	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -98,6 +78,31 @@ func getOauthToken(data []byte) (s string) {
 			return token.AccessToken
 		}
 	}
+	return
+}
+
+func setUsernameAndPassword(user string, pass string, is_wi bool) (u string, p string) {
+	// decode the token if base64 encoded
+	decoded, err := base64.StdEncoding.DecodeString(pass)
+	if err == nil {
+		pass = string(decoded)
+	}
+	// get oauth token and set username if using workload identity
+	if is_wi {
+		data := []byte(pass)
+		pass = getOauthToken(data)
+		user = "oauth2accesstoken"
+	}
+	return user, pass
+}
+
+func parseBoolOrDefault(defaultValue bool, s string) (result bool) {
+	var err error
+	result, err = strconv.ParseBool(s)
+	if err != nil {
+		result = defaultValue
+	}
+
 	return
 }
 
