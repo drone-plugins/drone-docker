@@ -1,20 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2/google"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
 
 // gcr default username
-const username = "_json_key"
+var username = "_json_key"
 
 func main() {
 	// Load env-file if it exists first
@@ -31,14 +34,10 @@ func main() {
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
+		workloadIdentity = parseBoolOrDefault(false, getenv("PLUGIN_WORKLOAD_IDENTITY"))
 	)
-
-	// decode the token if base64 encoded
-	decoded, err := base64.StdEncoding.DecodeString(password)
-	if err == nil {
-		password = string(decoded)
-	}
-
+	// set username and password
+	username, password = setUsernameAndPassword(username, password, workloadIdentity)
 	// default registry value
 	if registry == "" {
 		registry = "gcr.io"
@@ -61,10 +60,50 @@ func main() {
 	cmd := exec.Command(docker.GetDroneDockerExecCmd())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func getOauthToken(data []byte) (s string) {
+	scopes := []string{
+		"https://www.googleapis.com/auth/cloud-platform",
+	}
+	ctx := context.Background()
+	credentials, err := google.CredentialsFromJSON(ctx, data, scopes...)
+	if err == nil {
+		token, err := credentials.TokenSource.Token()
+		if err == nil {
+			return token.AccessToken
+		}
+	}
+	return
+}
+
+func setUsernameAndPassword(user string, pass string, workloadIdentity bool) (u string, p string) {
+	// decode the token if base64 encoded
+	decoded, err := base64.StdEncoding.DecodeString(pass)
+	if err == nil {
+		pass = string(decoded)
+	}
+	// get oauth token and set username if using workload identity
+	if workloadIdentity {
+		data := []byte(pass)
+		pass = getOauthToken(data)
+		user = "oauth2accesstoken"
+	}
+	return user, pass
+}
+
+func parseBoolOrDefault(defaultValue bool, s string) (result bool) {
+	var err error
+	result, err = strconv.ParseBool(s)
+	if err != nil {
+		result = defaultValue
+	}
+
+	return
 }
 
 func getenv(key ...string) (s string) {
