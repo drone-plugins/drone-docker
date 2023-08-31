@@ -34,10 +34,10 @@ func main() {
 			"GOOGLE_CREDENTIALS",
 			"TOKEN",
 		)
-		is_workload_identity = parseBoolOrDefault(false, getenv("PLUGIN_IS_WORKLOAD_IDENTITY"))
+		workloadIdentity = parseBoolOrDefault(false, getenv("PLUGIN_WORKLOAD_IDENTITY"))
 	)
 	// set username and password
-	username, password = setUsernameAndPassword(username, password, is_workload_identity)
+	username, password = setUsernameAndPassword(username, password, workloadIdentity)
 	// default registry value
 	if registry == "" {
 		registry = "gcr.io"
@@ -81,14 +81,14 @@ func getOauthToken(data []byte) (s string) {
 	return
 }
 
-func setUsernameAndPassword(user string, pass string, is_wi bool) (u string, p string) {
+func setUsernameAndPassword(user string, pass string, workloadIdentity bool) (u string, p string) {
 	// decode the token if base64 encoded
 	decoded, err := base64.StdEncoding.DecodeString(pass)
 	if err == nil {
 		pass = string(decoded)
 	}
 	// get oauth token and set username if using workload identity
-	if is_wi {
+	if workloadIdentity {
 		data := []byte(pass)
 		pass = getOauthToken(data)
 		user = "oauth2accesstoken"
