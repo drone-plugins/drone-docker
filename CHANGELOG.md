@@ -1,5 +1,26 @@
 # Changelog
 
+## [v20.14.5](https://github.com/drone-plugins/drone-docker/tree/v20.14.5) (2023-09-13)
+
+[Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.4...v20.14.5)
+
+**Implemented enhancements:**
+
+- Allow gcr authentication with workload identity [\#383](https://github.com/drone-plugins/drone-docker/pull/383) ([dhpollack](https://github.com/dhpollack))
+
+**Fixed bugs:**
+
+- \[fix\]: \[ci-9254\]: go version upgrade to 1.21 [\#401](https://github.com/drone-plugins/drone-docker/pull/401) ([abhay084](https://github.com/abhay084))
+- Revert "Add support for AAD auth for docker-acr" [\#398](https://github.com/drone-plugins/drone-docker/pull/398) ([tphoney](https://github.com/tphoney))
+
+**Closed issues:**
+
+- Remove deprecated support of label-schema in favor of OCI [\#396](https://github.com/drone-plugins/drone-docker/issues/396)
+
+**Merged pull requests:**
+
+- Add support for AAD auth for docker-acr [\#395](https://github.com/drone-plugins/drone-docker/pull/395) ([rutvijmehta-harness](https://github.com/rutvijmehta-harness))
+
 ## [v20.14.4](https://github.com/drone-plugins/drone-docker/tree/v20.14.4) (2023-05-16)
 
 [Full Changelog](https://github.com/drone-plugins/drone-docker/compare/v20.14.3...v20.14.4)
@@ -7,6 +28,10 @@
 **Fixed bugs:**
 
 - fix: Use unique build name for build and tag [\#390](https://github.com/drone-plugins/drone-docker/pull/390) ([rutvijmehta-harness](https://github.com/rutvijmehta-harness))
+
+**Merged pull requests:**
+
+- v20.14.4 prep [\#391](https://github.com/drone-plugins/drone-docker/pull/391) ([rutvijmehta-harness](https://github.com/rutvijmehta-harness))
 
 ## [v20.14.3](https://github.com/drone-plugins/drone-docker/tree/v20.14.3) (2023-05-04)
 
@@ -134,6 +159,15 @@
 **Fixed bugs:**
 
 - Revert "Update seccomp to 20.10 docker" [\#325](https://github.com/drone-plugins/drone-docker/pull/325) ([bradrydzewski](https://github.com/bradrydzewski))
+
+**Closed issues:**
+
+- Enable auth against multiple registries [\#324](https://github.com/drone-plugins/drone-docker/issues/324)
+- Parameter add\_host not work [\#318](https://github.com/drone-plugins/drone-docker/issues/318)
+- support customized Dockerfile name ? [\#315](https://github.com/drone-plugins/drone-docker/issues/315)
+- Tag wrongly gets parsed as octal [\#311](https://github.com/drone-plugins/drone-docker/issues/311)
+- Support TLS 1.3 [\#310](https://github.com/drone-plugins/drone-docker/issues/310)
+- Can pugin-docker access workspace content directly?  [\#307](https://github.com/drone-plugins/drone-docker/issues/307)
 
 **Merged pull requests:**
 
