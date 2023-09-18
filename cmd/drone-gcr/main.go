@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -16,45 +18,79 @@ import (
 	docker "github.com/drone-plugins/drone-docker"
 )
 
-// gcr default username
-var username = "_json_key"
+type Config struct {
+	Repo             string
+	Registry         string
+	Password         string
+	WorkloadIdentity bool
+	Username         string
+	RegistryType     string
+}
 
-func main() {
-	// Load env-file if it exists first
+func loadConfig() Config {
+	// Default username
+	username := "_json_key"
+
+	// Load env-file if it exists
 	if env := os.Getenv("PLUGIN_ENV_FILE"); env != "" {
-		godotenv.Load(env)
+		if err := godotenv.Load(env); err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
 	}
 
-	var (
-		repo     = getenv("PLUGIN_REPO")
-		registry = getenv("PLUGIN_REGISTRY")
-		password = getenv(
-			"PLUGIN_JSON_KEY",
-			"GCR_JSON_KEY",
-			"GOOGLE_CREDENTIALS",
-			"TOKEN",
-		)
-		workloadIdentity = parseBoolOrDefault(false, getenv("PLUGIN_WORKLOAD_IDENTITY"))
+	password := getenv(
+		"PLUGIN_JSON_KEY",
+		"GCR_JSON_KEY",
+		"GOOGLE_CREDENTIALS",
+		"TOKEN",
 	)
-	// set username and password
+	workloadIdentity := parseBoolOrDefault(false, getenv("PLUGIN_WORKLOAD_IDENTITY"))
 	username, password = setUsernameAndPassword(username, password, workloadIdentity)
-	// default registry value
-	if registry == "" {
-		registry = "gcr.io"
+
+	registryType := os.Getenv("PLUGIN_REGISTRY_TYPE")
+	if registryType == "" {
+		registryType = "GCR"
 	}
 
-	// must use the fully qualified repo name. If the
-	// repo name does not have the registry prefix we
-	// should prepend.
+	registry := getenv("PLUGIN_REGISTRY")
+	if registry == "" {
+		switch registryType {
+		case "GCR":
+			registry = "gcr.io"
+		case "GAR":
+			location := getenv("PLUGIN_GAR_LOCATION")
+			if location == "" {
+				logrus.Fatalf("Error: For GAR, PLUGIN_GAR_LOCATION must be set")
+			}
+			registry = fmt.Sprintf("%s-docker.pkg.dev", location)
+		default:
+			logrus.Fatalf("Unsupported registry type: %s", registryType)
+		}
+	}
+
+	repo := getenv("PLUGIN_REPO")
 	if !strings.HasPrefix(repo, registry) {
 		repo = path.Join(registry, repo)
 	}
 
-	os.Setenv("PLUGIN_REPO", repo)
-	os.Setenv("PLUGIN_REGISTRY", registry)
-	os.Setenv("DOCKER_USERNAME", username)
-	os.Setenv("DOCKER_PASSWORD", password)
-	os.Setenv("PLUGIN_REGISTRY_TYPE", "GCR")
+	return Config{
+		Repo:             repo,
+		Registry:         registry,
+		Password:         password,
+		WorkloadIdentity: workloadIdentity,
+		Username:         username,
+		RegistryType:     registryType,
+	}
+}
+
+func main() {
+	config := loadConfig()
+
+	os.Setenv("PLUGIN_REPO", config.Repo)
+	os.Setenv("PLUGIN_REGISTRY", config.Registry)
+	os.Setenv("DOCKER_USERNAME", config.Username)
+	os.Setenv("DOCKER_PASSWORD", config.Password)
+	os.Setenv("PLUGIN_REGISTRY_TYPE", config.RegistryType)
 
 	// invoke the base docker plugin binary
 	cmd := exec.Command(docker.GetDroneDockerExecCmd())
