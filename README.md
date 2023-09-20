@@ -126,11 +126,9 @@ steps:
     pull: never
     settings:
       tag: latest
-      repo: harness/drone
+      repo: project-id/repo/image-name
       registry_type: GAR
       location: us
-      project_id: projectID
-      image_name: drone
       json_key:
         from_secret: gcr_json_key
 ```
