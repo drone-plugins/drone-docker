@@ -62,7 +62,7 @@ func loadConfig() Config {
 			registry = "gcr.io"
 		case "GAR":
 			if location == "" {
-				logrus.Fatalf("Error: For GAR, LOCATION must be set")
+				logrus.Fatalf("Error: For REGISTRY_TYPE of GAR, LOCATION must be set")
 			}
 			registry = fmt.Sprintf("%s-docker.pkg.dev", location)
 		default:
