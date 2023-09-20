@@ -38,6 +38,11 @@ func loadConfig() Config {
 		}
 	}
 
+	location := getenv("PLUGIN_LOCATION")
+	projectID := getenv("PLUGIN_PROJECT_ID")
+	imageName := getenv("PLUGIN_IMAGE_NAME")
+	repo := getenv("PLUGIN_REPO")
+
 	password := getenv(
 		"PLUGIN_JSON_KEY",
 		"GCR_JSON_KEY",
@@ -47,7 +52,7 @@ func loadConfig() Config {
 	workloadIdentity := parseBoolOrDefault(false, getenv("PLUGIN_WORKLOAD_IDENTITY"))
 	username, password = setUsernameAndPassword(username, password, workloadIdentity)
 
-	registryType := os.Getenv("PLUGIN_REGISTRY_TYPE")
+	registryType := getenv("PLUGIN_REGISTRY_TYPE")
 	if registryType == "" {
 		registryType = "GCR"
 	}
@@ -57,20 +62,20 @@ func loadConfig() Config {
 		switch registryType {
 		case "GCR":
 			registry = "gcr.io"
+			if !strings.HasPrefix(repo, registry) {
+				repo = path.Join(registry, repo)
+			}
 		case "GAR":
-			location := getenv("PLUGIN_GAR_LOCATION")
-			if location == "" {
-				logrus.Fatalf("Error: For GAR, PLUGIN_GAR_LOCATION must be set")
+			if location == "" || projectID == "" || imageName == "" {
+				logrus.Fatalf("Error: For GAR, LOCATION, PROJECT_ID and IMAGE must be set")
 			}
 			registry = fmt.Sprintf("%s-docker.pkg.dev", location)
+			if !strings.HasPrefix(repo, registry) {
+				repo = path.Join(registry, projectID, repo, imageName)
+			}
 		default:
 			logrus.Fatalf("Unsupported registry type: %s", registryType)
 		}
-	}
-
-	repo := getenv("PLUGIN_REPO")
-	if !strings.HasPrefix(repo, registry) {
-		repo = path.Join(registry, repo)
 	}
 
 	return Config{
