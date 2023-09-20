@@ -113,6 +113,26 @@ docker run --rm \
   plugins/docker --dry-run
 ```
 
+### GAR (Google Artifact Registry)
+
+```yaml
+kind: pipeline
+name: default
+type: docker
+
+steps:
+  - name: push-to-gar
+    image: plugins/gcr
+    pull: never
+    settings:
+      tag: latest
+      repo: project-id/repo/image-name
+      registry_type: GAR
+      location: us
+      json_key:
+        from_secret: gcr_json_key
+```
+
 ## Developer Notes
 
 - When updating the base image, you will need to update for each architecture and OS.
@@ -137,3 +157,4 @@ docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator
 ```
 
 Create your pull request for the release. Get it merged then tag the release.
+
