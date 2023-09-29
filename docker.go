@@ -251,6 +251,16 @@ func (p Plugin) Exec() error {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			trace(cmd)
+			
+			err := cmd.Run()
+			
+			if err != nil {
+				if (isCommandPrune(cmd.Args)) {
+					fmt.Printf("Could not prune system containers. Ignoring...\n")
+				} else {
+					fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
+				}
+			}
 		}
 	}
 
