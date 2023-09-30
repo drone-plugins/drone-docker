@@ -247,7 +247,8 @@ func (p Plugin) Exec() error {
 		// Remove all images that were created.
 		cmds = append(cmds, commandRmi(p.Build.TempTag)) // docker rmi
 		for _, tag := range p.Build.Tags {
-			cmds = append(cmds, commandRmi(tag)) // docker rmi
+			imageName := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+			cmds = append(cmds, commandRmi(imageName)) // docker rmi
 		}
 
 		for _, cmd := range cmds {
