@@ -292,6 +292,11 @@ func main() {
 			Usage:  "registry type",
 			EnvVar: "PLUGIN_REGISTRY_TYPE",
 		},
+		cli.StringFlag{
+			Name:   "access-token",
+			Usage:  "access token",
+			EnvVar: "ACCESS_TOKEN",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -309,11 +314,12 @@ func run(c *cli.Context) error {
 		Dryrun:  c.Bool("dry-run"),
 		Cleanup: c.BoolT("docker.purge"),
 		Login: docker.Login{
-			Registry: c.String("docker.registry"),
-			Username: c.String("docker.username"),
-			Password: c.String("docker.password"),
-			Email:    c.String("docker.email"),
-			Config:   c.String("docker.config"),
+			Registry:    c.String("docker.registry"),
+			Username:    c.String("docker.username"),
+			Password:    c.String("docker.password"),
+			Email:       c.String("docker.email"),
+			Config:      c.String("docker.config"),
+			AccessToken: c.String("access-token"),
 		},
 		CardPath:     c.String("drone-card-path"),
 		ArtifactFile: c.String("artifact-file"),
