@@ -39,7 +39,7 @@ type (
 		Password    string // Docker registry password
 		Email       string // Docker registry email
 		Config      string // Docker Auth Config
-		AccessToken string // OIDC Access Token
+		AccessToken string // External Access Token
 	}
 
 	// Build defines Docker build parameters.
@@ -144,7 +144,7 @@ func (p Plugin) Exec() error {
 	case p.Login.Config != "":
 		fmt.Println("Detected registry credentials file")
 	case p.Login.AccessToken != "":
-		fmt.Println("Detected OIDC token")
+		fmt.Println("Detected access token")
 	default:
 		fmt.Println("Registry credentials or Docker config not provided. Guest mode enabled.")
 	}
@@ -171,7 +171,7 @@ func (p Plugin) Exec() error {
 			return fmt.Errorf("error authenticating: exit status 1")
 		}
 	} else if p.Login.AccessToken != "" {
-		cmd := commandLoginOIDC(p.Login, p.Login.AccessToken)
+		cmd := commandLoginAccessToken(p.Login, p.Login.AccessToken)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("error logging in to Docker registry: %s", err)
@@ -283,7 +283,7 @@ func commandLogin(login Login) *exec.Cmd {
 	)
 }
 
-func commandLoginOIDC(login Login, accessToken string) *exec.Cmd {
+func commandLoginAccessToken(login Login, accessToken string) *exec.Cmd {
 	cmd := exec.Command(dockerExe,
 		"login",
 		"-u",
