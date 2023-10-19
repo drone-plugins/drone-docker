@@ -114,7 +114,7 @@ func loadConfig() Config {
 func main() {
 	config := loadConfig()
 	if config.AccessToken != "" {
-		os.Setenv("OIDC_ACCESS_TOKEN", config.AccessToken)
+		os.Setenv("ACCESS_TOKEN", config.AccessToken)
 	} else if config.Username != "" && config.Password != "" {
 		os.Setenv("DOCKER_USERNAME", config.Username)
 		os.Setenv("DOCKER_PASSWORD", config.Password)

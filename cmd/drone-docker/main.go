@@ -293,9 +293,9 @@ func main() {
 			EnvVar: "PLUGIN_REGISTRY_TYPE",
 		},
 		cli.StringFlag{
-			Name:   "oidc-token",
-			Usage:  "OIDC token to use for authentication",
-			EnvVar: "OIDC_ACCESS_TOKEN",
+			Name:   "access-token",
+			Usage:  "access token",
+			EnvVar: "ACCESS_TOKEN",
 		},
 	}
 
@@ -319,7 +319,7 @@ func run(c *cli.Context) error {
 			Password:    c.String("docker.password"),
 			Email:       c.String("docker.email"),
 			Config:      c.String("docker.config"),
-			AccessToken: c.String("oidc-token"),
+			AccessToken: c.String("access-token"),
 		},
 		CardPath:     c.String("drone-card-path"),
 		ArtifactFile: c.String("artifact-file"),
