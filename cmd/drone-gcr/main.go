@@ -118,7 +118,6 @@ func main() {
 	} else if config.Username != "" && config.Password != "" {
 		os.Setenv("DOCKER_USERNAME", config.Username)
 		os.Setenv("DOCKER_PASSWORD", config.Password)
-		os.Setenv("", strconv.FormatBool(config.WorkloadIdentity))
 	}
 
 	os.Setenv("PLUGIN_REPO", config.Repo)
