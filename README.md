@@ -133,6 +133,26 @@ steps:
         from_secret: gcr_json_key
 ```
 
+### GAR (Google Artifact Registry) using workload identity (OIDC)
+
+```yaml
+steps:
+  - name: push-to-gar
+    image: plugins/gcr
+    pull: never
+    settings:
+      tag: latest
+      repo: project-id/repo/image-name
+      registry_type: GAR
+      location: europe
+      project_number: project-number
+      pool_id: workload identity pool id
+      provider_id: workload identity provider id
+      service_account_email: service account email
+      oidc_token_id:
+        from_secret: token 
+```
+
 ## Developer Notes
 
 - When updating the base image, you will need to update for each architecture and OS.
