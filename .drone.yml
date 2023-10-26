@@ -447,7 +447,6 @@ trigger:
 
 depends_on:
   - linux-amd64-docker
-  -
 ---
 kind: pipeline
 name: linux-arm64-gcr
