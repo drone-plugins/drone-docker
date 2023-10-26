@@ -25,6 +25,7 @@ go build -v -a -tags netgo -o release/linux/amd64/drone-gcr ./cmd/drone-gcr
 go build -v -a -tags netgo -o release/linux/amd64/drone-ecr ./cmd/drone-ecr
 go build -v -a -tags netgo -o release/linux/amd64/drone-acr ./cmd/drone-acr
 go build -v -a -tags netgo -o release/linux/amd64/drone-heroku ./cmd/drone-heroku
+go build -v -a -tags netgo -o release/linux/amd64/drone-gar ./cmd/drone-gar
 ```
 
 ## Docker
@@ -56,6 +57,11 @@ docker build \
   --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
   --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
   --file docker/heroku/Dockerfile.linux.amd64 --tag plugins/heroku .
+  
+docker build \
+  --label org.label-schema.build-date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --label org.label-schema.vcs-ref=$(git rev-parse --short HEAD) \
+  --file docker/gar/Dockerfile.linux.amd64 --tag plugins/gar .
 ```
 
 ## Usage
@@ -122,12 +128,11 @@ type: docker
 
 steps:
   - name: push-to-gar
-    image: plugins/gcr
+    image: plugins/gar
     pull: never
     settings:
       tag: latest
       repo: project-id/repo/image-name
-      registry_type: GAR
       location: us
       json_key:
         from_secret: gcr_json_key
@@ -138,12 +143,11 @@ steps:
 ```yaml
 steps:
   - name: push-to-gar
-    image: plugins/gcr
+    image: plugins/gar
     pull: never
     settings:
       tag: latest
       repo: project-id/repo/image-name
-      registry_type: GAR
       location: europe
       project_number: project-number
       pool_id: workload identity pool id

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
@@ -25,6 +27,14 @@ type Config struct {
 	WorkloadIdentity bool
 	Username         string
 	AccessToken      string
+}
+
+type staticTokenSource struct {
+	token *oauth2.Token
+}
+
+func (s *staticTokenSource) Token() (*oauth2.Token, error) {
+	return s.token, nil
 }
 
 func loadConfig() Config {
@@ -66,15 +76,12 @@ func loadConfig() Config {
 		config.Username, config.Password = setUsernameAndPassword(username, password, config.WorkloadIdentity)
 	}
 
+	location := getenv("PLUGIN_LOCATION")
 	repo := getenv("PLUGIN_REPO")
-	registryType := getenv("PLUGIN_REGISTRY_TYPE")
-	if registryType == "" {
-		registryType = "GCR"
-	}
 
 	registry := getenv("PLUGIN_REGISTRY")
 	if registry == "" {
-		registry = "gcr.io"
+		registry = fmt.Sprintf("%s-docker.pkg.dev", location)
 	}
 
 	if !strings.HasPrefix(repo, registry) {
