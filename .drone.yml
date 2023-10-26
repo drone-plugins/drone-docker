@@ -63,7 +63,7 @@ steps:
       - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
       - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
       - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gar
+      - go build -o release/windows/amd64/drone-gar.exe ./cmd/drone-gar
 
   - name: build docker plugin
     image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
@@ -170,7 +170,7 @@ steps:
       - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
       - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
       - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-      - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gar
+      - go build -o release/windows/amd64/drone-gar.exe ./cmd/drone-gar
   - name: build docker plugin
     image: plugins/docker
     settings:
