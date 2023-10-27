@@ -195,9 +195,13 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
-	// pre-pull cache images
-	for _, img := range p.Build.CacheFrom {
-		cmds = append(cmds, commandPull(img))
+	if wantPrepull(p) {
+		// pre-pull cache images
+		for _, img := range p.Build.CacheFrom {
+			cmds = append(cmds, commandPull(img))
+		}
+	} else {
+		fmt.Println("Detected Buildkit with inline cache, will not pre-pull cache image.")
 	}
 
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
@@ -268,6 +272,22 @@ func (p Plugin) Exec() error {
 	}
 
 	return nil
+}
+
+// helper function to determine if we should prepull a cache image
+func wantPrepull(p Plugin) bool {
+	var inlineCache = false
+	for _, v := range p.Build.Args {
+		if v == "BUILDKIT_INLINE_CACHE=1" {
+			inlineCache = true
+			break
+		}
+	}
+
+	// if we have both buildkit and buildkit inline cache available, then
+	// that is preferable to prepulling a cache image, for more details:
+	// https://github.com/drone-plugins/drone-docker/pull/360
+	return os.Getenv("DOCKER_BUILDKIT") != "1" || !inlineCache
 }
 
 // helper function to create the docker login command.
