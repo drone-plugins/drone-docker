@@ -387,7 +387,7 @@ func commandBuild(build Build) *exec.Cmd {
 		labelSchema := []string{
 			fmt.Sprintf("created=%s", time.Now().Format(time.RFC3339)),
 			fmt.Sprintf("revision=%s", build.Name),
-			fmt.Sprintf("source=%s", build.Remote),
+			fmt.Sprintf("source=%s", strings.TrimSuffix(build.Remote, ".git")),
 			fmt.Sprintf("url=%s", build.Link),
 		}
 		labelPrefix := "org.opencontainers.image"
