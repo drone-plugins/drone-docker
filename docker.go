@@ -300,16 +300,6 @@ func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
 }
 
-func commandLoginEmail(login Login) *exec.Cmd {
-	return exec.Command(
-		dockerExe, "login",
-		"-u", login.Username,
-		"-p", login.Password,
-		"-e", login.Email,
-		login.Registry,
-	)
-}
-
 // helper function to create the docker info command.
 func commandVersion() *exec.Cmd {
 	return exec.Command(dockerExe, "version")
