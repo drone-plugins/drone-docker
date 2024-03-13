@@ -272,9 +272,6 @@ func (p Plugin) Exec() error {
 
 // helper function to create the docker login command.
 func commandLogin(login Login) *exec.Cmd {
-	if login.Email != "" {
-		return commandLoginEmail(login)
-	}
 	return exec.Command(
 		dockerExe, "login",
 		"-u", login.Username,
@@ -301,16 +298,6 @@ func isCommandPull(args []string) bool {
 
 func commandPull(repo string) *exec.Cmd {
 	return exec.Command(dockerExe, "pull", repo)
-}
-
-func commandLoginEmail(login Login) *exec.Cmd {
-	return exec.Command(
-		dockerExe, "login",
-		"-u", login.Username,
-		"-p", login.Password,
-		"-e", login.Email,
-		login.Registry,
-	)
 }
 
 // helper function to create the docker info command.
