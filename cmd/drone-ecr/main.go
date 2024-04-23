@@ -42,6 +42,7 @@ func main() {
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
 		externalId       = getenv("PLUGIN_EXTERNAL_ID")
 		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
+		idToken          = os.Getenv("PLUGIN_OIDC_TOKEN_ID") 
 	)
 
 	// set the region
@@ -61,7 +62,7 @@ func main() {
 		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
 	}
 
-	svc := getECRClient(sess, assumeRole, externalId)
+	svc := getECRClient(sess, assumeRole, externalId, idToken)
 	username, password, defaultRegistry, err := getAuthInfo(svc)
 
 	if registry == "" {
@@ -213,11 +214,15 @@ func getenv(key ...string) (s string) {
 	return
 }
 
-func getECRClient(sess *session.Session, role string, externalId string) *ecr.ECR {
+func getECRClient(sess *session.Session, role string, externalId string, idToken string) *ecr.ECR {
 	if role == "" {
 		return ecr.New(sess)
 	}
-	if externalId != "" {
+	// Use STS AssumeRoleWithWebIdentity when idToken is provided
+	if idToken != "" {
+		creds := stscreds.NewWebIdentityCredentials(sess, role, "", idToken)
+		return ecr.New(sess, &aws.Config{Credentials: creds})
+	} else if externalId != "" {
 		return ecr.New(sess, &aws.Config{
 			Credentials: stscreds.NewCredentials(sess, role, func(p *stscreds.AssumeRoleProvider) {
 				p.ExternalID = &externalId
