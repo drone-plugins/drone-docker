@@ -1,6 +1,6 @@
 This document explains on how to install certain git hooks globally for all repositories in your machine.
 
-Step 1: git clone https://github.com/wings-software/build-tools-utility.git
+Step 1: git clone https://github.com/drone-plugins/drone-docker.git
 Step 2: cd git-hooks
 Step 3: Run install.sh
 
