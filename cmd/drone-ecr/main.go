@@ -220,7 +220,7 @@ func getECRClient(sess *session.Session, role string, externalId string, idToken
 	}
 
 	if idToken != "" {
-		tempFile, err := ioutil.TempFile("/tmp", "idToken-*.jwt")
+		tempFile, err := os.CreateTemp("/tmp", "idToken-*.jwt")
 		if err != nil {
 			log.Fatalf("Failed to create temporary file: %v", err)
 		}
