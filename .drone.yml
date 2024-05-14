@@ -172,7 +172,7 @@ steps:
       - go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
       - go build -o release/windows/amd64/drone-gar.exe ./cmd/drone-gar
   - name: build docker plugin
-    image: plugins/docker
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     settings:
       dockerfile: docker/docker/Dockerfile.windows.amd64.ltsc2022
       repo: plugins/docker
@@ -186,7 +186,7 @@ steps:
     when:
       event: [push, tag]
   - name: build ecr plugin
-    image: plugins/docker
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     settings:
       dockerfile: docker/ecr/Dockerfile.windows.amd64.ltsc2022
       repo: plugins/ecr
@@ -200,7 +200,7 @@ steps:
     when:
       event: [push, tag]
   - name: build gcr plugin
-    image: plugins/docker
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     settings:
       dockerfile: docker/gcr/Dockerfile.windows.amd64.ltsc2022
       repo: plugins/gcr
@@ -214,7 +214,7 @@ steps:
     when:
       event: [push, tag]
   - name: build acr plugin
-    image: plugins/docker
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     settings:
       dockerfile: docker/acr/Dockerfile.windows.amd64.ltsc2022
       repo: plugins/acr
@@ -228,7 +228,7 @@ steps:
     when:
       event: [push, tag]
   - name: build gar plugin
-    image: plugins/docker
+    image: plugins/docker@sha256:f0233d950ae87ee6cb5500b2d5497fe02aa338201c0bdce2619f443fd174cfa4
     settings:
       dockerfile: docker/gar/Dockerfile.windows.amd64.ltsc2022
       repo: plugins/gar
