@@ -42,7 +42,7 @@ func main() {
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
 		externalId       = getenv("PLUGIN_EXTERNAL_ID")
 		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
-		idToken          = os.Getenv("PLUGIN_OIDC_TOKEN_ID") 
+		idToken          = os.Getenv("PLUGIN_OIDC_TOKEN_ID")
 	)
 
 	// set the region
@@ -218,9 +218,24 @@ func getECRClient(sess *session.Session, role string, externalId string, idToken
 	if role == "" {
 		return ecr.New(sess)
 	}
-	// Use STS AssumeRoleWithWebIdentity when idToken is provided
+
 	if idToken != "" {
-		creds := stscreds.NewWebIdentityCredentials(sess, role, "", idToken)
+		tempFile, err := os.CreateTemp("/tmp", "idToken-*.jwt")
+		if err != nil {
+			log.Fatalf("Failed to create temporary file: %v", err)
+		}
+		defer tempFile.Close()
+
+		if err := os.Chmod(tempFile.Name(), 0600); err != nil {
+			log.Fatalf("Failed to set file permissions: %v", err)
+		}
+
+		if _, err := tempFile.WriteString(idToken); err != nil {
+			log.Fatalf("Failed to write ID token to temporary file: %v", err)
+		}
+
+		// Create credentials using the path to the ID token file
+		creds := stscreds.NewWebIdentityCredentials(sess, role, "", tempFile.Name())
 		return ecr.New(sess, &aws.Config{Credentials: creds})
 	} else if externalId != "" {
 		return ecr.New(sess, &aws.Config{
