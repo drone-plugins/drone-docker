@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"log"
 
 	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
@@ -122,12 +121,6 @@ func (p Plugin) Exec() error {
 	if !p.Daemon.Disabled {
 		p.startDaemon()
 	}
-	log.Printf("PLUGIN_REGISTRY %s", p.Login.Registry)
-	log.Printf("PLUGIN_USERNAME %s", p.Login.Username)
-	log.Printf("PLUGIN_PASSWORD %s", p.Login.Password)
-	log.Printf("PLUGIN_DOCKER_REGISTRY %s", p.BaseImageRegistry)
-	log.Printf("PLUGIN_DOCKER_USER %s", p.BaseImageUsername)
-	log.Printf("PLUGIN_DOCKER_PASSWORD %s", p.BaseImagePassword)
 
 	// poll the docker daemon until it is started. This ensures the daemon is
 	// ready to accept connections before we proceed.
