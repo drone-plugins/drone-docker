@@ -171,7 +171,7 @@ func TestCommandBuild(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := commandBuild(tc.build)
+			cmd := commandBuild(tc.build, false)
 
 			if !reflect.DeepEqual(cmd.String(), tc.want.String()) {
 				t.Errorf("Got cmd %v, want %v", cmd, tc.want)
