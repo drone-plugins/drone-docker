@@ -75,13 +75,16 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login        Login  // Docker login configuration
-		Build        Build  // Docker build configuration
-		Daemon       Daemon // Docker daemon configuration
-		Dryrun       bool   // Docker push is skipped
-		Cleanup      bool   // Docker purge is enabled
-		CardPath     string // Card path to write file to
-		ArtifactFile string // Artifact path to write file to
+		Login             Login  // Docker login configuration
+		Build             Build  // Docker build configuration
+		Daemon            Daemon // Docker daemon configuration
+		Dryrun            bool   // Docker push is skipped
+		Cleanup           bool   // Docker purge is enabled
+		CardPath          string // Card path to write file to
+		ArtifactFile      string // Artifact path to write file to
+		BaseImageRegistry string // Docker registry to pull base image
+		BaseImageUsername string // Docker registry username to pull base image
+		BaseImagePassword string // Docker registry password to pull base image
 	}
 
 	Card []struct {
@@ -195,6 +198,40 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
+	differentBaseRegistry := p.BaseImagePassword != ""
+	// login to base image registry
+	baseImageLogin := Login{
+		Registry: p.BaseImageRegistry,
+		Username: p.BaseImageUsername,
+		Password: p.BaseImagePassword,
+	}
+
+	var cmdPushLogin, cmdBaseImageLogin *exec.Cmd
+	if p.Login.Password != "" {
+		cmdPushLogin = commandLogin(p.Login)
+	} else if p.Login.AccessToken != "" {
+		cmdPushLogin = commandLoginAccessToken(p.Login, p.Login.AccessToken)
+	}
+	// login to the registry when different base image registry not found
+	if !differentBaseRegistry {
+		raw, err := cmdPushLogin.CombinedOutput()
+		if err != nil {
+			out := string(raw)
+			out = strings.Replace(out, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.", "", -1)
+			fmt.Println(out)
+			return fmt.Errorf("error logging in to Docker registry: %s", err)
+		}
+		if strings.Contains(string(raw), "Login Succeeded") {
+			fmt.Println("Login successful")
+		} else {
+			return fmt.Errorf("login did not succeed")
+		}
+	} else {
+		cmdBaseImageLogin = commandLogin(baseImageLogin)
+		// 1. append login command for base image docker registry if found
+		cmds = append(cmds, cmdBaseImageLogin)
+	}
+
 	// pre-pull cache images
 	for _, img := range p.Build.CacheFrom {
 		cmds = append(cmds, commandPull(img))
@@ -208,15 +245,25 @@ func (p Plugin) Exec() error {
 			return sshErr
 		}
 	}
+	// 2. Command to only build tag with and without push options
+	cmds = append(cmds, commandBuild(p.Build, differentBaseRegistry)) // docker build
 
-	cmds = append(cmds, commandBuild(p.Build)) // docker build
-
+	// 3. add cmds to login to push registry and push the tag when different base image registry is found
+	if differentBaseRegistry {
+		cmds = append(cmds, cmdPushLogin)
+	}
+	// 4. Build the docker image, with tags don't push in case of
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
-		if !p.Dryrun {
+		if !p.Dryrun && !differentBaseRegistry {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
+	}
+
+	// 5. command to only push the image, if differentBaseRegistry and dryrun not set
+	if !p.Dryrun && differentBaseRegistry {
+		cmds = append(cmds, commandPush(p.Build, p.Build.Tags[0]))
 	}
 
 	// execute all commands in batch mode.
@@ -275,12 +322,9 @@ func commandLogin(login Login) *exec.Cmd {
 	if login.Email != "" {
 		return commandLoginEmail(login)
 	}
-	return exec.Command(
-		dockerExe, "login",
-		"-u", login.Username,
-		"-p", login.Password,
-		login.Registry,
-	)
+	cmd := exec.Command(dockerExe, "login", "-u", login.Username, "--password-stdin", login.Registry)
+	cmd.Stdin = strings.NewReader(login.Password)
+	return cmd
 }
 
 func commandLoginAccessToken(login Login, accessToken string) *exec.Cmd {
@@ -324,7 +368,7 @@ func commandInfo() *exec.Cmd {
 }
 
 // helper function to create the docker build command.
-func commandBuild(build Build) *exec.Cmd {
+func commandBuild(build Build, differentBaseRegistry bool) *exec.Cmd {
 	args := []string{
 		"build",
 		"--rm=true",
