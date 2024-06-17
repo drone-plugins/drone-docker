@@ -443,9 +443,6 @@ func commandBuild(build Build, differentBaseRegistry bool) *exec.Cmd {
 		for _, label := range labelSchema {
 			args = append(args, "--label", fmt.Sprintf("%s.%s", labelPrefix, label))
 		}
-		if differentBaseRegistry {
-			args = append(args, "--load")
-		}
 	}
 
 	if len(build.Labels) > 0 {
