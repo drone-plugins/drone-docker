@@ -1,8 +1,8 @@
 package docker
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,7 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/drone-plugins/drone-docker/internal/docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
+	"github.com/pkg/errors"
+
 )
 
 type (
@@ -75,13 +78,16 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login        Login  // Docker login configuration
-		Build        Build  // Docker build configuration
-		Daemon       Daemon // Docker daemon configuration
-		Dryrun       bool   // Docker push is skipped
-		Cleanup      bool   // Docker purge is enabled
-		CardPath     string // Card path to write file to
-		ArtifactFile string // Artifact path to write file to
+		Login             Login  // Docker login configuration
+		Build             Build  // Docker build configuration
+		Daemon            Daemon // Docker daemon configuration
+		Dryrun            bool   // Docker push is skipped
+		Cleanup           bool   // Docker purge is enabled
+		CardPath          string // Card path to write file to
+		ArtifactFile      string // Artifact path to write file to
+		BaseImageRegistry string // Docker registry to pull base image
+		BaseImageUsername string // Docker registry username to pull base image
+		BaseImagePassword string // Docker registry password to pull base image
 	}
 
 	Card []struct {
@@ -154,11 +160,42 @@ func (p Plugin) Exec() error {
 		os.MkdirAll(dockerHome, 0600)
 
 		path := filepath.Join(dockerHome, "config.json")
-		err := os.WriteFile(path, []byte(p.Login.Config), 0600)
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
+		_, err = file.Write([]byte(p.Login.Config))
+		fmt.Println("Writing p.Login.Config: %s", p.Login.Config)
+
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
+		}
+		defer file.Close()
 	}
+	log.Printf("p.Login.Config ....  %s", p.Login.Config)
+	// add docker credentials to the existing config file, else create new
+	if p.Login.Password != "" && p.BaseImagePassword != "" {
+		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
+			p.BaseImageUsername, p.BaseImagePassword, p.BaseImageRegistry)
+		fmt.Println("json after set Auth: %s", json)
+		if err != nil {
+			return errors.Wrap(err, "Failed to set authentication in docker config")
+		}
+		if json != nil {
+			path := filepath.Join(dockerHome, "config.json")
+			file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+			if err != nil {
+				return fmt.Errorf("Error opening config.json: %s", err)
+			}
+			defer file.Close()
+			_, err = file.Write(json)
+			if err != nil {
+				return fmt.Errorf("Error writing config.json: %s", err)
+			}
+		}
+	}
+	fmt.Println("json after set Auth: %s", json)
+
 
 	// login to the Docker registry
 	if p.Login.Password != "" {
@@ -268,6 +305,32 @@ func (p Plugin) Exec() error {
 	}
 
 	return nil
+}
+
+// helper function to set the credentials
+func setDockerAuth(username, password, registry, baseImageUsername,
+					baseImagePassword, baseImageRegistry string) ([]byte, error) {
+	dockerConfig := docker.NewConfig()
+	pushToRegistryCreds := docker.RegistryCredentials{
+		Registry: registry,
+		Username: username,
+		Password: password,
+	}
+	// push registry auth
+	//credentials := []docker.RegistryCredentials{pushToRegistryCreds}
+	credentials := []docker.RegistryCredentials{}
+
+	if baseImageRegistry != "" {
+		pullFromRegistryCreds := docker.RegistryCredentials{
+			Registry: baseImageRegistry,
+			Username: baseImageUsername,
+			Password: baseImagePassword,
+		}
+		// base image registry auth
+		credentials = append(credentials, pullFromRegistryCreds)
+	}
+	// Creates docker config for both the registries used for authentication
+	return dockerConfig.CreateDockerConfigJson(credentials)
 }
 
 // helper function to create the docker login command.
@@ -504,6 +567,7 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
+	fmt.Println(" Aishwarya config.json is 5.." )
 	args := []string{
 		"--data-root", daemon.StoragePath,
 		"--host=unix:///var/run/docker.sock",
@@ -585,6 +649,8 @@ func trace(cmd *exec.Cmd) {
 }
 
 func GetDroneDockerExecCmd() string {
+	fmt.Println(" Aishwarya config.json is 3.." )
+
 	if runtime.GOOS == "windows" {
 		return "C:/bin/drone-docker.exe"
 	}

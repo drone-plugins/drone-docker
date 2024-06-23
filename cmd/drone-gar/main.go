@@ -27,6 +27,9 @@ type Config struct {
 	WorkloadIdentity bool
 	Username         string
 	AccessToken      string
+	BaseImageRegistry string // Docker registry to pull base image
+	BaseImageUsername string // Docker registry username to pull base image
+	BaseImagePassword string // Docker registry password to pull base image
 }
 
 type staticTokenSource struct {
@@ -100,18 +103,22 @@ func main() {
 		os.Setenv("DOCKER_USERNAME", config.Username)
 		os.Setenv("DOCKER_PASSWORD", config.Password)
 	}
+	//data, err := ioutil.ReadFile("/.docker/config.json")
+	fmt.Println(" Aishwarya config.json is 1.." )
 
 	os.Setenv("PLUGIN_REPO", config.Repo)
 	os.Setenv("PLUGIN_REGISTRY", config.Registry)
 
 	// invoke the base docker plugin binary
 	cmd := exec.Command(docker.GetDroneDockerExecCmd())
+	fmt.Println(" Aishwarya config.json is 2.." )
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	fmt.Println(" Aishwarya config.json is 4.." )
 }
 
 func getOauthToken(data []byte) (s string) {
