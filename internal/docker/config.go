@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/pkg/errors"
@@ -54,7 +53,7 @@ func (c *Config) SetCredHelper(registry, helper string) {
 
 func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]byte, error) {
 	for _, cred := range credentials {
-		if cred.Registry != "" {
+		if cred.Registry != "" && strings.Contains(cred.Registry, "docker") {
 
 			if cred.Username == "" {
 				return nil, fmt.Errorf("Username must be specified for registry: %s", cred.Registry)
@@ -67,7 +66,6 @@ func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]by
 	}
 
 	jsonBytes, err := json.Marshal(c)
-	log.Printf("jsonBytes config : %s", jsonBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to serialize docker config json")
 	}

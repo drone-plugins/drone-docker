@@ -2,7 +2,6 @@ package docker
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/drone-plugins/drone-docker/internal/docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
 	"github.com/pkg/errors"
-
 )
 
 type (
@@ -172,12 +170,10 @@ func (p Plugin) Exec() error {
 		}
 		defer file.Close()
 	}
-	log.Printf("p.Login.Config ....  %s", p.Login.Config)
-	// add docker credentials to the existing config file, else create new
-	if p.Login.Password != "" && p.BaseImagePassword != "" {
+	// add base image docker credentials to the existing config file, else create new
+	if p.BaseImagePassword != "" {
 		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
 			p.BaseImageUsername, p.BaseImagePassword, p.BaseImageRegistry)
-		fmt.Println("json after set Auth: %s", json)
 		if err != nil {
 			return errors.Wrap(err, "Failed to set authentication in docker config")
 		}
@@ -194,8 +190,6 @@ func (p Plugin) Exec() error {
 			}
 		}
 	}
-	fmt.Println("json after set Auth: %s", json)
-
 
 	// login to the Docker registry
 	if p.Login.Password != "" {
@@ -309,16 +303,19 @@ func (p Plugin) Exec() error {
 
 // helper function to set the credentials
 func setDockerAuth(username, password, registry, baseImageUsername,
-					baseImagePassword, baseImageRegistry string) ([]byte, error) {
-	dockerConfig := docker.NewConfig()
-	pushToRegistryCreds := docker.RegistryCredentials{
-		Registry: registry,
-		Username: username,
-		Password: password,
+	baseImagePassword, baseImageRegistry string) ([]byte, error) {
+	var credentials []docker.RegistryCredentials
+	// add only docker registry to the config
+	if password != "" && strings.Contains(registry, "docker") {
+		dockerConfig := docker.NewConfig()
+		pushToRegistryCreds := docker.RegistryCredentials{
+			Registry: registry,
+			Username: username,
+			Password: password,
+		}
+		// push registry auth
+		credentials := append(credentials, pushToRegistryCreds)
 	}
-	// push registry auth
-	//credentials := []docker.RegistryCredentials{pushToRegistryCreds}
-	credentials := []docker.RegistryCredentials{}
 
 	if baseImageRegistry != "" {
 		pullFromRegistryCreds := docker.RegistryCredentials{
@@ -567,7 +564,6 @@ func commandPush(build Build, tag string) *exec.Cmd {
 
 // helper function to create the docker daemon command.
 func commandDaemon(daemon Daemon) *exec.Cmd {
-	fmt.Println(" Aishwarya config.json is 5.." )
 	args := []string{
 		"--data-root", daemon.StoragePath,
 		"--host=unix:///var/run/docker.sock",
@@ -649,8 +645,6 @@ func trace(cmd *exec.Cmd) {
 }
 
 func GetDroneDockerExecCmd() string {
-	fmt.Println(" Aishwarya config.json is 3.." )
-
 	if runtime.GOOS == "windows" {
 		return "C:/bin/drone-docker.exe"
 	}
