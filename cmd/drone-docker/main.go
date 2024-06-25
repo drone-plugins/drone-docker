@@ -225,17 +225,17 @@ func main() {
 		cli.StringFlag{
 			Name:   "docker.baseimageusername",
 			Usage:  "Docker username for base image registry",
-			EnvVar: "PLUGIN_DOCKER_USERNAME,PLUGIN_BASE_IMAGE_USERNAME",
+			EnvVar: "PLUGIN_DOCKER_USERNAME,PLUGIN_BASE_IMAGE_USERNAME,DOCKER_BASE_IMAGE_USERNAME",
 		},
 		cli.StringFlag{
 			Name:   "docker.baseimagepassword",
 			Usage:  "Docker password for base image registry",
-			EnvVar: "PLUGIN_DOCKER_PASSWORD,PLUGIN_BASE_IMAGE_PASSWORD",
+			EnvVar: "PLUGIN_DOCKER_PASSWORD,PLUGIN_BASE_IMAGE_PASSWORD,DOCKER_BASE_IMAGE_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "docker.baseimageregistry",
 			Usage:  "Docker registry for base image registry",
-			EnvVar: "PLUGIN_DOCKER_REGISTRY,PLUGIN_BASE_IMAGE_REGISTRY",
+			EnvVar: "PLUGIN_DOCKER_REGISTRY,PLUGIN_BASE_IMAGE_REGISTRY,DOCKER_BASE_IMAGE_REGISTRY",
 		},
 		cli.StringFlag{
 			Name:   "docker.email",

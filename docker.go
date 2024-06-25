@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/drone-plugins/drone-docker/internal/docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -163,7 +163,7 @@ func (p Plugin) Exec() error {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
 		_, err = file.Write([]byte(p.Login.Config))
-		fmt.Println("Writing p.Login.Config: %s", p.Login.Config)
+		fmt.Println("Writing p.Login.Config")
 
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
@@ -175,7 +175,7 @@ func (p Plugin) Exec() error {
 		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
 			p.BaseImageUsername, p.BaseImagePassword, p.BaseImageRegistry)
 		if err != nil {
-			return errors.Wrap(err, "Failed to set authentication in docker config")
+			return fmt.Errorf("Failed to set authentication in docker config %s", err)
 		}
 		if json != nil {
 			path := filepath.Join(dockerHome, "config.json")
@@ -306,15 +306,15 @@ func setDockerAuth(username, password, registry, baseImageUsername,
 	baseImagePassword, baseImageRegistry string) ([]byte, error) {
 	var credentials []docker.RegistryCredentials
 	// add only docker registry to the config
+	dockerConfig := docker.NewConfig()
 	if password != "" && strings.Contains(registry, "docker") {
-		dockerConfig := docker.NewConfig()
 		pushToRegistryCreds := docker.RegistryCredentials{
 			Registry: registry,
 			Username: username,
 			Password: password,
 		}
 		// push registry auth
-		credentials := append(credentials, pushToRegistryCreds)
+		credentials = append(credentials, pushToRegistryCreds)
 	}
 
 	if baseImageRegistry != "" {

@@ -3,11 +3,11 @@ package docker
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	"github.com/pkg/errors"
+	"strings"
 )
 
 const (
@@ -43,7 +43,6 @@ func NewConfig() *Config {
 func (c *Config) SetAuth(registry, username, password string) {
 	authBytes := []byte(username + ":" + password)
 	encodedString := base64.StdEncoding.EncodeToString(authBytes)
-	log.Printf("auth : %s", encodedString)
 	c.Auths[registry] = Auth{Auth: encodedString}
 }
 
@@ -67,7 +66,7 @@ func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]by
 
 	jsonBytes, err := json.Marshal(c)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize docker config json")
+		return nil, errors.New("failed to serialize docker config json")
 	}
 
 	return jsonBytes, nil
@@ -77,15 +76,14 @@ func WriteDockerConfig(data []byte, path string) (string error) {
 	err := os.MkdirAll(path, 0600)
 	if err != nil {
 		if !os.IsExist(err) {
-			return errors.Wrap(err, fmt.Sprintf("failed to create %s directory", path))
+			return errors.New("failed to create %s directory")
 		}
 	}
 
 	filePath := path + "/config.json"
-	log.Printf("Config data is %s", data)
 	err = ioutil.WriteFile(filePath, data, 0644)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to create docker config file at %s", path))
+		return errors.New("failed to create docker config file at %s")
 	}
 	return nil
 }
