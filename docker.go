@@ -158,13 +158,17 @@ func (p Plugin) Exec() error {
 		os.MkdirAll(dockerHome, 0600)
 
 		path := filepath.Join(dockerHome, "config.json")
-		err := os.WriteFile(path, []byte(p.Login.Config), 0600)
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
+		}
+		err = os.WriteFile(path, []byte(p.Login.Config), 0600)
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
 		file.Close()
 	}
-	
+
 	// add base image docker credentials to the existing config file, else create new
 	if p.BaseImagePassword != "" {
 		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
