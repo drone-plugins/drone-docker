@@ -158,18 +158,13 @@ func (p Plugin) Exec() error {
 		os.MkdirAll(dockerHome, 0600)
 
 		path := filepath.Join(dockerHome, "config.json")
-		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		err := os.WriteFile(path, []byte(p.Login.Config), 0600)
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
-		_, err = file.Write([]byte(p.Login.Config))
-		fmt.Println("Writing p.Login.Config")
-
-		if err != nil {
-			return fmt.Errorf("Error writing config.json: %s", err)
-		}
-		defer file.Close()
+		file.Close()
 	}
+	
 	// add base image docker credentials to the existing config file, else create new
 	if p.BaseImagePassword != "" {
 		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
@@ -177,17 +172,16 @@ func (p Plugin) Exec() error {
 		if err != nil {
 			return fmt.Errorf("Failed to set authentication in docker config %s", err)
 		}
-		if json != nil {
-			path := filepath.Join(dockerHome, "config.json")
-			file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-			if err != nil {
-				return fmt.Errorf("Error opening config.json: %s", err)
-			}
-			defer file.Close()
-			_, err = file.Write(json)
-			if err != nil {
-				return fmt.Errorf("Error writing config.json: %s", err)
-			}
+		os.MkdirAll(dockerHome, 0600)
+		path := filepath.Join(dockerHome, "config.json")
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("Error opening config.json: %s", err)
+		}
+		defer file.Close()
+		_, err = file.Write(json)
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
 		}
 	}
 
@@ -307,7 +301,7 @@ func setDockerAuth(username, password, registry, baseImageUsername,
 	var credentials []docker.RegistryCredentials
 	// add only docker registry to the config
 	dockerConfig := docker.NewConfig()
-	if password != "" && strings.Contains(registry, "docker") {
+	if password != "" {
 		pushToRegistryCreds := docker.RegistryCredentials{
 			Registry: registry,
 			Username: username,

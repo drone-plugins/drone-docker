@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -70,20 +68,4 @@ func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]by
 	}
 
 	return jsonBytes, nil
-}
-
-func WriteDockerConfig(data []byte, path string) (string error) {
-	err := os.MkdirAll(path, 0600)
-	if err != nil {
-		if !os.IsExist(err) {
-			return errors.New("failed to create %s directory")
-		}
-	}
-
-	filePath := path + "/config.json"
-	err = ioutil.WriteFile(filePath, data, 0644)
-	if err != nil {
-		return errors.New("failed to create docker config file at %s")
-	}
-	return nil
 }
