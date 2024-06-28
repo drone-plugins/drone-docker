@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/drone-plugins/drone-docker/internal/docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
 )
 
@@ -75,13 +76,16 @@ type (
 
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login        Login  // Docker login configuration
-		Build        Build  // Docker build configuration
-		Daemon       Daemon // Docker daemon configuration
-		Dryrun       bool   // Docker push is skipped
-		Cleanup      bool   // Docker purge is enabled
-		CardPath     string // Card path to write file to
-		ArtifactFile string // Artifact path to write file to
+		Login             Login  // Docker login configuration
+		Build             Build  // Docker build configuration
+		Daemon            Daemon // Docker daemon configuration
+		Dryrun            bool   // Docker push is skipped
+		Cleanup           bool   // Docker purge is enabled
+		CardPath          string // Card path to write file to
+		ArtifactFile      string // Artifact path to write file to
+		BaseImageRegistry string // Docker registry to pull base image
+		BaseImageUsername string // Docker registry username to pull base image
+		BaseImagePassword string // Docker registry password to pull base image
 	}
 
 	Card []struct {
@@ -154,7 +158,32 @@ func (p Plugin) Exec() error {
 		os.MkdirAll(dockerHome, 0600)
 
 		path := filepath.Join(dockerHome, "config.json")
-		err := os.WriteFile(path, []byte(p.Login.Config), 0600)
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
+		}
+		err = os.WriteFile(path, []byte(p.Login.Config), 0600)
+		if err != nil {
+			return fmt.Errorf("Error writing config.json: %s", err)
+		}
+		file.Close()
+	}
+
+	// add base image docker credentials to the existing config file, else create new
+	if p.BaseImagePassword != "" {
+		json, err := setDockerAuth(p.Login.Username, p.Login.Password, p.Login.Registry,
+			p.BaseImageUsername, p.BaseImagePassword, p.BaseImageRegistry)
+		if err != nil {
+			return fmt.Errorf("Failed to set authentication in docker config %s", err)
+		}
+		os.MkdirAll(dockerHome, 0600)
+		path := filepath.Join(dockerHome, "config.json")
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("Error opening config.json: %s", err)
+		}
+		defer file.Close()
+		_, err = file.Write(json)
 		if err != nil {
 			return fmt.Errorf("Error writing config.json: %s", err)
 		}
@@ -268,6 +297,35 @@ func (p Plugin) Exec() error {
 	}
 
 	return nil
+}
+
+// helper function to set the credentials
+func setDockerAuth(username, password, registry, baseImageUsername,
+	baseImagePassword, baseImageRegistry string) ([]byte, error) {
+	var credentials []docker.RegistryCredentials
+	// add only docker registry to the config
+	dockerConfig := docker.NewConfig()
+	if password != "" {
+		pushToRegistryCreds := docker.RegistryCredentials{
+			Registry: registry,
+			Username: username,
+			Password: password,
+		}
+		// push registry auth
+		credentials = append(credentials, pushToRegistryCreds)
+	}
+
+	if baseImageRegistry != "" {
+		pullFromRegistryCreds := docker.RegistryCredentials{
+			Registry: baseImageRegistry,
+			Username: baseImageUsername,
+			Password: baseImagePassword,
+		}
+		// base image registry auth
+		credentials = append(credentials, pullFromRegistryCreds)
+	}
+	// Creates docker config for both the registries used for authentication
+	return dockerConfig.CreateDockerConfigJson(credentials)
 }
 
 // helper function to create the docker login command.
