@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 )
 
 const (
@@ -50,7 +49,7 @@ func (c *Config) SetCredHelper(registry, helper string) {
 
 func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]byte, error) {
 	for _, cred := range credentials {
-		if cred.Registry != "" && strings.Contains(cred.Registry, "docker") {
+		if cred.Registry != "" {
 
 			if cred.Username == "" {
 				return nil, fmt.Errorf("Username must be specified for registry: %s", cred.Registry)
