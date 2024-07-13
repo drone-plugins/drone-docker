@@ -164,7 +164,6 @@ func (p Plugin) Exec() error {
 		}
 	}
 
-	// add base image docker credentials to the existing config file, else create new
 	// instead of writing to config file directly, using docker's login func
 	// is better to integrate with various credential helpers,
 	//	it also handles different registry specific logic in a better way,
