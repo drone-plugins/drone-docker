@@ -52,10 +52,10 @@ func (c *Config) CreateDockerConfigJson(credentials []RegistryCredentials) ([]by
 		if cred.Registry != "" {
 
 			if cred.Username == "" {
-				return nil, fmt.Errorf("Username cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+				return nil, fmt.Errorf("Username must be specified for registry: %s", cred.Registry)
 			}
 			if cred.Password == "" {
-				return nil, fmt.Errorf("Password cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+				return nil, fmt.Errorf("Password must be specified for registry: %s", cred.Registry)
 			}
 			c.SetAuth(cred.Registry, cred.Username, cred.Password)
 		}
