@@ -177,7 +177,12 @@ func (p Plugin) Exec() error {
 		baseConnectorLogin.Password = p.BaseImagePassword
 
 		cmd := commandLogin(baseConnectorLogin)
-
+		if p.BaseImageUsername == "" {
+			return fmt.Errorf("Username cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+		}
+		if p.BaseImagePassword == "" {
+			return fmt.Errorf("Password cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+		}
 		raw, err := cmd.CombinedOutput()
 		if err != nil {
 			out := string(raw)
