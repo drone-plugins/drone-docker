@@ -170,7 +170,13 @@ func (p Plugin) Exec() error {
 	//	as opposed to config write where different registries need to be addressed differently.
 	//	It handles any changes in the authentication process across different Docker versions.
 
-	if p.BaseImagePassword != "" {
+	if p.BaseImageRegistry != "" {
+		if p.BaseImageUsername == "" {
+			return fmt.Errorf("Username cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+		}
+		if p.BaseImagePassword == "" {
+			return fmt.Errorf("Password cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+		}
 		var baseConnectorLogin Login
 		baseConnectorLogin.Registry = p.BaseImageRegistry
 		baseConnectorLogin.Username = p.BaseImageUsername
