@@ -172,10 +172,10 @@ func (p Plugin) Exec() error {
 
 	if p.BaseImageRegistry != "" {
 		if p.BaseImageUsername == "" {
-			return fmt.Errorf("Username cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+			fmt.Printf("Username cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
 		}
 		if p.BaseImagePassword == "" {
-			return fmt.Errorf("Password cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
+			fmt.Printf("Password cannot be empty. The base image connector requires authenticated access. Please either use an authenticated connector, or remove the base image connector.")
 		}
 		var baseConnectorLogin Login
 		baseConnectorLogin.Registry = p.BaseImageRegistry
