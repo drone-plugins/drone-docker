@@ -118,6 +118,8 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	fmt.Println("sleeping - run the docker daemon and the docker login command")
+	time.Sleep(3000 * time.Second)
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
