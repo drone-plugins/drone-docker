@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	github.com/urfave/cli v1.22.2
+	github.com/urfave/cli v1.23.2
 	golang.org/x/oauth2 v0.13.0
 	google.golang.org/api v0.146.0
 )
@@ -42,4 +42,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-go 1.22.4
+go 1.23.4
