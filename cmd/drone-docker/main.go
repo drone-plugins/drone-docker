@@ -307,6 +307,16 @@ func main() {
 			Usage:  "registry type",
 			EnvVar: "PLUGIN_REGISTRY_TYPE",
 		},
+		cli.BoolFlag{
+			Name:   "no-push",
+			Usage:  "Set this flag if you only want to build the image, without pushing to a registry",
+			EnvVar: "PLUGIN_NO_PUSH",
+		},
+		cli.StringFlag{
+			Name:   "tar-path",
+			Usage:  "Set this flag to save the image as a tarball at path",
+			EnvVar: "PLUGIN_TAR_PATH",
+		},
 		cli.StringFlag{
 			Name:   "access-token",
 			Usage:  "access token",
@@ -365,6 +375,8 @@ func run(c *cli.Context) error {
 			Quiet:       c.Bool("quiet"),
 			Platform:    c.String("platform"),
 			SSHAgentKey: c.String("ssh-agent-key"),
+			NoPush:      c.Bool("no-push"),
+			TarPath:     c.String("tar-path"),
 		},
 		Daemon: docker.Daemon{
 			Registry:      c.String("docker.registry"),
