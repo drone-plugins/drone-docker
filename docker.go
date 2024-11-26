@@ -45,33 +45,35 @@ type (
 
 	// Build defines Docker build parameters.
 	Build struct {
-		Remote      string   // Git remote URL
-		Name        string   // Docker build using default named tag
-		TempTag     string   // Temporary tag used during docker build
-		Dockerfile  string   // Docker build Dockerfile
-		Context     string   // Docker build context
-		Tags        []string // Docker build tags
-		Args        []string // Docker build args
-		ArgsEnv     []string // Docker build args from env
-		Target      string   // Docker build target
-		Squash      bool     // Docker build squash
-		Pull        bool     // Docker build pull
-		CacheFrom   []string // Docker build cache-from
-		Compress    bool     // Docker build compress
-		Repo        string   // Docker build repository
-		LabelSchema []string // label-schema Label map
-		AutoLabel   bool     // auto-label bool
-		Labels      []string // Label map
-		Link        string   // Git repo link
-		NoCache     bool     // Docker build no-cache
-		Secret      string   // secret keypair
-		SecretEnvs  []string // Docker build secrets with env var as source
-		SecretFiles []string // Docker build secrets with file as source
-		AddHost     []string // Docker build add-host
-		Quiet       bool     // Docker build quiet
-		Platform    string   // Docker build platform
-		SSHAgentKey string   // Docker build ssh agent key
-		SSHKeyPath  string   // Docker build ssh key path
+		Remote              string   // Git remote URL
+		Name                string   // Docker build using default named tag
+		TempTag             string   // Temporary tag used during docker build
+		Dockerfile          string   // Docker build Dockerfile
+		Context             string   // Docker build context
+		Tags                []string // Docker build tags
+		Args                []string // Docker build args
+		ArgsEnv             []string // Docker build args from env
+		ArgsNew             []string // docker build args which has comma seperated values
+		IsMultipleBuildArgs bool     // env variable for fall back to old build args
+		Target              string   // Docker build target
+		Squash              bool     // Docker build squash
+		Pull                bool     // Docker build pull
+		CacheFrom           []string // Docker build cache-from
+		Compress            bool     // Docker build compress
+		Repo                string   // Docker build repository
+		LabelSchema         []string // label-schema Label map
+		AutoLabel           bool     // auto-label bool
+		Labels              []string // Label map
+		Link                string   // Git repo link
+		NoCache             bool     // Docker build no-cache
+		Secret              string   // secret keypair
+		SecretEnvs          []string // Docker build secrets with env var as source
+		SecretFiles         []string // Docker build secrets with file as source
+		AddHost             []string // Docker build add-host
+		Quiet               bool     // Docker build quiet
+		Platform            string   // Docker build platform
+		SSHAgentKey         string   // Docker build ssh agent key
+		SSHKeyPath          string   // Docker build ssh key path
 	}
 
 	// Plugin defines the Docker plugin parameters.
@@ -413,8 +415,16 @@ func commandBuild(build Build) *exec.Cmd {
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
 	}
-	for _, arg := range build.Args {
-		args = append(args, "--build-arg", arg)
+	if build.IsMultipleBuildArgs {
+		for _, arg := range build.ArgsNew {
+			fmt.Println(arg)
+			fmt.Println("hehe")
+			args = append(args, "--build-arg", arg)
+		}
+	} else {
+		for _, arg := range build.Args {
+			args = append(args, "--build-arg", arg)
+		}
 	}
 	for _, host := range build.AddHost {
 		args = append(args, "--add-host", host)
@@ -519,6 +529,10 @@ func addProxyValue(build *Build, key string) {
 		build.Args = append(build.Args, fmt.Sprintf("%s=%s", key, value))
 		build.Args = append(build.Args, fmt.Sprintf("%s=%s", strings.ToUpper(key), value))
 	}
+	if len(value) > 0 && !hasProxyBuildArgNew(build, key) {
+		build.ArgsNew = append(build.ArgsNew, fmt.Sprintf("%s=%s", key, value))
+		build.ArgsNew = append(build.ArgsNew, fmt.Sprintf("%s=%s", strings.ToUpper(key), value))
+	}
 }
 
 // helper function to get a proxy value from the environment.
@@ -539,6 +553,17 @@ func hasProxyBuildArg(build *Build, key string) bool {
 	keyUpper := strings.ToUpper(key)
 
 	for _, s := range build.Args {
+		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) {
+			return true
+		}
+	}
+
+	return false
+}
+func hasProxyBuildArgNew(build *Build, key string) bool {
+	keyUpper := strings.ToUpper(key)
+
+	for _, s := range build.ArgsNew {
 		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) {
 			return true
 		}
