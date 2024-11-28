@@ -64,7 +64,6 @@ type (
 		Labels      []string // Label map
 		Link        string   // Git repo link
 		NoCache     bool     // Docker build no-cache
-		NoPush      bool     // Set this flag if you only want to build the image, without pushing to a registry
 		Secret      string   // secret keypair
 		SecretEnvs  []string // Docker build secrets with env var as source
 		SecretFiles []string // Docker build secrets with file as source
@@ -248,16 +247,8 @@ func (p Plugin) Exec() error {
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
-	}
 
-	if p.Build.TarPath != "" {
-		if saveCmd := commandSave(p.Build); saveCmd != nil {
-			cmds = append(cmds, saveCmd)
-		}
-	}
-
-	if !p.Dryrun && !p.Build.NoPush {
-		for _, tag := range p.Build.Tags {
+		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
 	}
