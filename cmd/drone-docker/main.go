@@ -313,6 +313,11 @@ func main() {
 			EnvVar: "PLUGIN_TAR_PATH",
 		},
 		cli.StringFlag{
+			Name:   "local-tarball-path",
+			Usage:  "Path to local tarball to push",
+			EnvVar: "PLUGIN_LOCAL_TARBALL_PATH",
+		},
+		cli.StringFlag{
 			Name:   "access-token",
 			Usage:  "access token",
 			EnvVar: "ACCESS_TOKEN",
@@ -391,6 +396,7 @@ func run(c *cli.Context) error {
 		BaseImageRegistry: c.String("docker.baseimageregistry"),
 		BaseImageUsername: c.String("docker.baseimageusername"),
 		BaseImagePassword: c.String("docker.baseimagepassword"),
+		LocalTarballPath:  c.String("local-tar-path"),
 	}
 
 	if c.Bool("tags.auto") {

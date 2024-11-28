@@ -87,6 +87,7 @@ type (
 		BaseImageRegistry string // Docker registry to pull base image
 		BaseImageUsername string // Docker registry username to pull base image
 		BaseImagePassword string // Docker registry password to pull base image
+		LocalTarballPath  string // Path to local tarball to push
 	}
 
 	Card []struct {
@@ -251,6 +252,10 @@ func (p Plugin) Exec() error {
 		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
 		}
+	}
+
+	if p.LocalTarballPath != "" {
+		return p.pushLocalTarball()
 	}
 
 	if p.Build.TarPath != "" {
@@ -707,4 +712,75 @@ func commandSave(build Build) *exec.Cmd {
 		args = append(args, fmt.Sprintf("%s:%s", build.Repo, tag))
 	}
 	return exec.Command(dockerExe, args...)
+}
+
+func (p Plugin) pushLocalTarball() error {
+	if p.LocalTarballPath == "" {
+		return fmt.Errorf("local tarball path cannot be empty")
+	}
+
+	tarballPath, err := filepath.Abs(p.LocalTarballPath)
+	if err != nil {
+		return fmt.Errorf("error resolving tarball path: %v", err)
+	}
+
+	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
+		return fmt.Errorf("tarball file does not exist: %s", tarballPath)
+	}
+
+	// Verify the tarball can be loaded
+	loadCmd := exec.Command(dockerExe, "load", "-i", tarballPath)
+	loadOutput, loadErr := loadCmd.CombinedOutput()
+	if loadErr != nil {
+		return fmt.Errorf("error loading tarball: %v\nOutput: %s", loadErr, string(loadOutput))
+	}
+
+	// Parse the loaded image name from the load output
+	// Docker's load command typically outputs something like "Loaded image: imagename:tag"
+	var loadedImage string
+	outputStr := string(loadOutput)
+	if strings.Contains(outputStr, "Loaded image:") {
+		parts := strings.Split(outputStr, "Loaded image:")
+		if len(parts) > 1 {
+			loadedImage = strings.TrimSpace(parts[1])
+		}
+	}
+
+	// If we couldn't parse the image name, return an error
+	if loadedImage == "" {
+		return fmt.Errorf("could not determine loaded image name from tarball")
+	}
+
+	if p.Login.Password == "" && p.Login.AccessToken == "" {
+		return fmt.Errorf("no login credentials provided. Cannot push image")
+	}
+
+	if p.Build.Repo == "" {
+		return fmt.Errorf("repository name cannot be empty")
+	}
+
+	// Use the first tag or default to 'latest' if no tags are provided
+	tag := "latest"
+	if len(p.Build.Tags) > 0 {
+		tag = p.Build.Tags[0]
+	}
+
+	targetImage := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+
+	// Tag the loaded image with the target image name
+	tagCmd := exec.Command(dockerExe, "tag", loadedImage, targetImage)
+	if err := tagCmd.Run(); err != nil {
+		return fmt.Errorf("error tagging image: %v", err)
+	}
+
+	// Push the tagged image
+	pushCmd := exec.Command(dockerExe, "push", targetImage)
+	pushOutput, pushErr := pushCmd.CombinedOutput()
+	if pushErr != nil {
+		return fmt.Errorf("error pushing image: %v\nOutput: %s", pushErr, string(pushOutput))
+	}
+
+	fmt.Printf("Successfully pushed image: %s\n", targetImage)
+
+	return nil
 }
