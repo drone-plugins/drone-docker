@@ -411,14 +411,22 @@ func commandInfo() *exec.Cmd {
 
 // helper function to create the docker build command.
 func commandBuild(build Build) *exec.Cmd {
+	if build.Context == "" && build.Dockerfile == "" {
+		return nil
+	}
 	args := []string{
 		"build",
 		"--rm=true",
-		"-f", build.Dockerfile,
-		"-t", build.TempTag,
+	}
+	if build.Dockerfile != "" {
+		args = append(args, "-f", build.Dockerfile)
 	}
 
-	args = append(args, build.Context)
+	args = append(args, "-t", build.TempTag)
+
+	if build.Context != "" {
+		args = append(args, build.Context)
+	}
 	if build.Squash {
 		args = append(args, "--squash")
 	}
