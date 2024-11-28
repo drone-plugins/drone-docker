@@ -115,7 +115,6 @@ func main() {
 		cli.StringFlag{
 			Name:   "dockerfile",
 			Usage:  "build dockerfile",
-			Value:  "Dockerfile",
 			EnvVar: "PLUGIN_DOCKERFILE",
 		},
 		cli.StringFlag{
