@@ -254,6 +254,12 @@ func (p Plugin) Exec() error {
 	}
 
 	if p.Build.TarPath != "" {
+		tarDir := filepath.Dir(p.Build.TarPath)
+		if _, err := os.Stat(tarDir); os.IsNotExist(err) {
+			if mkdirErr := os.MkdirAll(tarDir, 0755); mkdirErr != nil {
+				return fmt.Errorf("failed to create directory for tar path %s: %v", tarDir, mkdirErr)
+			}
+		}
 		if saveCmd := commandSave(p.Build); saveCmd != nil {
 			cmds = append(cmds, saveCmd)
 		}
