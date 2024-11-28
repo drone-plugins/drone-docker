@@ -253,6 +253,12 @@ func (p Plugin) Exec() error {
 		}
 	}
 
+	if p.Build.TarPath != "" {
+		if saveCmd := commandSave(p.Build); saveCmd != nil {
+			cmds = append(cmds, saveCmd)
+		}
+	}
+
 	// execute all commands in batch mode.
 	for _, cmd := range cmds {
 		cmd.Stdout = os.Stdout
