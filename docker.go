@@ -417,8 +417,6 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	if build.IsMultipleBuildArgs {
 		for _, arg := range build.ArgsNew {
-			fmt.Println(arg)
-			fmt.Println("hehe")
 			args = append(args, "--build-arg", arg)
 		}
 	} else {
