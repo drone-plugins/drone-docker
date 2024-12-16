@@ -23,7 +23,7 @@ func TestTrimHostname(t *testing.T) {
 	}
 }
 
-func TestGetTagImmutableString(t *testing.T) {
+func TestGetTagMutabilityString(t *testing.T) {
 	testCases := []struct {
 		name         string
 		tagImmutable bool
@@ -43,7 +43,7 @@ func TestGetTagImmutableString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := getTagImmutableString(tc.tagImmutable)
+			actual := getTagMutabilityString(tc.tagImmutable)
 			if actual != tc.expected {
 				t.Errorf("expected: %s, actual: %s", tc.expected, actual)
 			}

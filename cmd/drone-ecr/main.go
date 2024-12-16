@@ -79,7 +79,7 @@ func main() {
 	}
 
 	if create {
-		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush, getTagImmutableString(tagImmutable))
+		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush, getTagMutabilityString(tagImmutable))
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
 		}
@@ -87,7 +87,7 @@ func main() {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error updating scan on push for ECR repo: %v", err))
 		}
-		err = updateImageTagMutabilityConfig(svc, trimHostname(repo, registry), getTagImmutableString(tagImmutable))
+		err = updateImageTagMutabilityConfig(svc, trimHostname(repo, registry), getTagMutabilityString(tagImmutable))
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error updating tag mutability for ECR repo: %v", err))
 		}
@@ -219,7 +219,7 @@ func parseBoolOrDefault(defaultValue bool, s string) (result bool) {
 	return
 }
 
-func getTagImmutableString(tagImmutable bool) string {
+func getTagMutabilityString(tagImmutable bool) string {
 	immutableTagInput := ecr.ImageTagMutabilityMutable
 	if tagImmutable {
 		immutableTagInput = ecr.ImageTagMutabilityImmutable
