@@ -42,6 +42,7 @@ func main() {
 		assumeRole       = getenv("PLUGIN_ASSUME_ROLE")
 		externalId       = getenv("PLUGIN_EXTERNAL_ID")
 		scanOnPush       = parseBoolOrDefault(false, getenv("PLUGIN_SCAN_ON_PUSH"))
+		tagImmutable     = parseBoolOrDefault(false, getenv("PLUGIN_TAG_IMMUTABLE"))
 		idToken          = os.Getenv("PLUGIN_OIDC_TOKEN_ID")
 	)
 
@@ -78,13 +79,17 @@ func main() {
 	}
 
 	if create {
-		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush)
+		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush, getTagMutabilityString(tagImmutable))
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
 		}
 		err = updateImageScannningConfig(svc, trimHostname(repo, registry), scanOnPush)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error updating scan on push for ECR repo: %v", err))
+		}
+		err = updateImageTagMutabilityConfig(svc, trimHostname(repo, registry), getTagMutabilityString(tagImmutable))
+		if err != nil {
+			log.Fatal(fmt.Sprintf("error updating tag mutability for ECR repo: %v", err))
 		}
 	}
 
@@ -129,10 +134,11 @@ func trimHostname(repo, registry string) string {
 	return repo
 }
 
-func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
+func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool, tagMutabilityOption string) (err error) {
 	input := &ecr.CreateRepositoryInput{}
 	input.SetRepositoryName(name)
 	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
+	input.SetImageTagMutability(tagMutabilityOption)
 	_, err = svc.CreateRepository(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ecr.ErrCodeRepositoryAlreadyExistsException {
@@ -149,6 +155,15 @@ func updateImageScannningConfig(svc *ecr.ECR, name string, scanOnPush bool) (err
 	input.SetRepositoryName(name)
 	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
 	_, err = svc.PutImageScanningConfiguration(input)
+
+	return err
+}
+
+func updateImageTagMutabilityConfig(svc *ecr.ECR, name string, tagMutabilityOption string) (err error) {
+	input := &ecr.PutImageTagMutabilityInput{}
+	input.SetRepositoryName(name)
+	input.SetImageTagMutability(tagMutabilityOption)
+	_, err = svc.PutImageTagMutability(input)
 
 	return err
 }
@@ -202,6 +217,14 @@ func parseBoolOrDefault(defaultValue bool, s string) (result bool) {
 	}
 
 	return
+}
+
+func getTagMutabilityString(tagImmutable bool) string {
+	immutableTagInput := ecr.ImageTagMutabilityMutable
+	if tagImmutable {
+		immutableTagInput = ecr.ImageTagMutabilityImmutable
+	}
+	return immutableTagInput
 }
 
 func getenv(key ...string) (s string) {
