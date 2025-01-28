@@ -1,6 +1,7 @@
 # escape=`
-# using 1809-KB5021237-amd64 as base image, 1809-KB5022286-amd64 does not work
-FROM mcr.microsoft.com/windows/servercore:1809-KB5021237 as download
+
+# Using ltsc2019 as base image
+FROM mcr.microsoft.com/windows/servercore:ltsc2019 as download
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
@@ -12,10 +13,9 @@ RUN Invoke-WebRequest 'http://constexpr.org/innoextract/files/innoextract-1.6-wi
 
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
     Invoke-WebRequest $('https://github.com/docker/toolbox/releases/download/v{0}/DockerToolbox-{0}.exe' -f $env:DOCKER_VERSION) -OutFile 'dockertoolbox.exe' -UseBasicParsing
+
 RUN /innoextract.exe dockertoolbox.exe
-
-FROM mcr.microsoft.com/windows/nanoserver:1809-KB5021237-amd64
-
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2019
 USER ContainerAdministrator
 
 LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
