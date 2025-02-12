@@ -25,9 +25,7 @@ inputSet:
                         identifier: Build_Push
                         type: Run
                         spec:
-                          command: |-
-                            go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo>
-                                                  ./cmd/drone-<+matrix.repo>
+                          command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                     - step:
                         identifier: Docker_Build_and_Push
                         type: Plugin
@@ -54,9 +52,7 @@ inputSet:
                         identifier: buildpush
                         type: Run
                         spec:
-                          command: |-
-                            go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo>
-                                                  ./cmd/drone-<+matrix.repo>
+                          command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                     - step:
                         identifier: Docker_Build_and_Push
                         type: Plugin
