@@ -1,5 +1,6 @@
 inputSet:
   name: event-Push
+  tags: {}
   identifier: eventPush
   orgIdentifier: default
   projectIdentifier: Drone_Plugins
@@ -13,104 +14,105 @@ inputSet:
             spec:
               branch: <+trigger.branch>
     stages:
-      - stage:
-          identifier: linamd64
-          type: CI
-          spec:
-            execution:
-              steps:
-                - step:
-                    identifier: Build_Push
-                    type: Run
-                    spec:
-                      command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
-                - step:
-                    identifier: Docker_Build_and_Push
-                    type: Plugin
-                    spec:
-                      settings:
-                        repo: plugins/<+matrix.repo>
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
-                        auto_tag_suffix: linux-amd64
-                - step:
-                    identifier: BuildAndPushDockerRegistry_1
-                    type: BuildAndPushDockerRegistry
-                    spec:
-                      repo: plugins/<+matrix.repo>
-                      tags:
-                        - linux-amd64
-                      dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
-      - stage:
-          identifier: linarm64
-          type: CI
-          spec:
-            execution:
-              steps:
-                - step:
-                    identifier: buildpush
-                    type: Run
-                    spec:
-                      command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
-                - step:
-                    identifier: Docker_Build_and_Push
-                    type: Plugin
-                    spec:
-                      settings:
-                        repo: plugins/<+matrix.repo>
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
-                        auto_tag_suffix: linux-arm64
-                - step:
-                    identifier: BuildAndPushDockerRegistry_1
-                    type: BuildAndPushDockerRegistry
-                    spec:
-                      repo: plugins/<+matrix.repo>
-                      tags:
-                        - linux-arm64
-                      dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
-      - stage:
-          identifier: win1809amd64
-          type: CI
-          spec:
-            execution:
-              steps:
-                - step:
-                    identifier: Docker_Build_and_Push1
-                    type: Plugin
-                    spec:
-                      settings:
-                        repo: plugins/<+matrix.repo>
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                        auto_tag_suffix: windows-1809-amd64
-                - step:
-                    identifier: BuildAndPushDockerRegistry_2
-                    type: BuildAndPushDockerRegistry
-                    spec:
-                      repo: plugins/<+matrix.repo>
-                      tags:
-                        - windows-1809-amd64
-                      dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-      - stage:
-          identifier: winamd64
-          type: CI
-          spec:
-            execution:
-              steps:
-                - step:
-                    identifier: Docker_Build_and_Push1
-                    type: Plugin
-                    spec:
-                      settings:
-                        repo: plugins/<+matrix.repo>
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
-                        auto_tag_suffix: windows-ltsc2022-amd64
-                - step:
-                    identifier: BuildAndPushDockerRegistry_2
-                    type: BuildAndPushDockerRegistry
-                    spec:
-                      repo: plugins/<+matrix.repo>
-                      tags:
-                        - windows-ltsc2022-amd64
-                      dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+      - parallel:
+          - stage:
+              identifier: linamd64
+              type: CI
+              spec:
+                execution:
+                  steps:
+                    - step:
+                        identifier: Build_Push
+                        type: Run
+                        spec:
+                          command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
+                    - step:
+                        identifier: Docker_Build_and_Push
+                        type: Plugin
+                        spec:
+                          settings:
+                            repo: plugins/<+matrix.repo>
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
+                            auto_tag_suffix: linux-amd64
+                    - step:
+                        identifier: BuildAndPushDockerRegistry_1
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          repo: plugins/<+matrix.repo>
+                          tags:
+                            - linux-amd64
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
+          - stage:
+              identifier: linarm64
+              type: CI
+              spec:
+                execution:
+                  steps:
+                    - step:
+                        identifier: buildpush
+                        type: Run
+                        spec:
+                          command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
+                    - step:
+                        identifier: Docker_Build_and_Push
+                        type: Plugin
+                        spec:
+                          settings:
+                            repo: plugins/<+matrix.repo>
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
+                            auto_tag_suffix: linux-arm64
+                    - step:
+                        identifier: BuildAndPushDockerRegistry_1
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          repo: plugins/<+matrix.repo>
+                          tags:
+                            - linux-arm64
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
+          - stage:
+              identifier: win1809amd64
+              type: CI
+              spec:
+                execution:
+                  steps:
+                    - step:
+                        identifier: Docker_Build_and_Push1
+                        type: Plugin
+                        spec:
+                          settings:
+                            repo: plugins/<+matrix.repo>
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                            auto_tag_suffix: windows-1809-amd64
+                    - step:
+                        identifier: BuildAndPushDockerRegistry_2
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          repo: plugins/<+matrix.repo>
+                          tags:
+                            - windows-1809-amd64
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+          - stage:
+              identifier: winamd64
+              type: CI
+              spec:
+                execution:
+                  steps:
+                    - step:
+                        identifier: Docker_Build_and_Push1
+                        type: Plugin
+                        spec:
+                          settings:
+                            repo: plugins/<+matrix.repo>
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                            auto_tag_suffix: windows-ltsc2022-amd64
+                    - step:
+                        identifier: BuildAndPushDockerRegistry_2
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          repo: plugins/<+matrix.repo>
+                          tags:
+                            - windows-ltsc2022-amd64
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
       - stage:
           identifier: Manifest
           type: CI
