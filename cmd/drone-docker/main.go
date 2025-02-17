@@ -10,8 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	docker "github.com/drone-plugins/drone-docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -101,6 +102,11 @@ func main() {
 			Name:   "daemon.experimental",
 			Usage:  "docker daemon Experimental mode",
 			EnvVar: "PLUGIN_EXPERIMENTAL",
+		},
+		cli.BoolFlag{
+			Name:   "daemon.containerd-image-store",
+			Usage:  "docker daemon containerd image store",
+			EnvVar: "PLUGIN_CONTAINERD_IMAGE_STORE",
 		},
 		cli.BoolFlag{
 			Name:   "daemon.debug",
@@ -380,20 +386,21 @@ func run(c *cli.Context) error {
 			SSHAgentKey:         c.String("ssh-agent-key"),
 		},
 		Daemon: docker.Daemon{
-			Registry:      c.String("docker.registry"),
-			Mirror:        c.String("daemon.mirror"),
-			StorageDriver: c.String("daemon.storage-driver"),
-			StoragePath:   c.String("daemon.storage-path"),
-			Insecure:      c.Bool("daemon.insecure"),
-			Disabled:      c.Bool("daemon.off"),
-			IPv6:          c.Bool("daemon.ipv6"),
-			Debug:         c.Bool("daemon.debug"),
-			Bip:           c.String("daemon.bip"),
-			DNS:           c.StringSlice("daemon.dns"),
-			DNSSearch:     c.StringSlice("daemon.dns-search"),
-			MTU:           c.String("daemon.mtu"),
-			Experimental:  c.Bool("daemon.experimental"),
-			RegistryType:  registryType,
+			Registry:                    c.String("docker.registry"),
+			Mirror:                      c.String("daemon.mirror"),
+			StorageDriver:               c.String("daemon.storage-driver"),
+			StoragePath:                 c.String("daemon.storage-path"),
+			Insecure:                    c.Bool("daemon.insecure"),
+			Disabled:                    c.Bool("daemon.off"),
+			IPv6:                        c.Bool("daemon.ipv6"),
+			Debug:                       c.Bool("daemon.debug"),
+			Bip:                         c.String("daemon.bip"),
+			DNS:                         c.StringSlice("daemon.dns"),
+			DNSSearch:                   c.StringSlice("daemon.dns-search"),
+			MTU:                         c.String("daemon.mtu"),
+			Experimental:                c.Bool("daemon.experimental"),
+			RegistryType:                registryType,
+			ContainerdImageStoreEnabled: c.Bool("daemon.containerd-image-store"),
 		},
 		BaseImageRegistry: c.String("docker.baseimageregistry"),
 		BaseImageUsername: c.String("docker.baseimageusername"),
