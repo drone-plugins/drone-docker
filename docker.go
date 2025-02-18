@@ -61,6 +61,7 @@ type (
 		Squash              bool     // Docker build squash
 		Pull                bool     // Docker build pull
 		CacheFrom           []string // Docker build cache-from
+		CacheFromExplicit   string   // Docker build cache-from with comma support
 		CacheTo             string   // Docker build cache-to
 		Compress            bool     // Docker build compress
 		Repo                string   // Docker build repository
@@ -414,6 +415,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
+	}
+	if build.CacheFromExplicit != "" {
+		args = append(args, "--cache-from", build.CacheFromExplicit)
 	}
 	if build.CacheTo != "" {
 		args = append(args, "--cache-to", build.CacheTo)

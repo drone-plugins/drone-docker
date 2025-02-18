@@ -184,6 +184,11 @@ func main() {
 			EnvVar: "PLUGIN_CACHE_FROM",
 		},
 		cli.StringFlag{
+			Name:   "cache-from-explicit",
+			Usage:  "image to consider as cache source fully specified",
+			EnvVar: "PLUGIN_CACHE_FROM_EXPLICIT",
+		},
+		cli.StringFlag{
 			Name:   "cache-to",
 			Usage:  "images to consider as cache stores",
 			EnvVar: "PLUGIN_CACHE_TO",
