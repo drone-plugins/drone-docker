@@ -183,6 +183,11 @@ func main() {
 			Usage:  "images to consider as cache sources",
 			EnvVar: "PLUGIN_CACHE_FROM",
 		},
+		cli.StringFlag{
+			Name:   "cache-to",
+			Usage:  "images to consider as cache stores",
+			EnvVar: "PLUGIN_CACHE_TO",
+		},
 		cli.BoolFlag{
 			Name:   "squash",
 			Usage:  "squash the layers at build time",
@@ -370,6 +375,7 @@ func run(c *cli.Context) error {
 			Squash:              c.Bool("squash"),
 			Pull:                c.BoolT("pull-image"),
 			CacheFrom:           c.StringSlice("cache-from"),
+			CacheTo:             c.String("cache-to"),
 			Compress:            c.Bool("compress"),
 			Repo:                c.String("repo"),
 			Labels:              c.StringSlice("custom-labels"),
