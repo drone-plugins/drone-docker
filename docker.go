@@ -61,6 +61,7 @@ type (
 		Squash              bool     // Docker build squash
 		Pull                bool     // Docker build pull
 		CacheFrom           []string // Docker build cache-from
+		CacheTo             string   // Docker build cache-to
 		Compress            bool     // Docker build compress
 		Repo                string   // Docker build repository
 		LabelSchema         []string // label-schema Label map
@@ -413,6 +414,9 @@ func commandBuild(build Build) *exec.Cmd {
 	}
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
+	}
+	if build.CacheTo != "" {
+		args = append(args, "--cache-to", build.CacheTo)
 	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
