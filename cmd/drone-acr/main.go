@@ -28,7 +28,7 @@ type subscriptionUrlResponse struct {
 }
 
 const (
-	acrCertPath              = "/tmp/acr-cert.pem"
+	acrCertFile              = "acr-cert.pem"
 	azSubscriptionApiVersion = "2021-04-01"
 	azSubscriptionBaseUrl    = "https://management.azure.com/subscriptions/"
 	basePublicUrl            = "https://portal.azure.com/#view/Microsoft_Azure_ContainerRegistries/TagMetadataBlade/registryId/"
@@ -39,6 +39,10 @@ const (
 	clientSecretKeyEnv = "AZURE_CLIENT_SECRET"
 	tenantKeyEnv       = "AZURE_TENANT_ID"
 	certPathEnv        = "AZURE_CLIENT_CERTIFICATE_PATH"
+)
+
+var (
+	acrCertPath = filepath.Join(os.TempDir(), acrCertFile)
 )
 
 func main() {
