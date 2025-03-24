@@ -33,7 +33,7 @@ pipeline:
                   identifier: Run_1
                   spec:
                     connectorRef: account.harnessImage
-                    image: golang:1.22.4
+                    image: golang:1.23.0
                     shell: Sh
                     command: go vet ./...
               - step:
@@ -42,7 +42,7 @@ pipeline:
                   identifier: Run_2
                   spec:
                     connectorRef: account.harnessImage
-                    image: golang:1.22.4
+                    image: golang:1.23.0
                     shell: Sh
                     command: go test -cover ./...
     - parallel:
