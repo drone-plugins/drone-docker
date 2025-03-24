@@ -70,7 +70,7 @@ pipeline:
                       identifier: Build_Push
                       spec:
                         connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        image: golang:1.23.0
                         shell: Sh
                         command: <+input>
                         envVariables:
@@ -138,7 +138,7 @@ pipeline:
                       identifier: buildpush
                       spec:
                         connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        image: golang:1.23.0
                         shell: Sh
                         command: <+input>
                         envVariables:
@@ -206,7 +206,7 @@ pipeline:
                       identifier: go_build
                       spec:
                         connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        image: golang:1.23.0
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -281,7 +281,7 @@ pipeline:
                       identifier: build_amd64ltsc2022
                       spec:
                         connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        image: golang:1.23.0
                         shell: Sh
                         command: |-
                           # disable cgo
