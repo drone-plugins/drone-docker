@@ -293,7 +293,7 @@ pipeline:
                         repo: plugins/<+matrix.repo>
                         tags:
                           - windows-1809-amd64
-                        caching: true
+                        caching: false
                         dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
                       when:
                         stageStatus: Success
