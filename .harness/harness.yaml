@@ -32,8 +32,8 @@ pipeline:
                   name: GO VET
                   identifier: Run_1
                   spec:
-                    connectorRef: account.harnessImage
-                    image: golang:1.22.4
+                    connectorRef: Plugins_Docker_Hub_Connector
+                    image: golang:1.23.0
                     shell: Sh
                     command: go vet ./...
               - step:
@@ -41,8 +41,8 @@ pipeline:
                   name: GO TEST
                   identifier: Run_2
                   spec:
-                    connectorRef: account.harnessImage
-                    image: golang:1.22.4
+                    connectorRef: Plugins_Docker_Hub_Connector
+                    image: golang:1.23.0
                     shell: Sh
                     command: go test -cover ./...
     - parallel:
@@ -69,12 +69,21 @@ pipeline:
                       name: Build Binary
                       identifier: Build_Push
                       spec:
-                        connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
                         shell: Sh
-                        command: <+input>
+                        command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
                   - step:
                       type: Plugin
                       name: Build and Push on Tag
@@ -85,35 +94,45 @@ pipeline:
                         settings:
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                          repo: <+input>
-                          dockerfile: <+input>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
                           auto_tag: "true"
-                          auto_tag_suffix: <+input>
+                          auto_tag_suffix: linux-amd64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
                   - step:
                       type: BuildAndPushDockerRegistry
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_1
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        repo: <+input>
-                        tags: <+input>
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - linux-amd64
                         caching: true
-                        dockerfile: <+input>
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.linux.amd64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
-            strategy:
-              matrix:
-                repo:
-                  - docker
-                  - gcr
-                  - gar
-                  - ecr
-                  - heroku
-                  - acr
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
         - stage:
             name: linux-arm64
             identifier: linarm64
@@ -137,12 +156,21 @@ pipeline:
                       name: Build Binary
                       identifier: buildpush
                       spec:
-                        connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
                         shell: Sh
-                        command: <+input>
+                        command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
                   - step:
                       type: Plugin
                       name: Build and Push on Tag
@@ -153,35 +181,45 @@ pipeline:
                         settings:
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                          repo: <+input>
-                          dockerfile: <+input>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
                           auto_tag: "true"
-                          auto_tag_suffix: <+input>
+                          auto_tag_suffix: linux-arm64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
                   - step:
                       type: BuildAndPushDockerRegistry
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_1
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        repo: <+input>
-                        tags: <+input>
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - linux-arm64
                         caching: true
-                        dockerfile: <+input>
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.linux.arm64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
-            strategy:
-              matrix:
-                repo:
-                  - docker
-                  - gcr
-                  - gar
-                  - ecr
-                  - heroku
-                  - acr
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - heroku
+                            - acr
         - stage:
             name: win-1809-amd64
             identifier: win1809amd64
@@ -205,18 +243,22 @@ pipeline:
                       name: Build Binary
                       identifier: go_build
                       spec:
-                        connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
                         shell: Sh
                         command: |-
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-                          go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-                          go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-                          go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-                          go build -o release/windows/amd64/drone-gar.exe ./cmd/drone-gar
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
                   - step:
                       type: Plugin
                       name: Build and Push on Tag
@@ -227,34 +269,43 @@ pipeline:
                         settings:
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                          repo: <+input>
-                          dockerfile: <+input>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
                           auto_tag: "true"
-                          auto_tag_suffix: <+input>
+                          auto_tag_suffix: windows-1809-amd64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
                   - step:
                       type: BuildAndPushDockerRegistry
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_2
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        repo: <+input>
-                        tags: <+input>
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - windows-1809-amd64
                         caching: true
-                        dockerfile: <+input>
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
-            strategy:
-              matrix:
-                repo:
-                  - docker
-                  - gcr
-                  - gar
-                  - ecr
-                  - acr
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
             delegateSelectors:
               - windows-vm
         - stage:
@@ -280,20 +331,24 @@ pipeline:
                       name: Build Binary -ltsc2022
                       identifier: build_amd64ltsc2022
                       spec:
-                        connectorRef: account.harnessImage
-                        image: golang:1.22.4
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
                         shell: Sh
                         command: |-
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
-                          go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
-                          go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
-                          go build -o release/windows/amd64/drone-acr.exe ./cmd/drone-acr
-                          go build -o release/windows/amd64/drone-gar.exe ./cmd/drone-gar
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
                   - step:
                       type: Plugin
                       name: Build and Push on Tag
@@ -304,36 +359,45 @@ pipeline:
                         settings:
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                          repo: <+input>
-                          dockerfile: <+input>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
                           auto_tag: "true"
-                          auto_tag_suffix: <+input>
+                          auto_tag_suffix: windows-ltsc2022-amd64
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
                   - step:
                       type: BuildAndPushDockerRegistry
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_2
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        repo: <+input>
-                        tags: <+input>
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - windows-ltsc2022-amd64
                         caching: true
-                        dockerfile: <+input>
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
               buildIntelligence:
                 enabled: false
-            strategy:
-              matrix:
-                repo:
-                  - docker
-                  - gcr
-                  - gar
-                  - ecr
-                  - acr
     - stage:
         name: Manifest and Release
         identifier: Manifest
@@ -358,25 +422,25 @@ pipeline:
                       password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                       auto_tag: "true"
                       ignore_missing: "true"
-                      spec: <+input>
+                      spec: docker/<+matrix.repo>/manifest.tmpl
                   when:
                     stageStatus: Success
                     condition: <+codebase.build.type> == "tag" || <+codebase.build.type> == "branch"
+                  strategy:
+                    matrix:
+                      repo:
+                        - docker
+                        - gcr
+                        - gar
+                        - ecr
+                        - heroku
+                        - acr
           platform:
             os: Linux
             arch: Amd64
           runtime:
             type: Cloud
             spec: {}
-        strategy:
-          matrix:
-            repo:
-              - docker
-              - gcr
-              - gar
-              - ecr
-              - heroku
-              - acr
   identifier: dronedockerharness
   projectIdentifier: Drone_Plugins
   name: drone-docker-harness
