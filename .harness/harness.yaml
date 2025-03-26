@@ -444,3 +444,4 @@ pipeline:
   identifier: dronedockerharness
   projectIdentifier: Drone_Plugins
   name: drone-docker-harness
+  allowStageExecutions: true
