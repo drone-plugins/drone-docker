@@ -292,8 +292,15 @@ func (p Plugin) Exec() error {
 		// clear the slice
 		cmds = nil
 
+		// cleanup the tempTag
 		cmds = append(cmds, commandRmi(p.Build.TempTag)) // docker rmi
 		cmds = append(cmds, commandPrune())              // docker system prune -f
+
+		// cleanup the tags
+		for _, tag := range p.Build.Tags {
+			target := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+			cmds = append(cmds, commandRmi(target)) // docker tag
+		}
 
 		for _, cmd := range cmds {
 			cmd.Stdout = os.Stdout
