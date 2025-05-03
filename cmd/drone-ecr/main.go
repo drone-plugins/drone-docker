@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -94,7 +93,7 @@ func main() {
 	}
 
 	if lifecyclePolicy != "" {
-		p, err := ioutil.ReadFile(lifecyclePolicy)
+		p, err := os.ReadFile(lifecyclePolicy)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -104,7 +103,7 @@ func main() {
 	}
 
 	if repositoryPolicy != "" {
-		p, err := ioutil.ReadFile(repositoryPolicy)
+		p, err := os.ReadFile(repositoryPolicy)
 		if err != nil {
 			log.Fatal(err)
 		}
