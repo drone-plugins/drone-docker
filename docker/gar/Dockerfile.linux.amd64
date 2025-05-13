@@ -1,4 +1,4 @@
-FROM plugins/docker:linux-amd64
+FROM ebtasamfaridy/plugins-docker:2.1
 
 ADD release/linux/amd64/drone-gar /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-gar"]
