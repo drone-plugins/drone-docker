@@ -193,6 +193,9 @@ func (p Plugin) Exec() error {
 			fmt.Println(out)
 			return fmt.Errorf("Error authenticating base connector: exit status 1")
 		}
+	} else {
+		fmt.Println("\033[33mTo ensure consistent and reliable pipeline execution, we recommend setting up a Base Image Connector.\033[0m\n" +
+			"\033[33mWhile optional at this time, configuring it helps prevent failures caused by Docker Hub's rate limits.\033[0m")
 	}
 
 	// login to the Docker registry
