@@ -270,11 +270,6 @@ func (p Plugin) Exec() error {
 
 		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
-
-			// Add cosign signing after push
-			if p.shouldSignWithCosign() {
-				cmds = append(cmds, commandCosignSign(p.Build, tag, p.Cosign)) // cosign sign
-			}
 		}
 	}
 
@@ -291,10 +286,6 @@ func (p Plugin) Exec() error {
 			fmt.Printf("Could not prune system containers. Ignoring...\n")
 		} else if err != nil && isCommandRmi(cmd.Args) {
 			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
-		} else if err != nil && isCommandCosign(cmd.Args) {
-			fmt.Printf("⚠️  WARNING: Image signing failed: %s\n", err)
-			fmt.Printf("   Image was pushed successfully but could not be signed\n")
-			fmt.Printf("   This is not fatal - continuing with the build\n")
 		} else if err != nil {
 			return err
 		}
@@ -312,6 +303,31 @@ func (p Plugin) Exec() error {
 			}
 		} else {
 			fmt.Printf("Could not fetch the digest. %s\n", err)
+		}
+	}
+
+	// Handle cosign signing after all commands complete (like artifact generation)
+	if p.shouldSignWithCosign() && !p.Dryrun {
+		// Set up environment variables for cosign
+		os.Setenv("COSIGN_YES", "true")
+
+		if digest, err := getDigest(p.Build.TempTag); err == nil {
+			fmt.Printf("🔐 Found image digest: %s\n", digest)
+			
+			// Sign with digest reference
+			imageRef := fmt.Sprintf("%s@%s", p.Build.Repo, digest)
+			cosignCmd := createCosignCommand(imageRef, p.Cosign)
+			executeCosignCommand(cosignCmd)
+		} else {
+			fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
+			fmt.Printf("   Falling back to tag-based signing\n")
+			
+			// Fall back to tag-based signing for each tag
+			for _, tag := range p.Build.Tags {
+				imageRef := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+				cosignCmd := createCosignCommand(imageRef, p.Cosign)
+				executeCosignCommand(cosignCmd)
+			}
 		}
 	}
 
@@ -726,20 +742,6 @@ func getDigest(buildName string) (string, error) {
 	return "", errors.New("unable to fetch digest")
 }
 
-// getImageContentHash gets the content-addressable ID of a local image
-func getImageContentHash(imageName string) (string, error) {
-	// Use .Id format which gives us the content hash (sha256:hash format)
-	cmd := exec.Command(dockerExe, "inspect", "--format={{.Id}}", imageName)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	// Parse the output to extract the image ID
-	hash := strings.Trim(string(output), "\n")
-	return hash, nil
-}
-
 // shouldSignWithCosign determines if cosign signing should be performed
 func (p Plugin) shouldSignWithCosign() bool {
 	return p.Cosign.PrivateKey != ""
@@ -775,14 +777,12 @@ func validateCosignConfig(config CosignConfig) error {
 		if isEncryptedPEMKey(config.PrivateKey) && config.Password == "" {
 			return errors.New("🔐 Encrypted private key requires password. Set PLUGIN_COSIGN_PASSWORD")
 		}
-		fmt.Println("✅ Private key validation passed")
+
 	} else {
 		// File-based key - check if it's accessible (basic check)
 		if _, err := os.Stat(config.PrivateKey); err != nil {
 			fmt.Printf("⚠️  WARNING: Private key file may not be accessible: %s\n", config.PrivateKey)
 			fmt.Println("   This will be verified during signing")
-		} else {
-			fmt.Println("✅ Private key file validation passed")
 		}
 	}
 
@@ -803,12 +803,8 @@ func isValidPEMKey(pemContent string) bool {
 			strings.Contains(pemContent, "EC PRIVATE KEY"))
 }
 
-// commandCosignSign creates the cosign sign command
-func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
-	// We'll construct the proper command for signing
-	// All actual execution and logging will happen when the command runs
-
-	// First, set up the environment and command options
+// createCosignCommand creates a cosign sign command with the given image reference
+func createCosignCommand(imageRef string, cosign CosignConfig) *exec.Cmd {
 	args := []string{"sign", "--yes"}
 	
 	// Handle private key (content vs file path)
@@ -818,32 +814,35 @@ func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
 	} else {
 		args = append(args, "--key", cosign.PrivateKey)
 	}
-
+	
 	// Set password if provided
 	if cosign.Password != "" {
 		os.Setenv("COSIGN_PASSWORD", cosign.Password)
 	}
-
+	
 	// Add any extra parameters
 	if cosign.Params != "" {
 		extraArgs := strings.Fields(cosign.Params)
 		args = append(args, extraArgs...)
 	}
-
-	// Construct tag-based image reference as fallback
-	imageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
-
-	// Try to get image content hash for better security
-	contentHash, err := getImageContentHash(build.TempTag)
-	if err == nil && strings.Contains(contentHash, "sha256:") {
-		// Format as repository@digest for secure signing
-		imageRef = fmt.Sprintf("%s@%s", build.Repo, contentHash)
-	}
-
+	
 	// Add the image reference to sign
 	args = append(args, imageRef)
-
-	// Prepare the command
-	cmd := exec.Command(cosignExe, args...)
-	return cmd
+	
+	return exec.Command(cosignExe, args...)
 }
+
+// executeCosignCommand executes the given cosign command and handles errors
+func executeCosignCommand(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	fmt.Printf("🚀 Executing: %s %s\n", cmd.Path, strings.Join(cmd.Args[1:], " "))
+	
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("⚠️  WARNING: Image signing failed: %s\n", err)
+		fmt.Printf("   Image was pushed successfully but could not be signed\n")
+		fmt.Printf("   This is not fatal - continuing with the build\n")
+	}
+}
+
+
