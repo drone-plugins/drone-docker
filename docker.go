@@ -76,18 +76,26 @@ type (
 		SSHKeyPath          string   // Docker build ssh key path
 	}
 
+	// CosignConfig defines Cosign signing parameters.
+	CosignConfig struct {
+		PrivateKey string // Private key content (PEM format) or file path
+		Password   string // Password for encrypted private keys
+		Params     string // Additional cosign parameters
+	}
+
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login             Login  // Docker login configuration
-		Build             Build  // Docker build configuration
-		Daemon            Daemon // Docker daemon configuration
-		Dryrun            bool   // Docker push is skipped
-		Cleanup           bool   // Docker purge is enabled
-		CardPath          string // Card path to write file to
-		ArtifactFile      string // Artifact path to write file to
-		BaseImageRegistry string // Docker registry to pull base image
-		BaseImageUsername string // Docker registry username to pull base image
-		BaseImagePassword string // Docker registry password to pull base image
+		Login             Login        // Docker login configuration
+		Build             Build        // Docker build configuration
+		Daemon            Daemon       // Docker daemon configuration
+		Cosign            CosignConfig // Cosign signing configuration
+		Dryrun            bool         // Docker push is skipped
+		Cleanup           bool         // Docker purge is enabled
+		CardPath          string       // Card path to write file to
+		ArtifactFile      string       // Artifact path to write file to
+		BaseImageRegistry string       // Docker registry to pull base image
+		BaseImageUsername string       // Docker registry username to pull base image
+		BaseImagePassword string       // Docker registry password to pull base image
 	}
 
 	Card []struct {
@@ -249,11 +257,24 @@ func (p Plugin) Exec() error {
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
 
+	// Validate cosign configuration if present
+	if p.shouldSignWithCosign() {
+		if err := validateCosignConfig(p.Cosign); err != nil {
+			return fmt.Errorf("cosign validation failed: %w", err)
+		}
+		fmt.Println("🔐 Cosign signing enabled - images will be signed after push")
+	}
+
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
 
 		if !p.Dryrun {
 			cmds = append(cmds, commandPush(p.Build, tag)) // docker push
+
+			// Add cosign signing after push
+			if p.shouldSignWithCosign() {
+				cmds = append(cmds, commandCosignSign(p.Build, tag, p.Cosign)) // cosign sign
+			}
 		}
 	}
 
@@ -270,6 +291,10 @@ func (p Plugin) Exec() error {
 			fmt.Printf("Could not prune system containers. Ignoring...\n")
 		} else if err != nil && isCommandRmi(cmd.Args) {
 			fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
+		} else if err != nil && isCommandCosign(cmd.Args) {
+			fmt.Printf("⚠️  WARNING: Image signing failed: %s\n", err)
+			fmt.Printf("   Image was pushed successfully but could not be signed\n")
+			fmt.Printf("   This is not fatal - continuing with the build\n")
 		} else if err != nil {
 			return err
 		}
@@ -645,6 +670,11 @@ func isCommandRmi(args []string) bool {
 	return len(args) > 2 && args[1] == "rmi"
 }
 
+// helper to check if args match "cosign sign"
+func isCommandCosign(args []string) bool {
+	return len(args) > 1 && args[0] == cosignExe
+}
+
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
 }
@@ -694,4 +724,123 @@ func getDigest(buildName string) (string, error) {
 		return parts[1], nil
 	}
 	return "", errors.New("unable to fetch digest")
+}
+
+// shouldSignWithCosign determines if cosign signing should be performed
+func (p Plugin) shouldSignWithCosign() bool {
+	return p.Cosign.PrivateKey != ""
+}
+
+// validateCosignConfig validates the cosign configuration
+func validateCosignConfig(config CosignConfig) error {
+	if config.PrivateKey == "" {
+		return nil // No cosign config, skip silently
+	}
+
+	// Check if cosign binary is available
+	if _, err := exec.LookPath(cosignExe); err != nil {
+		fmt.Printf("❌ ERROR: cosign binary not found at %s\n", cosignExe)
+		fmt.Println("   Ensure you're using a plugin image that includes cosign")
+		return fmt.Errorf("cosign binary not available: %w", err)
+	}
+
+	// Check if it's trying to use keyless signing
+	if strings.Contains(config.Params, "--oidc") ||
+		strings.Contains(config.Params, "--identity-token") {
+		fmt.Println("⚠️  WARNING: Keyless signing (OIDC) isn't supported yet in this plugin. Use private key signing instead.")
+		return errors.New("keyless signing not supported")
+	}
+
+	// Validate private key format if it's PEM content
+	if strings.HasPrefix(config.PrivateKey, "-----BEGIN") {
+		if !isValidPEMKey(config.PrivateKey) {
+			return errors.New("❌ Invalid private key format. Expected PEM format")
+		}
+
+		// Check encrypted key password requirement
+		if isEncryptedPEMKey(config.PrivateKey) && config.Password == "" {
+			return errors.New("🔐 Encrypted private key requires password. Set PLUGIN_COSIGN_PASSWORD")
+		}
+		fmt.Println("✅ Private key validation passed")
+	} else {
+		// File-based key - check if it's accessible (basic check)
+		if _, err := os.Stat(config.PrivateKey); err != nil {
+			fmt.Printf("⚠️  WARNING: Private key file may not be accessible: %s\n", config.PrivateKey)
+			fmt.Println("   This will be verified during signing")
+		} else {
+			fmt.Println("✅ Private key file validation passed")
+		}
+	}
+
+	return nil
+}
+
+// isEncryptedPEMKey checks if a PEM key is encrypted
+func isEncryptedPEMKey(pemContent string) bool {
+	return strings.Contains(pemContent, "ENCRYPTED")
+}
+
+// isValidPEMKey performs basic PEM format validation
+func isValidPEMKey(pemContent string) bool {
+	return strings.Contains(pemContent, "-----BEGIN") &&
+		strings.Contains(pemContent, "-----END") &&
+		(strings.Contains(pemContent, "PRIVATE KEY") ||
+			strings.Contains(pemContent, "RSA PRIVATE KEY") ||
+			strings.Contains(pemContent, "EC PRIVATE KEY"))
+}
+
+// commandCosignSign creates the cosign sign command
+func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
+	// Get image digest for secure signing
+	digest, err := getDigest(build.TempTag)
+	if err != nil {
+		fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
+		fmt.Println("   Falling back to tag-based signing")
+		digest = ""
+	}
+
+	// Construct image reference
+	var imageRef string
+	if digest != "" {
+		imageRef = fmt.Sprintf("%s:%s@%s", build.Repo, tag, digest)
+		fmt.Printf("🔐 Signing image by digest: %s\n", imageRef)
+	} else {
+		imageRef = fmt.Sprintf("%s:%s", build.Repo, tag)
+		fmt.Printf("🔐 Signing image by tag: %s\n", imageRef)
+	}
+
+	args := []string{"sign"}
+
+	// Handle private key (content vs file path)
+	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
+		// PEM content - use environment variable method
+		args = append(args, "--key", "env://COSIGN_PRIVATE_KEY")
+		os.Setenv("COSIGN_PRIVATE_KEY", cosign.PrivateKey)
+		fmt.Println("🔑 Using private key from environment variable")
+
+		// Note: Environment variables will be cleaned up when process exits
+		// For long-running processes, consider manual cleanup after all signing is done
+	} else {
+		// File path method
+		args = append(args, "--key", cosign.PrivateKey)
+		fmt.Printf("🔑 Using private key from file: %s\n", cosign.PrivateKey)
+	}
+
+	// Set password environment variable
+	if cosign.Password != "" {
+		os.Setenv("COSIGN_PASSWORD", cosign.Password)
+		fmt.Println("🔐 Password provided for private key")
+	}
+
+	// Add custom parameters
+	if cosign.Params != "" {
+		extraArgs := strings.Fields(cosign.Params)
+		args = append(args, extraArgs...)
+		fmt.Printf("⚙️  Additional cosign parameters: %s\n", cosign.Params)
+	}
+
+	// Add image reference
+	args = append(args, imageRef)
+
+	return exec.Command(cosignExe, args...)
 }

@@ -22,6 +22,11 @@ LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
   org.label-schema.schema-version="1.0"
 
 RUN mkdir C:\bin
+
+# Install cosign for container image signing
+RUN powershell -Command \
+    "Invoke-WebRequest 'https://github.com/sigstore/cosign/releases/latest/download/cosign-windows-amd64.exe' -OutFile 'C:\bin\cosign.exe'"
+
 COPY --from=download /windows/system32/netapi32.dll /windows/system32/netapi32.dll
 COPY --from=download /app/docker.exe C:/bin/docker.exe
 ADD release/windows/amd64/drone-docker.exe C:/bin/drone-docker.exe
