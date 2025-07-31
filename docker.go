@@ -726,6 +726,20 @@ func getDigest(buildName string) (string, error) {
 	return "", errors.New("unable to fetch digest")
 }
 
+// getImageContentHash gets the content-addressable ID of a local image
+func getImageContentHash(imageName string) (string, error) {
+	// Use .Id format which gives us the content hash (sha256:hash format)
+	cmd := exec.Command(dockerExe, "inspect", "--format={{.Id}}", imageName)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	// Parse the output to extract the image ID
+	hash := strings.Trim(string(output), "\n")
+	return hash, nil
+}
+
 // shouldSignWithCosign determines if cosign signing should be performed
 func (p Plugin) shouldSignWithCosign() bool {
 	return p.Cosign.PrivateKey != ""
@@ -791,20 +805,13 @@ func isValidPEMKey(pemContent string) bool {
 
 // commandCosignSign creates the cosign sign command
 func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
-	imageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
+	// We'll construct the proper command for signing
+	// All actual execution and logging will happen when the command runs
 
-	digest, err := getDigest(build.TempTag)
-	if err != nil {
-		fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
-		fmt.Println("   Falling back to tag-based signing")
-		// Continue with tag-based signing
-	} else {
-		// Use digest-based signing for better security
-		imageRef = fmt.Sprintf("%s@%s", build.Repo, digest)
-		fmt.Printf("🔐 Signing image by digest: %s\n", imageRef)
-	}
-
+	// First, set up the environment and command options
 	args := []string{"sign", "--yes"}
+	
+	// Handle private key (content vs file path)
 	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
 		args = append(args, "--key", "env://COSIGN_PRIVATE_KEY")
 		os.Setenv("COSIGN_PRIVATE_KEY", cosign.PrivateKey)
@@ -812,20 +819,31 @@ func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
 		args = append(args, "--key", cosign.PrivateKey)
 	}
 
+	// Set password if provided
 	if cosign.Password != "" {
 		os.Setenv("COSIGN_PASSWORD", cosign.Password)
 	}
 
+	// Add any extra parameters
 	if cosign.Params != "" {
 		extraArgs := strings.Fields(cosign.Params)
 		args = append(args, extraArgs...)
-		fmt.Printf("⚙️  Additional cosign parameters: %s\n", cosign.Params)
 	}
 
-	// Add image reference
+	// Construct tag-based image reference as fallback
+	imageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
+
+	// Try to get image content hash for better security
+	contentHash, err := getImageContentHash(build.TempTag)
+	if err == nil && strings.Contains(contentHash, "sha256:") {
+		// Format as repository@digest for secure signing
+		imageRef = fmt.Sprintf("%s@%s", build.Repo, contentHash)
+	}
+
+	// Add the image reference to sign
 	args = append(args, imageRef)
 
+	// Prepare the command
 	cmd := exec.Command(cosignExe, args...)
-	fmt.Printf("🚀 Executing: %s %s\n", cosignExe, strings.Join(args, " "))
 	return cmd
 }
