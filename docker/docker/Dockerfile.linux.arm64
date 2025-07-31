@@ -2,5 +2,9 @@ FROM arm64v8/docker:28.1.1-dind
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
+# Install cosign for container image signing
+RUN wget -O /usr/local/bin/cosign https://github.com/sigstore/cosign/releases/download/v2.5.3/cosign-linux-arm64 \
+    && chmod +x /usr/local/bin/cosign
+
 ADD release/linux/arm64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
