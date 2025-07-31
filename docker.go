@@ -843,13 +843,10 @@ func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
 		args = append(args, "--key", cosign.PrivateKey)
 	}
 
-	// Set password and non-interactive environment variables
+	// Set password environment variable if provided
 	if cosign.Password != "" {
 		os.Setenv("COSIGN_PASSWORD", cosign.Password)
 	}
-
-	// Set COSIGN_YES for additional non-interactive assurance
-	os.Setenv("COSIGN_YES", "true")
 
 	// Add custom parameters (after our defaults so users can override)
 	if cosign.Params != "" {
