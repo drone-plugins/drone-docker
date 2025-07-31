@@ -711,22 +711,20 @@ func GetDroneDockerExecCmd() string {
 }
 
 func getDigest(buildName string) (string, error) {
-	cmd := exec.Command("docker", "inspect", "--format={{index .RepoDigests 0}}", buildName)
+	cmd := exec.Command("docker", "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
 
 	// Parse the output to extract the repo digest.
-	digest := strings.Trim(string(output), "\n")
+	digest := strings.Trim(string(output), "'\n")
 	parts := strings.Split(digest, "@")
 	if len(parts) > 1 {
 		return parts[1], nil
 	}
 	return "", errors.New("unable to fetch digest")
 }
-
-// Note: getDigestFromRegistry function removed - using getDigest() instead
 
 // shouldSignWithCosign determines if cosign signing should be performed
 func (p Plugin) shouldSignWithCosign() bool {
@@ -793,11 +791,9 @@ func isValidPEMKey(pemContent string) bool {
 
 // commandCosignSign creates the cosign sign command
 func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
-	// Use the tagged image reference that was actually pushed
 	imageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
-	
-	// Try to get image digest for secure signing from the pushed image
-	digest, err := getDigest(imageRef)
+
+	digest, err := getDigest(build.TempTag)
 	if err != nil {
 		fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
 		fmt.Println("   Falling back to tag-based signing")
@@ -808,25 +804,18 @@ func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
 		fmt.Printf("🔐 Signing image by digest: %s\n", imageRef)
 	}
 
-	// Start with base sign command and non-interactive flag
 	args := []string{"sign", "--yes"}
-
-	// Handle private key (content vs file path)
 	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
-		// PEM content - use environment variable method
 		args = append(args, "--key", "env://COSIGN_PRIVATE_KEY")
 		os.Setenv("COSIGN_PRIVATE_KEY", cosign.PrivateKey)
 	} else {
-		// File path method
 		args = append(args, "--key", cosign.PrivateKey)
 	}
 
-	// Set password environment variable if provided
 	if cosign.Password != "" {
 		os.Setenv("COSIGN_PASSWORD", cosign.Password)
 	}
 
-	// Add custom parameters (after our defaults so users can override)
 	if cosign.Params != "" {
 		extraArgs := strings.Fields(cosign.Params)
 		args = append(args, extraArgs...)
