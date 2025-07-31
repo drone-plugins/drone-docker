@@ -726,22 +726,7 @@ func getDigest(buildName string) (string, error) {
 	return "", errors.New("unable to fetch digest")
 }
 
-// getDigestFromRegistry gets the digest of a pushed image from the registry
-func getDigestFromRegistry(image string) (string, error) {
-	cmd := exec.Command(dockerExe, "inspect", "--format={{index .RepoDigests 0}}", image)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	// Parse the output to extract the repo digest.
-	digest := strings.Trim(string(output), "\n")
-	parts := strings.Split(digest, "@")
-	if len(parts) > 1 {
-		return parts[1], nil
-	}
-	return "", errors.New("unable to fetch digest from registry")
-}
+// Note: getDigestFromRegistry function removed - using getDigest() instead
 
 // shouldSignWithCosign determines if cosign signing should be performed
 func (p Plugin) shouldSignWithCosign() bool {
@@ -808,30 +793,23 @@ func isValidPEMKey(pemContent string) bool {
 
 // commandCosignSign creates the cosign sign command
 func commandCosignSign(build Build, tag string, cosign CosignConfig) *exec.Cmd {
-	// Try to get image digest from the pushed image for secure signing
-	pushedImageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
-	digest, err := getDigestFromRegistry(pushedImageRef)
+	// Use the tagged image reference that was actually pushed
+	imageRef := fmt.Sprintf("%s:%s", build.Repo, tag)
+	
+	// Try to get image digest for secure signing from the pushed image
+	digest, err := getDigest(imageRef)
 	if err != nil {
-		fmt.Printf("⚠️  WARNING: Could not get image digest from registry: %s\n", err)
+		fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
 		fmt.Println("   Falling back to tag-based signing")
-		digest = ""
-	}
-
-	// Construct image reference
-	var imageRef string
-	if digest != "" {
+		// Continue with tag-based signing
+	} else {
+		// Use digest-based signing for better security
 		imageRef = fmt.Sprintf("%s@%s", build.Repo, digest)
 		fmt.Printf("🔐 Signing image by digest: %s\n", imageRef)
-	} else {
-		imageRef = pushedImageRef
-		fmt.Printf("🔐 Signing image by tag: %s\n", imageRef)
 	}
 
 	// Start with base sign command and non-interactive flag
 	args := []string{"sign", "--yes"}
-
-	// Note: Transparency log upload is enabled by default
-	// Users can disable with --tlog-upload=false in cosign.Params if needed
 
 	// Handle private key (content vs file path)
 	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
