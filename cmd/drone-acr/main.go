@@ -20,6 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	docker "github.com/drone-plugins/drone-docker"
+	azureutil "github.com/drone-plugins/drone-docker/internal/azure"
 )
 
 type subscriptionUrlResponse struct {
@@ -62,12 +63,13 @@ func main() {
 		password = getenv("SERVICE_PRINCIPAL_CLIENT_SECRET")
 
 		// Service principal credentials
-		clientId       = getenv("CLIENT_ID")
+		clientId       = getenv("CLIENT_ID", "PLUGIN_CONNECTOR_AZURE_CLIENT_ID", "AZURE_APP_ID")
 		clientSecret   = getenv("CLIENT_SECRET")
 		clientCert     = getenv("CLIENT_CERTIFICATE")
-		tenantId       = getenv("TENANT_ID")
+		tenantId       = getenv("TENANT_ID", "PLUGIN_CONNECTOR_AZURE_TENANT_ID", "AZURE_TENANT_ID")
 		subscriptionId = getenv("SUBSCRIPTION_ID")
 		publicUrl      = getenv("DAEMON_REGISTRY")
+		idToken        = getenv("PLUGIN_OIDC_TOKEN_ID")
 	)
 
 	// default registry value
@@ -80,11 +82,28 @@ func main() {
 		// docker login credentials are not provided
 		var err error
 		username = defaultUsername
-		password, publicUrl, err = getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, registry)
-		if err != nil {
-			logrus.Fatal(err)
+		if idToken != "" && clientId != "" && tenantId != "" {
+			aadToken, err2 := azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, "")
+			if err2 != nil {
+				logrus.Fatal(err2)
+			}
+			if p, err3 := getPublicUrl(aadToken, registry, subscriptionId); err3 == nil {
+				publicUrl = p
+			} else if err3 != nil {
+				fmt.Fprintf(os.Stderr, "failed to get public url with error: %s\n", err3)
+			}
+			password, err = fetchACRToken(tenantId, aadToken, registry)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+		} else {
+			password, publicUrl, err = getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, registry)
+			if err != nil {
+				logrus.Fatal(err)
+			}
 		}
 	}
+
 
 	// must use the fully qualified repo name. If the
 	// repo name does not have the registry prefix we
