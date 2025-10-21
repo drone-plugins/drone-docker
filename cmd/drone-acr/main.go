@@ -63,12 +63,13 @@ func main() {
 		password = getenv("SERVICE_PRINCIPAL_CLIENT_SECRET")
 
 		// Service principal credentials
-		clientId       = getenv("CLIENT_ID", "PLUGIN_CONNECTOR_AZURE_CLIENT_ID", "AZURE_APP_ID")
+		clientId       = getenv("CLIENT_ID", "AZURE_CLIENT_ID", "AZURE_APP_ID", "PLUGIN_CLIENT_ID")
 		clientSecret   = getenv("CLIENT_SECRET")
 		clientCert     = getenv("CLIENT_CERTIFICATE")
-		tenantId       = getenv("TENANT_ID", "PLUGIN_CONNECTOR_AZURE_TENANT_ID", "AZURE_TENANT_ID")
+		tenantId       = getenv("TENANT_ID", "AZURE_TENANT_ID", "PLUGIN_TENANT_ID")
 		subscriptionId = getenv("SUBSCRIPTION_ID")
 		publicUrl      = getenv("DAEMON_REGISTRY")
+		authorityHost  = getenv("AZURE_AUTHORITY_HOST")
 		idToken        = getenv("PLUGIN_OIDC_TOKEN_ID")
 	)
 
@@ -83,7 +84,7 @@ func main() {
 		var err error
 		username = defaultUsername
 		if idToken != "" && clientId != "" && tenantId != "" {
-			aadToken, err2 := azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, "")
+			aadToken, err2 := azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
 			if err2 != nil {
 				logrus.Fatal(err2)
 			}
@@ -103,7 +104,6 @@ func main() {
 			}
 		}
 	}
-
 
 	// must use the fully qualified repo name. If the
 	// repo name does not have the registry prefix we

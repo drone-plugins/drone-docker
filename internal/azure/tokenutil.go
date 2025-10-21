@@ -7,16 +7,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 )
 
 const DefaultResource = "https://management.azure.com/"
+const defaultAuthorityHost = "https://login.microsoftonline.com"
+const defaultHTTPTimeout = 30 * time.Second
 
 // GetAADAccessTokenViaClientAssertion exchanges an external OIDC ID token for an Azure AD access token
 
-func GetAADAccessTokenViaClientAssertion(ctx context.Context, tenantID, clientID, oidcToken, resource string) (string, error) {
-	if resource == "" {
-		resource = DefaultResource
-	}
+func GetAADAccessTokenViaClientAssertion(ctx context.Context, tenantID, clientID, oidcToken, authorityHost string) (string, error) {
+    resource := DefaultResource
 
 	form := url.Values{
 		"client_id":             {clientID},
@@ -25,8 +27,23 @@ func GetAADAccessTokenViaClientAssertion(ctx context.Context, tenantID, clientID
 		"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
 		"client_assertion":      {oidcToken},
 	}
-	endpoint := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
-	resp, err := http.PostForm(endpoint, form)
+
+	base := authorityHost
+	if strings.TrimSpace(base) == "" {
+		base = defaultAuthorityHost
+	}
+	base = strings.TrimRight(base, "/")
+	endpoint := fmt.Sprintf("%s/%s/oauth2/v2.0/token", base, tenantID)
+
+	client := &http.Client{Timeout: defaultHTTPTimeout}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +63,7 @@ func GetAADAccessTokenViaClientAssertion(ctx context.Context, tenantID, clientID
 	var payload struct {
 		AccessToken string `json:"access_token"`
 		TokenType   string `json:"token_type"`
-        ExpiresIn   int    `json:"expires_in"`
+		ExpiresIn   int    `json:"expires_in"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return "", err
