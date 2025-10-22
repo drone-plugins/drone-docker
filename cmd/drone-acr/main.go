@@ -84,14 +84,17 @@ func main() {
 		var err error
 		username = defaultUsername
 		if idToken != "" && clientId != "" && tenantId != "" {
-			aadToken, err2 := azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
-			if err2 != nil {
-				logrus.Fatal(err2)
+			var aadToken string
+			aadToken, err = azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
+			if err != nil {
+				logrus.Fatal(err)
 			}
-			if p, err3 := getPublicUrl(aadToken, registry, subscriptionId); err3 == nil {
+			var p string
+			p, err = getPublicUrl(aadToken, registry, subscriptionId)
+			if err == nil {
 				publicUrl = p
-			} else if err3 != nil {
-				fmt.Fprintf(os.Stderr, "failed to get public url with error: %s\n", err3)
+			} else {
+				fmt.Fprintf(os.Stderr, "failed to get public url with error: %s\n", err)
 			}
 			password, err = fetchACRToken(tenantId, aadToken, registry)
 			if err != nil {
