@@ -64,8 +64,8 @@ func main() {
 
 		// Service principal credentials
 		clientId       = getenv("CLIENT_ID", "AZURE_CLIENT_ID", "AZURE_APP_ID", "PLUGIN_CLIENT_ID")
-		clientSecret   = getenv("CLIENT_SECRET")
-		clientCert     = getenv("CLIENT_CERTIFICATE")
+		clientSecret   = getenv("CLIENT_SECRET", "PLUGIN_CLIENT_SECRET")
+		clientCert     = getenv("CLIENT_CERTIFICATE", "PLUGIN_CLIENT_CERTIFICATE")
 		tenantId       = getenv("TENANT_ID", "AZURE_TENANT_ID", "PLUGIN_TENANT_ID")
 		subscriptionId = getenv("SUBSCRIPTION_ID", "PLUGIN_SUBSCRIPTION_ID")
 		publicUrl      = getenv("DAEMON_REGISTRY", "PLUGIN_DAEMON_REGISTRY")
