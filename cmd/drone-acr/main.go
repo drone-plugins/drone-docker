@@ -84,6 +84,7 @@ func main() {
 		var err error
 		username = defaultUsername
 		if idToken != "" && clientId != "" && tenantId != "" {
+			logrus.Debug("Using OIDC authentication flow")
 			var aadToken string
 			aadToken, err = azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
 			if err != nil {
