@@ -241,11 +241,6 @@ func (p Plugin) Exec() error {
 	cmds = append(cmds, commandVersion()) // docker version
 	cmds = append(cmds, commandInfo())    // docker info
 
-	// pre-pull cache images
-	for _, img := range p.Build.CacheFrom {
-		cmds = append(cmds, commandPull(img))
-	}
-
 	// setup for using ssh agent (https://docs.docker.com/develop/develop-images/build_enhancements/#using-ssh-to-access-private-data-in-builds)
 	if p.Build.SSHAgentKey != "" {
 		var sshErr error
@@ -405,10 +400,6 @@ func commandLoginAccessToken(login Login, accessToken string) *exec.Cmd {
 // helper to check if args match "docker pull <image>"
 func isCommandPull(args []string) bool {
 	return len(args) > 2 && args[1] == "pull"
-}
-
-func commandPull(repo string) *exec.Cmd {
-	return exec.Command(dockerExe, "pull", repo)
 }
 
 func commandLoginEmail(login Login) *exec.Cmd {
