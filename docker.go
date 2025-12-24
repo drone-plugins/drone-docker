@@ -10,27 +10,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone-plugins/drone-docker/internal/docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
+
+	"github.com/drone-plugins/drone-docker/internal/docker"
 )
 
 type (
 	// Daemon defines Docker daemon parameters.
 	Daemon struct {
-		Registry      string             // Docker registry
-		Mirror        string             // Docker registry mirror
-		Insecure      bool               // Docker daemon enable insecure registries
-		StorageDriver string             // Docker daemon storage driver
-		StoragePath   string             // Docker daemon storage path
-		Disabled      bool               // DOcker daemon is disabled (already running)
-		Debug         bool               // Docker daemon started in debug mode
-		Bip           string             // Docker daemon network bridge IP address
-		DNS           []string           // Docker daemon dns server
-		DNSSearch     []string           // Docker daemon dns search domain
-		MTU           string             // Docker daemon mtu setting
-		IPv6          bool               // Docker daemon IPv6 networking
-		Experimental  bool               // Docker daemon enable experimental mode
-		RegistryType  drone.RegistryType // Docker registry type
+		Registry                    string             // Docker registry
+		Mirror                      string             // Docker registry mirror
+		Insecure                    bool               // Docker daemon enable insecure registries
+		StorageDriver               string             // Docker daemon storage driver
+		StoragePath                 string             // Docker daemon storage path
+		Disabled                    bool               // DOcker daemon is disabled (already running)
+		Debug                       bool               // Docker daemon started in debug mode
+		Bip                         string             // Docker daemon network bridge IP address
+		DNS                         []string           // Docker daemon dns server
+		DNSSearch                   []string           // Docker daemon dns search domain
+		MTU                         string             // Docker daemon mtu setting
+		IPv6                        bool               // Docker daemon IPv6 networking
+		Experimental                bool               // Docker daemon enable experimental mode
+		RegistryType                drone.RegistryType // Docker registry type
+		ContainerdImageStoreEnabled bool               // Docker daemon containerd image store enabled
 	}
 
 	// Login defines Docker login parameters.
@@ -59,6 +61,8 @@ type (
 		Squash              bool     // Docker build squash
 		Pull                bool     // Docker build pull
 		CacheFrom           []string // Docker build cache-from
+		CacheFromExplicit   string   // Docker build cache-from with comma support
+		CacheTo             string   // Docker build cache-to
 		Compress            bool     // Docker build compress
 		Repo                string   // Docker build repository
 		LabelSchema         []string // label-schema Label map
@@ -456,6 +460,12 @@ func commandBuild(build Build) *exec.Cmd {
 	for _, arg := range build.CacheFrom {
 		args = append(args, "--cache-from", arg)
 	}
+	if build.CacheFromExplicit != "" {
+		args = append(args, "--cache-from", build.CacheFromExplicit)
+	}
+	if build.CacheTo != "" {
+		args = append(args, "--cache-to", build.CacheTo)
+	}
 	for _, arg := range build.ArgsEnv {
 		addProxyValue(&build, arg)
 	}
@@ -636,6 +646,9 @@ func commandDaemon(daemon Daemon) *exec.Cmd {
 	args := []string{
 		"--data-root", daemon.StoragePath,
 		"--host=unix:///var/run/docker.sock",
+	}
+	if daemon.ContainerdImageStoreEnabled {
+		args = append(args, "--feature", "containerd-snapshotter=true")
 	}
 
 	if _, err := os.Stat("/etc/docker/default.json"); err == nil {

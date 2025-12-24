@@ -10,8 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	docker "github.com/drone-plugins/drone-docker"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
+
+	docker "github.com/drone-plugins/drone-docker"
 )
 
 var (
@@ -103,6 +104,11 @@ func main() {
 			EnvVar: "PLUGIN_EXPERIMENTAL",
 		},
 		cli.BoolFlag{
+			Name:   "daemon.containerd-image-store",
+			Usage:  "docker daemon containerd image store",
+			EnvVar: "PLUGIN_CONTAINERD_IMAGE_STORE",
+		},
+		cli.BoolFlag{
 			Name:   "daemon.debug",
 			Usage:  "docker daemon executes in debug mode",
 			EnvVar: "PLUGIN_DEBUG,DOCKER_LAUNCH_DEBUG",
@@ -176,6 +182,16 @@ func main() {
 			Name:   "cache-from",
 			Usage:  "images to consider as cache sources",
 			EnvVar: "PLUGIN_CACHE_FROM",
+		},
+		cli.StringFlag{
+			Name:   "cache-from-explicit",
+			Usage:  "image to consider as cache source fully specified",
+			EnvVar: "PLUGIN_CACHE_FROM_EXPLICIT",
+		},
+		cli.StringFlag{
+			Name:   "cache-to",
+			Usage:  "images to consider as cache stores",
+			EnvVar: "PLUGIN_CACHE_TO",
 		},
 		cli.BoolFlag{
 			Name:   "squash",
@@ -380,6 +396,7 @@ func run(c *cli.Context) error {
 			Squash:              c.Bool("squash"),
 			Pull:                c.BoolT("pull-image"),
 			CacheFrom:           c.StringSlice("cache-from"),
+			CacheTo:             c.String("cache-to"),
 			Compress:            c.Bool("compress"),
 			Repo:                c.String("repo"),
 			Labels:              c.StringSlice("custom-labels"),
@@ -396,20 +413,21 @@ func run(c *cli.Context) error {
 			SSHAgentKey:         c.String("ssh-agent-key"),
 		},
 		Daemon: docker.Daemon{
-			Registry:      c.String("docker.registry"),
-			Mirror:        c.String("daemon.mirror"),
-			StorageDriver: c.String("daemon.storage-driver"),
-			StoragePath:   c.String("daemon.storage-path"),
-			Insecure:      c.Bool("daemon.insecure"),
-			Disabled:      c.Bool("daemon.off"),
-			IPv6:          c.Bool("daemon.ipv6"),
-			Debug:         c.Bool("daemon.debug"),
-			Bip:           c.String("daemon.bip"),
-			DNS:           c.StringSlice("daemon.dns"),
-			DNSSearch:     c.StringSlice("daemon.dns-search"),
-			MTU:           c.String("daemon.mtu"),
-			Experimental:  c.Bool("daemon.experimental"),
-			RegistryType:  registryType,
+			Registry:                    c.String("docker.registry"),
+			Mirror:                      c.String("daemon.mirror"),
+			StorageDriver:               c.String("daemon.storage-driver"),
+			StoragePath:                 c.String("daemon.storage-path"),
+			Insecure:                    c.Bool("daemon.insecure"),
+			Disabled:                    c.Bool("daemon.off"),
+			IPv6:                        c.Bool("daemon.ipv6"),
+			Debug:                       c.Bool("daemon.debug"),
+			Bip:                         c.String("daemon.bip"),
+			DNS:                         c.StringSlice("daemon.dns"),
+			DNSSearch:                   c.StringSlice("daemon.dns-search"),
+			MTU:                         c.String("daemon.mtu"),
+			Experimental:                c.Bool("daemon.experimental"),
+			RegistryType:                registryType,
+			ContainerdImageStoreEnabled: c.Bool("daemon.containerd-image-store"),
 		},
 		BaseImageRegistry: c.String("docker.baseimageregistry"),
 		BaseImageUsername: c.String("docker.baseimageusername"),
