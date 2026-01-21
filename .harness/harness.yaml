@@ -33,7 +33,7 @@ pipeline:
                   identifier: Run_1
                   spec:
                     connectorRef: Plugins_Docker_Hub_Connector
-                    image: golang:1.25.5
+                    image: golang:1.24.11
                     shell: Sh
                     command: go vet ./...
               - step:
@@ -42,7 +42,7 @@ pipeline:
                   identifier: Run_2
                   spec:
                     connectorRef: Plugins_Docker_Hub_Connector
-                    image: golang:1.25.5
+                    image: golang:1.24.11
                     shell: Sh
                     command: go test -cover ./...
     - parallel:
@@ -70,7 +70,7 @@ pipeline:
                       identifier: Build_Push
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.5
+                        image: golang:1.24.11
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -157,7 +157,7 @@ pipeline:
                       identifier: buildpush
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.5
+                        image: golang:1.24.11
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -244,7 +244,7 @@ pipeline:
                       identifier: go_build
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.5
+                        image: golang:1.24.11
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -332,7 +332,7 @@ pipeline:
                       identifier: build_amd64ltsc2022
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.5
+                        image: golang:1.24.11
                         shell: Sh
                         command: |-
                           # disable cgo
