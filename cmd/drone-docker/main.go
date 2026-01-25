@@ -339,6 +339,16 @@ func main() {
 			Usage:  "additional cosign parameters (e.g., annotations, flags)",
 			EnvVar: "PLUGIN_COSIGN_PARAMS",
 		},
+		cli.BoolFlag{
+			Name:   "push-only",
+			Usage:  "skip build and only push images",
+			EnvVar: "PLUGIN_PUSH_ONLY",
+		},
+		cli.StringFlag{
+			Name:   "source-image",
+			Usage:  "source image to tag and push (format: repo:tag)",
+			EnvVar: "PLUGIN_SOURCE_IMAGE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -419,6 +429,8 @@ func run(c *cli.Context) error {
 			Password:   c.String("cosign.password"),
 			Params:     c.String("cosign.params"),
 		},
+		PushOnly:    c.Bool("push-only"),
+		SourceImage: c.String("source-image"),
 	}
 
 	if c.Bool("tags.auto") {
