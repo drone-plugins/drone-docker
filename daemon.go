@@ -11,6 +11,7 @@ import (
 const dockerExe = "/usr/local/bin/docker"
 const dockerdExe = "/usr/local/bin/dockerd"
 const dockerHome = "/root/.docker/"
+const cosignExe = "/usr/local/bin/cosign"
 
 func (p Plugin) startDaemon() {
 	cmd := commandDaemon(p.Daemon)

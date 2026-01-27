@@ -20,6 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	docker "github.com/drone-plugins/drone-docker"
+	azureutil "github.com/drone-plugins/drone-docker/internal/azure"
 )
 
 type subscriptionUrlResponse struct {
@@ -62,12 +63,14 @@ func main() {
 		password = getenv("SERVICE_PRINCIPAL_CLIENT_SECRET")
 
 		// Service principal credentials
-		clientId       = getenv("CLIENT_ID")
-		clientSecret   = getenv("CLIENT_SECRET")
-		clientCert     = getenv("CLIENT_CERTIFICATE")
-		tenantId       = getenv("TENANT_ID")
-		subscriptionId = getenv("SUBSCRIPTION_ID")
-		publicUrl      = getenv("DAEMON_REGISTRY")
+		clientId       = getenv("CLIENT_ID", "AZURE_CLIENT_ID", "AZURE_APP_ID", "PLUGIN_CLIENT_ID")
+		clientSecret   = getenv("CLIENT_SECRET", "PLUGIN_CLIENT_SECRET")
+		clientCert     = getenv("CLIENT_CERTIFICATE", "PLUGIN_CLIENT_CERTIFICATE")
+		tenantId       = getenv("TENANT_ID", "AZURE_TENANT_ID", "PLUGIN_TENANT_ID")
+		subscriptionId = getenv("SUBSCRIPTION_ID", "PLUGIN_SUBSCRIPTION_ID")
+		publicUrl      = getenv("DAEMON_REGISTRY", "PLUGIN_DAEMON_REGISTRY")
+		authorityHost  = getenv("AZURE_AUTHORITY_HOST", "PLUGIN_AZURE_AUTHORITY_HOST")
+		idToken        = getenv("PLUGIN_OIDC_TOKEN_ID")
 	)
 
 	// default registry value
@@ -80,9 +83,29 @@ func main() {
 		// docker login credentials are not provided
 		var err error
 		username = defaultUsername
-		password, publicUrl, err = getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, registry)
-		if err != nil {
-			logrus.Fatal(err)
+		if idToken != "" && clientId != "" && tenantId != "" {
+			logrus.Debug("Using OIDC authentication flow")
+			var aadToken string
+			aadToken, err = azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			var p string
+			p, err = getPublicUrl(aadToken, registry, subscriptionId)
+			if err == nil {
+				publicUrl = p
+			} else {
+				fmt.Fprintf(os.Stderr, "failed to get public url with error: %s\n", err)
+			}
+			password, err = fetchACRToken(tenantId, aadToken, registry)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+		} else {
+			password, publicUrl, err = getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, registry)
+			if err != nil {
+				logrus.Fatal(err)
+			}
 		}
 	}
 

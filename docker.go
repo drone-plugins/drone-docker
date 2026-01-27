@@ -76,18 +76,28 @@ type (
 		SSHKeyPath          string   // Docker build ssh key path
 	}
 
+	// CosignConfig defines Cosign signing parameters.
+	CosignConfig struct {
+		PrivateKey string // Private key content (PEM format) or file path
+		Password   string // Password for encrypted private keys
+		Params     string // Additional cosign parameters
+	}
+
 	// Plugin defines the Docker plugin parameters.
 	Plugin struct {
-		Login             Login  // Docker login configuration
-		Build             Build  // Docker build configuration
-		Daemon            Daemon // Docker daemon configuration
-		Dryrun            bool   // Docker push is skipped
-		Cleanup           bool   // Docker purge is enabled
-		CardPath          string // Card path to write file to
-		ArtifactFile      string // Artifact path to write file to
-		BaseImageRegistry string // Docker registry to pull base image
-		BaseImageUsername string // Docker registry username to pull base image
-		BaseImagePassword string // Docker registry password to pull base image
+		Login             Login        // Docker login configuration
+		Build             Build        // Docker build configuration
+		Daemon            Daemon       // Docker daemon configuration
+		Cosign            CosignConfig // Cosign signing configuration
+		Dryrun            bool         // Docker push is skipped
+		Cleanup           bool         // Docker purge is enabled
+		CardPath          string       // Card path to write file to
+		ArtifactFile      string       // Artifact path to write file to
+		BaseImageRegistry string       // Docker registry to pull base image
+		BaseImageUsername string       // Docker registry username to pull base image
+		BaseImagePassword string       // Docker registry password to pull base image
+		PushOnly          bool         // Push only mode, skips build process
+		SourceImage       string       // Source image to push (optional)
 	}
 
 	Card []struct {
@@ -193,6 +203,10 @@ func (p Plugin) Exec() error {
 			fmt.Println(out)
 			return fmt.Errorf("Error authenticating base connector: exit status 1")
 		}
+	} else if !p.PushOnly {
+		// Skip base image connector warning in push-only mode (not pulling anything)
+		fmt.Println("\033[33mTo ensure consistent and reliable pipeline execution, we recommend setting up a Base Image Connector.\033[0m\n" +
+			"\033[33mWhile optional at this time, configuring it helps prevent failures caused by Docker Hub's rate limits.\033[0m")
 	}
 
 	// login to the Docker registry
@@ -216,6 +230,16 @@ func (p Plugin) Exec() error {
 		} else {
 			return fmt.Errorf("login did not succeed")
 		}
+	}
+
+	// Enforce mutual exclusivity: push-only and dry-run cannot be used together
+	if p.PushOnly && p.Dryrun {
+		return fmt.Errorf("conflict: push-only and dry-run cannot be used together")
+	}
+
+	// Handle push-only mode if requested
+	if p.PushOnly {
+		return p.pushOnly()
 	}
 
 	if p.Build.Squash && !p.Daemon.Experimental {
@@ -245,6 +269,14 @@ func (p Plugin) Exec() error {
 	}
 
 	cmds = append(cmds, commandBuild(p.Build)) // docker build
+
+	// Validate cosign configuration if present
+	if p.shouldSignWithCosign() {
+		if err := validateCosignConfig(p.Cosign); err != nil {
+			return fmt.Errorf("cosign validation failed: %w", err)
+		}
+		fmt.Println("🔐 Cosign signing enabled - images will be signed after push")
+	}
 
 	for _, tag := range p.Build.Tags {
 		cmds = append(cmds, commandTag(p.Build, tag)) // docker tag
@@ -284,6 +316,31 @@ func (p Plugin) Exec() error {
 			}
 		} else {
 			fmt.Printf("Could not fetch the digest. %s\n", err)
+		}
+	}
+
+	// Handle cosign signing after all commands complete (like artifact generation)
+	if p.shouldSignWithCosign() && !p.Dryrun {
+		// Set up environment variables for cosign
+		os.Setenv("COSIGN_YES", "true")
+
+		if digest, err := getDigest(p.Build.TempTag); err == nil {
+			fmt.Printf("🔐 Found image digest: %s\n", digest)
+			
+			// Sign with digest reference
+			imageRef := fmt.Sprintf("%s@%s", p.Build.Repo, digest)
+			cosignCmd := createCosignCommand(imageRef, p.Cosign)
+			executeCosignCommand(cosignCmd)
+		} else {
+			fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
+			fmt.Printf("   Falling back to tag-based signing\n")
+			
+			// Fall back to tag-based signing for each tag
+			for _, tag := range p.Build.Tags {
+				imageRef := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+				cosignCmd := createCosignCommand(imageRef, p.Cosign)
+				executeCosignCommand(cosignCmd)
+			}
 		}
 	}
 
@@ -642,6 +699,11 @@ func isCommandRmi(args []string) bool {
 	return len(args) > 2 && args[1] == "rmi"
 }
 
+// helper to check if args match "cosign sign"
+func isCommandCosign(args []string) bool {
+	return len(args) > 1 && args[0] == cosignExe
+}
+
 func commandRmi(tag string) *exec.Cmd {
 	return exec.Command(dockerExe, "rmi", tag)
 }
@@ -678,7 +740,7 @@ func GetDroneDockerExecCmd() string {
 }
 
 func getDigest(buildName string) (string, error) {
-	cmd := exec.Command("docker", "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
+	cmd := exec.Command(dockerExe, "inspect", "--format='{{index .RepoDigests 0}}'", buildName)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
@@ -691,4 +753,285 @@ func getDigest(buildName string) (string, error) {
 		return parts[1], nil
 	}
 	return "", errors.New("unable to fetch digest")
+}
+
+// imageExists checks if an image exists in local daemon
+func imageExists(tag string) bool {
+	cmd := exec.Command(dockerExe, "image", "inspect", tag)
+	return cmd.Run() == nil
+}
+
+// getDigestAfterPush gets digest from a pushed image
+func getDigestAfterPush(tag string) (string, error) {
+	cmd := exec.Command(dockerExe, "inspect", "--format", "{{ index (split (index .RepoDigests 0) \"@\") 1 }}", tag)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get digest for %s: %w", tag, err)
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+// shouldSignWithCosign determines if cosign signing should be performed
+func (p Plugin) shouldSignWithCosign() bool {
+	return p.Cosign.PrivateKey != ""
+}
+
+// validateCosignConfig validates the cosign configuration
+func validateCosignConfig(config CosignConfig) error {
+	if config.PrivateKey == "" {
+		return nil // No cosign config, skip silently
+	}
+
+	// Check if cosign binary is available
+	if _, err := exec.LookPath(cosignExe); err != nil {
+		fmt.Printf("❌ ERROR: cosign binary not found at %s\n", cosignExe)
+		fmt.Println("   Ensure you're using a plugin image that includes cosign")
+		return fmt.Errorf("cosign binary not available: %w", err)
+	}
+
+	// Check if it's trying to use keyless signing
+	if strings.Contains(config.Params, "--oidc") ||
+		strings.Contains(config.Params, "--identity-token") {
+		fmt.Println("⚠️  WARNING: Keyless signing (OIDC) isn't supported yet in this plugin. Use private key signing instead.")
+		return errors.New("keyless signing not supported")
+	}
+
+	// Validate private key format if it's PEM content
+	if strings.HasPrefix(config.PrivateKey, "-----BEGIN") {
+		if !isValidPEMKey(config.PrivateKey) {
+			return errors.New("❌ Invalid private key format. Expected PEM format")
+		}
+
+		// Check encrypted key password requirement
+		if isEncryptedPEMKey(config.PrivateKey) && config.Password == "" {
+			return errors.New("🔐 Encrypted private key requires password. Set PLUGIN_COSIGN_PASSWORD")
+		}
+
+	} else {
+		// File-based key - check if it's accessible (basic check)
+		if _, err := os.Stat(config.PrivateKey); err != nil {
+			fmt.Printf("⚠️  WARNING: Private key file may not be accessible: %s\n", config.PrivateKey)
+			fmt.Println("   This will be verified during signing")
+		}
+	}
+
+	return nil
+}
+
+// isEncryptedPEMKey checks if a PEM key is encrypted
+func isEncryptedPEMKey(pemContent string) bool {
+	return strings.Contains(pemContent, "ENCRYPTED")
+}
+
+// isValidPEMKey performs basic PEM format validation
+func isValidPEMKey(pemContent string) bool {
+	return strings.Contains(pemContent, "-----BEGIN") &&
+		strings.Contains(pemContent, "-----END") &&
+		(strings.Contains(pemContent, "PRIVATE KEY") ||
+			strings.Contains(pemContent, "RSA PRIVATE KEY") ||
+			strings.Contains(pemContent, "EC PRIVATE KEY"))
+}
+
+// createCosignCommand creates a cosign sign command with the given image reference
+func createCosignCommand(imageRef string, cosign CosignConfig) *exec.Cmd {
+	args := []string{"sign", "--yes"}
+	
+	// Handle private key (content vs file path)
+	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
+		args = append(args, "--key", "env://COSIGN_PRIVATE_KEY")
+		os.Setenv("COSIGN_PRIVATE_KEY", cosign.PrivateKey)
+	} else {
+		args = append(args, "--key", cosign.PrivateKey)
+	}
+	
+	// Set password if provided
+	if cosign.Password != "" {
+		os.Setenv("COSIGN_PASSWORD", cosign.Password)
+	}
+	
+	// Add any extra parameters
+	if cosign.Params != "" {
+		extraArgs := strings.Fields(cosign.Params)
+		args = append(args, extraArgs...)
+	}
+	
+	// Add the image reference to sign
+	args = append(args, imageRef)
+	
+	return exec.Command(cosignExe, args...)
+}
+
+// executeCosignCommand executes the given cosign command and handles errors
+func executeCosignCommand(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	fmt.Printf("🚀 Executing: %s %s\n", cmd.Path, strings.Join(cmd.Args[1:], " "))
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("⚠️  WARNING: Image signing failed: %s\n", err)
+		fmt.Printf("   Image was pushed successfully but could not be signed\n")
+		fmt.Printf("   This is not fatal - continuing with the build\n")
+	}
+}
+
+// pushOnly handles pushing images without building them
+func (p Plugin) pushOnly() error {
+	// Check if source image is specified
+	sourceImageName := p.SourceImage
+	var sourceTags []string
+
+	if sourceImageName == "" {
+		// If no source image specified, use the repo and first tag
+		fmt.Println("source_image not provided, using repo and tag value")
+		sourceImageName = p.Build.Repo
+		sourceTags = p.Build.Tags
+	} else {
+		// If source image is specified, check if it has a tag
+		lastColonIndex := strings.LastIndex(sourceImageName, ":")
+		if lastColonIndex > 0 && lastColonIndex < len(sourceImageName) {
+			// Check if there's a slash after the last colon (indicating it's a port, not a tag)
+			// For example: registry:5000/image (has slash after colon - port not tag)
+			// vs image:tag (no slash after colon - it's a tag)
+			if strings.LastIndex(sourceImageName, "/") > lastColonIndex {
+				// The last colon is part of the registry:port, not a tag separator
+				sourceTags = []string{"latest"}
+			} else {
+				// The last colon separates the tag
+				tag := sourceImageName[lastColonIndex+1:]
+				sourceImageName = sourceImageName[:lastColonIndex]
+
+				if tag == "" {
+					fmt.Printf("No tag specified in source image (or empty tag). Using 'latest' as the default tag.\n")
+					tag = "latest"
+				}
+				sourceTags = []string{tag}
+			}
+		} else {
+			// Default to "latest" if no tag specified
+			sourceTags = []string{"latest"}
+		}
+		fmt.Printf("Using source image: %s with tag(s): %s\n", sourceImageName, strings.Join(sourceTags, ", "))
+	}
+
+	// For each source tag and target tag combination
+	var digest string
+	var firstPushedImage string
+
+	for _, sourceTag := range sourceTags {
+		sourceFullImageName := fmt.Sprintf("%s:%s", sourceImageName, sourceTag)
+
+		// Check if the source image exists in local daemon
+		if !imageExists(sourceFullImageName) {
+			fmt.Printf("Warning: Source image %s not found\n", sourceFullImageName)
+			// Continue to the next source tag if available, otherwise return error
+			if len(sourceTags) > 1 {
+				continue
+			}
+			return fmt.Errorf("source image %s not found, cannot push", sourceFullImageName)
+		}
+
+		// For each target tag, tag and push
+		for _, targetTag := range p.Build.Tags {
+			targetFullImageName := fmt.Sprintf("%s:%s", p.Build.Repo, targetTag)
+
+			// Skip if source and target are identical
+			if sourceFullImageName == targetFullImageName {
+				fmt.Printf("Source and target image names are identical: %s\n", sourceFullImageName)
+			} else {
+				// Tag the source image with the target name
+				fmt.Printf("Tagging %s as %s\n", sourceFullImageName, targetFullImageName)
+				tagCmd := exec.Command(dockerExe, "tag", sourceFullImageName, targetFullImageName)
+				tagCmd.Stdout = os.Stdout
+				tagCmd.Stderr = os.Stderr
+				trace(tagCmd)
+				if err := tagCmd.Run(); err != nil {
+					return fmt.Errorf("failed to tag image %s as %s: %w", sourceFullImageName, targetFullImageName, err)
+				}
+			}
+		}
+	}
+
+	// Push all target images
+	for _, tag := range p.Build.Tags {
+		fullImageName := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+
+		// Check if image exists in local daemon
+		if !imageExists(fullImageName) {
+			return fmt.Errorf("image %s not found, cannot push", fullImageName)
+		}
+
+		// Push image
+		fmt.Println("Pushing image:", fullImageName)
+		pushCmd := commandPush(p.Build, tag)
+		pushCmd.Stdout = os.Stdout
+		pushCmd.Stderr = os.Stderr
+		trace(pushCmd)
+		if err := pushCmd.Run(); err != nil {
+			return fmt.Errorf("failed to push image %s: %w", fullImageName, err)
+		}
+
+		// Track the first pushed image for card generation
+		if firstPushedImage == "" {
+			firstPushedImage = fullImageName
+		}
+
+		// Get the digest after push (we only need one)
+		if digest == "" {
+			d, err := getDigestAfterPush(fullImageName)
+			if err == nil {
+				digest = d
+			} else {
+				fmt.Printf("Warning: Could not get digest for %s: %v\n", fullImageName, err)
+			}
+		}
+	}
+
+	// Output the adaptive card
+	if firstPushedImage != "" {
+		if err := p.writeCardForImage(firstPushedImage); err != nil {
+			fmt.Printf("Could not create adaptive card. %s\n", err)
+		}
+	}
+
+	// Write to artifact file
+	if p.ArtifactFile != "" && digest != "" {
+		if err := drone.WritePluginArtifactFile(
+			p.Daemon.RegistryType,
+			p.ArtifactFile,
+			p.Daemon.Registry,
+			p.Build.Repo,
+			digest,
+			p.Build.Tags,
+		); err != nil {
+			fmt.Printf("Failed to write plugin artifact file at path: %s with error: %s\n",
+				p.ArtifactFile, err)
+		}
+	}
+
+	// Handle cosign signing after push
+	if p.shouldSignWithCosign() {
+		// Set up environment variables for cosign
+		os.Setenv("COSIGN_YES", "true")
+
+		if digest != "" {
+			fmt.Printf("🔐 Found image digest: %s\n", digest)
+
+			// Sign with digest reference
+			imageRef := fmt.Sprintf("%s@%s", p.Build.Repo, digest)
+			cosignCmd := createCosignCommand(imageRef, p.Cosign)
+			executeCosignCommand(cosignCmd)
+		} else {
+			fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing\n")
+			fmt.Printf("   Falling back to tag-based signing\n")
+
+			// Fall back to tag-based signing for each tag
+			for _, tag := range p.Build.Tags {
+				imageRef := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+				cosignCmd := createCosignCommand(imageRef, p.Cosign)
+				executeCosignCommand(cosignCmd)
+			}
+		}
+	}
+
+	return nil
 }

@@ -425,7 +425,7 @@ pipeline:
                       spec: docker/<+matrix.repo>/manifest.tmpl
                   when:
                     stageStatus: Success
-                    condition: <+codebase.build.type> == "tag" || <+codebase.build.type> == "branch"
+                    condition: <+codebase.build.type> == "tag"
                   strategy:
                     matrix:
                       repo:

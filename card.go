@@ -17,8 +17,14 @@ import (
 	"github.com/inhies/go-bytesize"
 )
 
+// writeCard maintains backward compatibility by using TempTag
 func (p Plugin) writeCard() error {
-	cmd := exec.Command(dockerExe, "inspect", p.Build.TempTag)
+	return p.writeCardForImage(p.Build.TempTag)
+}
+
+// writeCardForImage generates card for any image reference
+func (p Plugin) writeCardForImage(imageRef string) error {
+	cmd := exec.Command(dockerExe, "inspect", imageRef)
 	data, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
@@ -38,7 +44,11 @@ func (p Plugin) writeCard() error {
 	for _, tag := range inspect.RepoTags {
 		sliceTagStruct = append(sliceTagStruct, TagStruct{Tag: tag})
 	}
-	inspect.ParsedRepoTags = sliceTagStruct[1:] // remove the first tag which is always "hash:latest"
+	if len(sliceTagStruct) > 1 {
+		inspect.ParsedRepoTags = sliceTagStruct[1:] // remove the first tag which is always "hash:latest"
+	} else {
+		inspect.ParsedRepoTags = sliceTagStruct
+	}
 	// create the url from repo and registry
 	inspect.URL = mapRegistryToURL(p.Daemon.Registry, p.Build.Repo)
 	cardData, _ := json.Marshal(inspect)

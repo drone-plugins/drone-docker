@@ -33,7 +33,7 @@ func main() {
 		cli.BoolFlag{
 			Name:   "dry-run",
 			Usage:  "dry run disables docker push",
-			EnvVar: "PLUGIN_DRY_RUN",
+			EnvVar: "PLUGIN_DRY_RUN, PLUGIN_NO_PUSH",
 		},
 		cli.StringFlag{
 			Name:   "remote.url",
@@ -323,6 +323,32 @@ func main() {
 			Usage:  "access token",
 			EnvVar: "ACCESS_TOKEN",
 		},
+		// Cosign signing configuration
+		cli.StringFlag{
+			Name:   "cosign.private-key",
+			Usage:  "cosign private key content or file path for signing",
+			EnvVar: "PLUGIN_COSIGN_PRIVATE_KEY",
+		},
+		cli.StringFlag{
+			Name:   "cosign.password",
+			Usage:  "password for encrypted cosign private key",
+			EnvVar: "PLUGIN_COSIGN_PASSWORD",
+		},
+		cli.StringFlag{
+			Name:   "cosign.params",
+			Usage:  "additional cosign parameters (e.g., annotations, flags)",
+			EnvVar: "PLUGIN_COSIGN_PARAMS",
+		},
+		cli.BoolFlag{
+			Name:   "push-only",
+			Usage:  "skip build and only push images",
+			EnvVar: "PLUGIN_PUSH_ONLY",
+		},
+		cli.StringFlag{
+			Name:   "source-image",
+			Usage:  "source image to tag and push (format: repo:tag)",
+			EnvVar: "PLUGIN_SOURCE_IMAGE",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -398,6 +424,13 @@ func run(c *cli.Context) error {
 		BaseImageRegistry: c.String("docker.baseimageregistry"),
 		BaseImageUsername: c.String("docker.baseimageusername"),
 		BaseImagePassword: c.String("docker.baseimagepassword"),
+		Cosign: docker.CosignConfig{
+			PrivateKey: c.String("cosign.private-key"),
+			Password:   c.String("cosign.password"),
+			Params:     c.String("cosign.params"),
+		},
+		PushOnly:    c.Bool("push-only"),
+		SourceImage: c.String("source-image"),
 	}
 
 	if c.Bool("tags.auto") {
