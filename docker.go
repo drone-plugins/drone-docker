@@ -349,13 +349,23 @@ func (p Plugin) Exec() error {
 		// clear the slice
 		cmds = nil
 
+		// Remove all images that were created.
 		cmds = append(cmds, commandRmi(p.Build.TempTag)) // docker rmi
-		cmds = append(cmds, commandPrune())              // docker system prune -f
+		for _, tag := range p.Build.Tags {
+			imageName := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
+			cmds = append(cmds, commandRmi(imageName)) // docker rmi
+		}
 
 		for _, cmd := range cmds {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			trace(cmd)
+
+			err := cmd.Run()
+
+			if err != nil {
+				fmt.Printf("Could not remove image %s. Ignoring...\n", cmd.Args[2])
+			}
 		}
 	}
 
