@@ -112,6 +112,12 @@ func main() {
 			Usage:  "don't start the docker daemon",
 			EnvVar: "PLUGIN_DAEMON_OFF",
 		},
+		cli.IntFlag{
+			Name:   "daemon.retry-count",
+			Usage:  "number of retry attempts to reach docker daemon",
+			Value:  15,
+			EnvVar: "PLUGIN_DAEMON_RETRY_COUNT",
+		},
 		cli.StringFlag{
 			Name:   "dockerfile",
 			Usage:  "build dockerfile",
@@ -419,6 +425,7 @@ func run(c *cli.Context) error {
 			DNSSearch:     c.StringSlice("daemon.dns-search"),
 			MTU:           c.String("daemon.mtu"),
 			Experimental:  c.Bool("daemon.experimental"),
+			RetryCount:    c.Int("daemon.retry-count"),
 			RegistryType:  registryType,
 		},
 		BaseImageRegistry: c.String("docker.baseimageregistry"),
