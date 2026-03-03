@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -70,7 +69,7 @@ func writeCard(path string, card interface{}) {
 	case path == "/dev/stderr":
 		writeCardTo(os.Stderr, data)
 	case path != "":
-		ioutil.WriteFile(path, data, 0644)
+		os.WriteFile(path, data, 0644)
 	}
 }
 

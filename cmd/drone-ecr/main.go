@@ -1,9 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -13,17 +13,18 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
 
 type ecrAPI interface {
-	DescribeImages(*ecr.DescribeImagesInput) (*ecr.DescribeImagesOutput, error)
+	DescribeImages(ctx context.Context, params *ecr.DescribeImagesInput, optFns ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error)
 }
 
 const defaultRegion = "us-east-1"
@@ -62,13 +63,14 @@ func main() {
 		os.Setenv("AWS_SECRET_ACCESS_KEY", secret)
 	}
 
-	sess, err := session.NewSession(&aws.Config{Region: &region})
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
-		log.Fatal(fmt.Sprintf("error creating aws session: %v", err))
+		log.Fatal(fmt.Sprintf("error creating aws config: %v", err))
 	}
 
-	svc := getECRClient(sess, assumeRole, externalId, idToken)
-	username, password, defaultRegistry, err := getAuthInfo(svc)
+	svc := getECRClient(ctx, cfg, assumeRole, externalId, idToken)
+	username, password, defaultRegistry, err := getAuthInfo(ctx, svc)
 
 	if registry == "" {
 		registry = defaultRegistry
@@ -83,32 +85,32 @@ func main() {
 	}
 
 	if create {
-		err = ensureRepoExists(svc, trimHostname(repo, registry), scanOnPush)
+		err = ensureRepoExists(ctx, svc, trimHostname(repo, registry), scanOnPush)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error creating ECR repo: %v", err))
 		}
-		err = updateImageScannningConfig(svc, trimHostname(repo, registry), scanOnPush)
+		err = updateImageScannningConfig(ctx, svc, trimHostname(repo, registry), scanOnPush)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("error updating scan on push for ECR repo: %v", err))
 		}
 	}
 
 	if lifecyclePolicy != "" {
-		p, err := ioutil.ReadFile(lifecyclePolicy)
+		p, err := os.ReadFile(lifecyclePolicy)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := uploadLifeCyclePolicy(svc, string(p), trimHostname(repo, registry)); err != nil {
+		if err := uploadLifeCyclePolicy(ctx, svc, string(p), trimHostname(repo, registry)); err != nil {
 			log.Fatal(fmt.Sprintf("error uploading ECR lifecycle policy: %v", err))
 		}
 	}
 
 	if repositoryPolicy != "" {
-		p, err := ioutil.ReadFile(repositoryPolicy)
+		p, err := os.ReadFile(repositoryPolicy)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := uploadRepositoryPolicy(svc, string(p), trimHostname(repo, registry)); err != nil {
+		if err := uploadRepositoryPolicy(ctx, svc, string(p), trimHostname(repo, registry)); err != nil {
 			log.Fatal(fmt.Sprintf("error uploading ECR repository policy. %v", err))
 		}
 	}
@@ -136,7 +138,7 @@ func main() {
 
 		repositoryName := trimHostname(repo, registry)
 		for _, t := range tags {
-			exists, err := tagExists(svc, repositoryName, t)
+			exists, err := tagExists(ctx, svc, repositoryName, t)
 			if err != nil {
 				logrus.Fatalf("Error checking if image exists for tag %s: %v", t, err)
 			}
@@ -162,13 +164,18 @@ func trimHostname(repo, registry string) string {
 	return repo
 }
 
-func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
-	input := &ecr.CreateRepositoryInput{}
-	input.SetRepositoryName(name)
-	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
-	_, err = svc.CreateRepository(input)
+func ensureRepoExists(ctx context.Context, svc *ecr.Client, name string, scanOnPush bool) (err error) {
+	input := &ecr.CreateRepositoryInput{
+		RepositoryName: aws.String(name),
+		ImageScanningConfiguration: &types.ImageScanningConfiguration{
+			ScanOnPush: scanOnPush,
+		},
+	}
+	_, err = svc.CreateRepository(ctx, input)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ecr.ErrCodeRepositoryAlreadyExistsException {
+		// Check if repository already exists
+		var repoExistsErr *types.RepositoryAlreadyExistsException
+		if isErrorType(err, &repoExistsErr) {
 			// eat it, we skip checking for existing to save two requests
 			err = nil
 		}
@@ -177,38 +184,61 @@ func ensureRepoExists(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
 	return
 }
 
-func updateImageScannningConfig(svc *ecr.ECR, name string, scanOnPush bool) (err error) {
-	input := &ecr.PutImageScanningConfigurationInput{}
-	input.SetRepositoryName(name)
-	input.SetImageScanningConfiguration(&ecr.ImageScanningConfiguration{ScanOnPush: &scanOnPush})
-	_, err = svc.PutImageScanningConfiguration(input)
+func isErrorType[T error](err error, target *T) bool {
+	if err == nil {
+		return false
+	}
+	for err != nil {
+		if matched, ok := err.(T); ok {
+			*target = matched
+			return true
+		}
+		if unwrapper, ok := err.(interface{ Unwrap() error }); ok {
+			err = unwrapper.Unwrap()
+		} else {
+			break
+		}
+	}
+	return false
+}
+
+func updateImageScannningConfig(ctx context.Context, svc *ecr.Client, name string, scanOnPush bool) (err error) {
+	input := &ecr.PutImageScanningConfigurationInput{
+		RepositoryName: aws.String(name),
+		ImageScanningConfiguration: &types.ImageScanningConfiguration{
+			ScanOnPush: scanOnPush,
+		},
+	}
+	_, err = svc.PutImageScanningConfiguration(ctx, input)
 
 	return err
 }
 
-func uploadLifeCyclePolicy(svc *ecr.ECR, lifecyclePolicy string, name string) (err error) {
-	input := &ecr.PutLifecyclePolicyInput{}
-	input.SetLifecyclePolicyText(lifecyclePolicy)
-	input.SetRepositoryName(name)
-	_, err = svc.PutLifecyclePolicy(input)
+func uploadLifeCyclePolicy(ctx context.Context, svc *ecr.Client, lifecyclePolicy string, name string) (err error) {
+	input := &ecr.PutLifecyclePolicyInput{
+		LifecyclePolicyText: aws.String(lifecyclePolicy),
+		RepositoryName:      aws.String(name),
+	}
+	_, err = svc.PutLifecyclePolicy(ctx, input)
 
 	return err
 }
 
-func uploadRepositoryPolicy(svc *ecr.ECR, repositoryPolicy string, name string) (err error) {
-	input := &ecr.SetRepositoryPolicyInput{}
-	input.SetPolicyText(repositoryPolicy)
-	input.SetRepositoryName(name)
-	_, err = svc.SetRepositoryPolicy(input)
+func uploadRepositoryPolicy(ctx context.Context, svc *ecr.Client, repositoryPolicy string, name string) (err error) {
+	input := &ecr.SetRepositoryPolicyInput{
+		PolicyText:     aws.String(repositoryPolicy),
+		RepositoryName: aws.String(name),
+	}
+	_, err = svc.SetRepositoryPolicy(ctx, input)
 
 	return err
 }
 
-func getAuthInfo(svc *ecr.ECR) (username, password, registry string, err error) {
+func getAuthInfo(ctx context.Context, svc *ecr.Client) (username, password, registry string, err error) {
 	var result *ecr.GetAuthorizationTokenOutput
 	var decoded []byte
 
-	result, err = svc.GetAuthorizationToken(&ecr.GetAuthorizationTokenInput{})
+	result, err = svc.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
 	if err != nil {
 		return
 	}
@@ -247,10 +277,12 @@ func getenv(key ...string) (s string) {
 	return
 }
 
-func getECRClient(sess *session.Session, role string, externalId string, idToken string) *ecr.ECR {
+func getECRClient(ctx context.Context, cfg aws.Config, role string, externalId string, idToken string) *ecr.Client {
 	if role == "" {
-		return ecr.New(sess)
+		return ecr.NewFromConfig(cfg)
 	}
+
+	stsClient := sts.NewFromConfig(cfg)
 
 	if idToken != "" {
 		tempFile, err := os.CreateTemp("/tmp", "idToken-*.jwt")
@@ -268,31 +300,34 @@ func getECRClient(sess *session.Session, role string, externalId string, idToken
 		}
 
 		// Create credentials using the path to the ID token file
-		creds := stscreds.NewWebIdentityCredentials(sess, role, "", tempFile.Name())
-		return ecr.New(sess, &aws.Config{Credentials: creds})
+		creds := stscreds.NewWebIdentityRoleProvider(stsClient, role, stscreds.IdentityTokenFile(tempFile.Name()))
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+		return ecr.NewFromConfig(cfg)
 	} else if externalId != "" {
-		return ecr.New(sess, &aws.Config{
-			Credentials: stscreds.NewCredentials(sess, role, func(p *stscreds.AssumeRoleProvider) {
-				p.ExternalID = &externalId
-			}),
+		creds := stscreds.NewAssumeRoleProvider(stsClient, role, func(o *stscreds.AssumeRoleOptions) {
+			o.ExternalID = &externalId
 		})
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+		return ecr.NewFromConfig(cfg)
 	} else {
-		return ecr.New(sess, &aws.Config{
-			Credentials: stscreds.NewCredentials(sess, role),
-		})
+		creds := stscreds.NewAssumeRoleProvider(stsClient, role)
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+		return ecr.NewFromConfig(cfg)
 	}
 }
 
-func tagExists(svc ecrAPI, repository, tag string) (bool, error) {
+func tagExists(ctx context.Context, svc ecrAPI, repository, tag string) (bool, error) {
 	input := &ecr.DescribeImagesInput{
 		RepositoryName: aws.String(repository),
-		ImageIds: []*ecr.ImageIdentifier{
+		ImageIds: []types.ImageIdentifier{
 			{ImageTag: aws.String(tag)},
 		},
 	}
-	output, err := svc.DescribeImages(input)
+	output, err := svc.DescribeImages(ctx, input)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "ImageNotFoundException" {
+		// Check if image not found
+		var imageNotFoundErr *types.ImageNotFoundException
+		if isErrorType(err, &imageNotFoundErr) {
 			return false, nil
 		}
 		return false, err

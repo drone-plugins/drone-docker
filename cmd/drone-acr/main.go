@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -238,7 +237,7 @@ func setupACRCert(cert, certPath string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to base64 decode ACR certificate")
 	}
-	err = ioutil.WriteFile(certPath, decoded, 0644)
+	err = os.WriteFile(certPath, decoded, 0644)
 	if err != nil {
 		return errors.Wrap(err, "failed to write ACR certificate")
 	}
