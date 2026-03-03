@@ -2,7 +2,6 @@ package docker
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +27,7 @@ func TestConfig(t *testing.T) {
 	c.SetCredHelper(RegistryECRPublic, "ecr-login")
 	assert.Equal(t, "ecr-login", c.CredHelpers[RegistryECRPublic])
 
-	tempDir, err := ioutil.TempDir("", "docker-config-test")
+	tempDir, err := os.MkdirTemp("", "docker-config-test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -49,10 +48,10 @@ func TestConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	configPath := filepath.Join(tempDir, "config.json")
-	err = ioutil.WriteFile(configPath, jsonBytes, 0644)
+	err = os.WriteFile(configPath, jsonBytes, 0644)
 	assert.NoError(t, err)
 
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	assert.NoError(t, err)
 
 	var configFromFile Config
