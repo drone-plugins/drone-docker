@@ -1,13 +1,13 @@
 package main
 
 import (
+	"log"
 	"os"
 	"runtime"
 	"strings"
 
 	"github.com/dchest/uniuri"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	docker "github.com/drone-plugins/drone-docker"
@@ -358,7 +358,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
@@ -450,12 +450,12 @@ func run(c *cli.Context) error {
 				c.String("tags.suffix"),
 			)
 			if err != nil {
-				logrus.Printf("cannot build docker image for %s, invalid semantic version", c.String("commit.ref"))
+				log.Printf("cannot build docker image for %s, invalid semantic version", c.String("commit.ref"))
 				return err
 			}
 			plugin.Build.Tags = tag
 		} else {
-			logrus.Printf("skipping automated docker build for %s", c.String("commit.ref"))
+			log.Printf("skipping automated docker build for %s", c.String("commit.ref"))
 			return nil
 		}
 	}

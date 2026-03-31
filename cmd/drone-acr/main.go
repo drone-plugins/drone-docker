@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,8 +18,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/joho/godotenv"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	docker "github.com/drone-plugins/drone-docker"
 	azureutil "github.com/drone-plugins/drone-docker/internal/azure"
@@ -84,11 +84,11 @@ func main() {
 		var err error
 		username = defaultUsername
 		if idToken != "" && clientId != "" && tenantId != "" {
-			logrus.Debug("Using OIDC authentication flow")
+			log.Println("Using OIDC authentication flow")
 			var aadToken string
 			aadToken, err = azureutil.GetAADAccessTokenViaClientAssertion(context.Background(), tenantId, clientId, idToken, authorityHost)
 			if err != nil {
-				logrus.Fatal(err)
+				log.Fatal(err)
 			}
 			var p string
 			p, err = getPublicUrl(aadToken, registry, subscriptionId)
@@ -99,12 +99,12 @@ func main() {
 			}
 			password, err = fetchACRToken(tenantId, aadToken, registry)
 			if err != nil {
-				logrus.Fatal(err)
+				log.Fatal(err)
 			}
 		} else {
 			password, publicUrl, err = getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, registry)
 			if err != nil {
-				logrus.Fatal(err)
+				log.Fatal(err)
 			}
 		}
 	}
@@ -133,7 +133,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
@@ -153,26 +153,26 @@ func getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, regis
 	if clientCert != "" {
 		err := setupACRCert(clientCert, acrCertPath)
 		if err != nil {
-			errors.Wrap(err, "failed to push setup cert file")
+			return "", "", fmt.Errorf("failed to setup cert file: %w", err)
 		}
 	}
 
 	// Get AZ env
 	if err := os.Setenv(clientIdEnv, clientId); err != nil {
-		return "", "", errors.Wrap(err, "failed to set env variable client Id")
+		return "", "", fmt.Errorf("failed to set env variable client Id: %w", err)
 	}
 	if err := os.Setenv(clientSecretKeyEnv, clientSecret); err != nil {
-		return "", "", errors.Wrap(err, "failed to set env variable client secret")
+		return "", "", fmt.Errorf("failed to set env variable client secret: %w", err)
 	}
 	if err := os.Setenv(tenantKeyEnv, tenantId); err != nil {
-		return "", "", errors.Wrap(err, "failed to set env variable tenant Id")
+		return "", "", fmt.Errorf("failed to set env variable tenant Id: %w", err)
 	}
 	if err := os.Setenv(certPathEnv, acrCertPath); err != nil {
-		return "", "", errors.Wrap(err, "failed to set env variable cert path")
+		return "", "", fmt.Errorf("failed to set env variable cert path: %w", err)
 	}
 	env, err := azidentity.NewEnvironmentCredential(nil)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to get env credentials from azure")
+		return "", "", fmt.Errorf("failed to get env credentials from azure: %w", err)
 	}
 	os.Unsetenv(clientIdEnv)
 	os.Unsetenv(clientSecretKeyEnv)
@@ -185,7 +185,7 @@ func getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, regis
 	}
 	aadToken, err := env.GetToken(context.Background(), policy)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to fetch access token")
+		return "", "", fmt.Errorf("failed to fetch access token: %w", err)
 	}
 
 	// Get public URL for artifacts
@@ -198,7 +198,7 @@ func getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, regis
 	// Fetch token
 	ACRToken, err := fetchACRToken(tenantId, aadToken.Token, registry)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to fetch ACR token")
+		return "", "", fmt.Errorf("failed to fetch ACR token: %w", err)
 	}
 	return ACRToken, publicUrl, nil
 }
@@ -213,14 +213,14 @@ func fetchACRToken(tenantId, token, registry string) (string, error) {
 	}
 	jsonResponse, err := http.PostForm(fmt.Sprintf("https://%s/oauth2/exchange", registry), formData)
 	if err != nil || jsonResponse == nil {
-		return "", errors.Wrap(err, "failed to fetch ACR token")
+		return "", fmt.Errorf("failed to fetch ACR token: %w", err)
 	}
 
 	// fetch token from response
 	var response map[string]interface{}
 	err = json.NewDecoder(jsonResponse.Body).Decode(&response)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode oauth exchange response")
+		return "", fmt.Errorf("failed to decode oauth exchange response: %w", err)
 	}
 
 	// Parse the refresh_token from the response
@@ -230,17 +230,17 @@ func fetchACRToken(tenantId, token, registry string) (string, error) {
 		}
 		return "", errors.New("failed to cast refresh token from acr")
 	}
-	return "", errors.Wrap(err, "refresh token not found in response of oauth exchange call")
+	return "", fmt.Errorf("refresh token not found in response of oauth exchange call: %w", err)
 }
 
 func setupACRCert(cert, certPath string) error {
 	decoded, err := base64.StdEncoding.DecodeString(cert)
 	if err != nil {
-		return errors.Wrap(err, "failed to base64 decode ACR certificate")
+		return fmt.Errorf("failed to base64 decode ACR certificate: %w", err)
 	}
 	err = ioutil.WriteFile(certPath, decoded, 0644)
 	if err != nil {
-		return errors.Wrap(err, "failed to write ACR certificate")
+		return fmt.Errorf("failed to write ACR certificate: %w", err)
 	}
 	return nil
 }
@@ -262,21 +262,21 @@ func getPublicUrl(token, registryUrl, subscriptionId string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println(err)
-		return "", errors.Wrap(err, "failed to create request for getting container registry setting")
+		return "", fmt.Errorf("failed to create request for getting container registry setting: %w", err)
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return "", errors.Wrap(err, "failed to send request for getting container registry setting")
+		return "", fmt.Errorf("failed to send request for getting container registry setting: %w", err)
 	}
 	defer res.Body.Close()
 
 	var response subscriptionUrlResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to send request for getting container registry setting")
+		return "", fmt.Errorf("failed to decode container registry setting response: %w", err)
 	}
 	if len(response.Value) == 0 {
 		return "", errors.New("no id present for base url")

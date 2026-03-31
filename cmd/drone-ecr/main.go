@@ -18,7 +18,6 @@ import (
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 
 	docker "github.com/drone-plugins/drone-docker"
 )
@@ -134,10 +133,10 @@ func main() {
 		for _, t := range tags {
 			exists, err := tagExists(ctx, svc, repositoryName, t)
 			if err != nil {
-				logrus.Fatalf("Error checking if image exists for tag %s: %v", t, err)
+				log.Fatalf("Error checking if image exists for tag %s: %v", t, err)
 			}
 			if exists {
-				logrus.Infof("%s:%s: Image tag exists. Skipping push.", repo, t)
+				log.Printf("%s:%s: Image tag exists. Skipping push.", repo, t)
 				os.Exit(0)
 			}
 		}
@@ -147,7 +146,7 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 }
 

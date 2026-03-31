@@ -14,7 +14,6 @@ import (
 	"github.com/drone-plugins/drone-docker/internal/gcp"
 
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 )
 
@@ -48,11 +47,11 @@ func loadConfig() Config {
 	if idToken != "" && projectId != "" && poolId != "" && providerId != "" && serviceAccountEmail != "" {
 		federalToken, err := gcp.GetFederalToken(idToken, projectId, poolId, providerId)
 		if err != nil {
-			logrus.Fatalf("Error (getFederalToken): %s", err)
+			log.Fatalf("Error (getFederalToken): %s", err)
 		}
 		accessToken, err := gcp.GetGoogleCloudAccessToken(federalToken, serviceAccountEmail)
 		if err != nil {
-			logrus.Fatalf("Error (getGoogleCloudAccessToken): %s", err)
+			log.Fatalf("Error (getGoogleCloudAccessToken): %s", err)
 		}
 		config.AccessToken = accessToken
 	} else {
@@ -103,7 +102,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
