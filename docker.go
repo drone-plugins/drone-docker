@@ -597,7 +597,8 @@ func addProxyValue(build *Build, key string) {
 
 // helper function to get a proxy value from the environment.
 //
-// assumes that the upper and lower case versions of are the same.
+// Checks in order: lowercase key, uppercase key, then HARNESS_<UPPERCASE_KEY>.
+// Assumes that the upper and lower case versions are the same value.
 func getProxyValue(key string) string {
 	value := os.Getenv(key)
 
@@ -605,15 +606,26 @@ func getProxyValue(key string) string {
 		return value
 	}
 
-	return os.Getenv(strings.ToUpper(key))
+	value = os.Getenv(strings.ToUpper(key))
+
+	if len(value) > 0 {
+		return value
+	}
+
+	harnessValue := os.Getenv("HARNESS_" + strings.ToUpper(key))
+	if len(harnessValue) > 0 {
+		fmt.Printf("Using HARNESS_%s as proxy value for %s\n", strings.ToUpper(key), key)
+	}
+	return harnessValue
 }
 
 // helper function that looks to see if a proxy value was set in the build args.
 func hasProxyBuildArg(build *Build, key string) bool {
 	keyUpper := strings.ToUpper(key)
+	harnessKey := "HARNESS_" + keyUpper
 
 	for _, s := range build.Args {
-		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) {
+		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) || strings.HasPrefix(s, harnessKey) {
 			return true
 		}
 	}
@@ -622,9 +634,10 @@ func hasProxyBuildArg(build *Build, key string) bool {
 }
 func hasProxyBuildArgNew(build *Build, key string) bool {
 	keyUpper := strings.ToUpper(key)
+	harnessKey := "HARNESS_" + keyUpper
 
 	for _, s := range build.ArgsNew {
-		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) {
+		if strings.HasPrefix(s, key) || strings.HasPrefix(s, keyUpper) || strings.HasPrefix(s, harnessKey) {
 			return true
 		}
 	}
