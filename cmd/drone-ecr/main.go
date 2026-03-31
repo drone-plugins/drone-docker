@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -136,14 +136,15 @@ func main() {
 
 		repositoryName := trimHostname(repo, registry)
 		for _, t := range tags {
-			exists, err := tagExists(svc, repositoryName, t)
-			if err != nil {
-				logrus.Fatalf("Error checking if image exists for tag %s: %v", t, err)
-			}
-			if exists {
-				logrus.Infof("%s:%s: Image tag exists. Skipping push.", repo, t)
-				os.Exit(0)
-			}
+		exists, err := tagExists(svc, repositoryName, t)
+		if err != nil {
+			slog.Error("error checking if image exists for tag", "tag", t, "error", err)
+			os.Exit(1)
+		}
+		if exists {
+			slog.Info("image tag exists, skipping push", "repo", repo, "tag", t)
+			os.Exit(0)
+		}
 		}
 	}
 
@@ -152,7 +153,8 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
-		logrus.Fatal(err)
+		slog.Error("command execution failed", "error", err)
+		os.Exit(1)
 	}
 }
 
