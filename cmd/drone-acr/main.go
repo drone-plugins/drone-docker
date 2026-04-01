@@ -156,7 +156,7 @@ func getAuth(clientId, clientSecret, clientCert, tenantId, subscriptionId, regis
 	if clientCert != "" {
 		err := setupACRCert(clientCert, acrCertPath)
 		if err != nil {
-			return "", "", fmt.Errorf("failed to push setup cert file: %w", err)
+			slog.Warn("failed to push setup cert file", "error", err)
 		}
 	}
 
