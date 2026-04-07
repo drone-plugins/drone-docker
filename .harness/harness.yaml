@@ -682,7 +682,7 @@ pipeline:
                         tags:
                           - windows-1809-amd64
                         caching: false
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.1809.rf
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
