@@ -658,7 +658,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
-                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.1809.rf
                           auto_tag: "true"
                           auto_tag_suffix: windows-1809-amd64
                       when:
