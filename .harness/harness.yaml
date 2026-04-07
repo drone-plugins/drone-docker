@@ -748,7 +748,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
-                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022.rf
                           auto_tag: "true"
                           auto_tag_suffix: windows-ltsc2022-amd64
                       when:
@@ -772,7 +772,7 @@ pipeline:
                         tags:
                           - windows-ltsc2022-amd64
                         caching: false
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022.rf
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
