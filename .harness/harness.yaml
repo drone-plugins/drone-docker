@@ -726,6 +726,17 @@ pipeline:
               execution:
                 steps:
                   - step:
+                      type: GitClone
+                      name: Clone RF Dockerfiles
+                      identifier: Clone_RF_Dockerfiles
+                      spec:
+                        connectorRef: RapidFortPlugins
+                        cloneDirectory: rf-plugins
+                        build:
+                          type: branch
+                          spec:
+                            branch: main
+                  - step:
                       type: Run
                       name: Build Binary -ltsc2022
                       identifier: build_amd64ltsc2022
