@@ -398,6 +398,216 @@ pipeline:
                             - acr
               buildIntelligence:
                 enabled: false
+        - stage:
+            name: rf-linux-amd64
+            identifier: rf_linamd64
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: false
+                paths: []
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: GitClone
+                      name: Clone RF Dockerfiles
+                      identifier: clone_rf
+                      spec:
+                        connectorRef: RapidFortPlugins
+                        build:
+                          type: branch
+                          spec:
+                            branch: main
+                        cloneDirectory: rf-plugins
+                  - step:
+                      type: Run
+                      name: Build Binary
+                      identifier: build_binary
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.25.7
+                        shell: Sh
+                        command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
+                        envVariables:
+                          CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push on Tag
+                      identifier: rf_docker_build_push_tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/<+matrix.repo>
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
+                          auto_tag: "true"
+                          auto_tag_suffix: linux-amd64
+                          base_image_username: <+secrets.getValue("harness0HARUsername")>
+                          base_image_password: <+secrets.getValue("harness0HARPAT")>
+                          base_image_registry: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Build and Push on Branch
+                      identifier: rf_build_push_branch
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/<+matrix.repo>
+                        tags:
+                          - linux-amd64
+                        caching: false
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
+                        envVariables:
+                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
+                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
+                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+            variables:
+              - name: CI_ENABLE_BARE_METAL
+                type: String
+                description: ""
+                required: false
+                value: "false"
+        - stage:
+            name: rf-linux-arm64
+            identifier: rf_linarm64
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: false
+                paths: []
+              platform:
+                os: Linux
+                arch: Arm64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: GitClone
+                      name: Clone RF Dockerfiles
+                      identifier: clone_rf
+                      spec:
+                        connectorRef: RapidFortPlugins
+                        build:
+                          type: branch
+                          spec:
+                            branch: main
+                        cloneDirectory: rf-plugins
+                  - step:
+                      type: Run
+                      name: Build Binary
+                      identifier: build_binary
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.25.7
+                        shell: Sh
+                        command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
+                        envVariables:
+                          CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push on Tag
+                      identifier: rf_docker_build_push_tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/<+matrix.repo>
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
+                          auto_tag: "true"
+                          auto_tag_suffix: linux-arm64
+                          base_image_username: <+secrets.getValue("harness0HARUsername")>
+                          base_image_password: <+secrets.getValue("harness0HARPAT")>
+                          base_image_registry: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Build and Push on Branch
+                      identifier: rf_build_push_branch
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/<+matrix.repo>
+                        tags:
+                          - linux-arm64
+                        caching: false
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
+                        envVariables:
+                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
+                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
+                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - acr
+                            - ecr
+                            - gar
+            variables:
+              - name: CI_ENABLE_BARE_METAL
+                type: String
+                description: ""
+                required: false
+                value: "false"
     - stage:
         name: Manifest and Release
         identifier: Manifest
@@ -410,6 +620,18 @@ pipeline:
             paths: []
           execution:
             steps:
+              - step:
+                  type: GitClone
+                  name: Clone RF Manifest Templates
+                  identifier: clone_rf_manifest
+                  spec:
+                    connectorRef: RapidFortPlugins
+                    build:
+                      type: branch
+                      spec:
+                        branch: main
+                    cloneDirectory: rf-plugins
+                contextType: Pipeline
               - step:
                   type: Plugin
                   name: Manifest
@@ -435,6 +657,29 @@ pipeline:
                         - ecr
                         - heroku
                         - acr
+              - step:
+                  type: Plugin
+                  name: RF Manifest
+                  identifier: rf_manifest
+                  spec:
+                    connectorRef: Plugins_Docker_Hub_Connector
+                    image: plugins/manifest
+                    settings:
+                      username: <+secrets.getValue("harnesssecureusername")>
+                      password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                      auto_tag: "true"
+                      ignore_missing: "true"
+                      spec: rf-plugins/drone-docker/docker/<+matrix.repo>/manifest.tmpl
+                  when:
+                    stageStatus: Success
+                    condition: <+codebase.build.type> == "tag"
+                  strategy:
+                    matrix:
+                      repo:
+                        - docker
+                        - acr
+                        - ecr
+                        - gar
           platform:
             os: Linux
             arch: Amd64
