@@ -259,31 +259,49 @@ pipeline:
                             - gar
                             - ecr
                             - acr
-                  - step:
-                      type: Plugin
-                      name: Build and Push on Tag
-                      identifier: Docker_Build_and_Push1
-                      spec:
-                        connectorRef: Plugins_Docker_Hub_Connector
-                        image: plugins/docker
-                        settings:
-                          username: drone
-                          password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                          repo: plugins/<+matrix.repo>
-                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                          auto_tag: "true"
-                          auto_tag_suffix: windows-1809-amd64
-                      when:
-                        stageStatus: Success
-                        condition: <+codebase.build.type> == "tag"
-                      strategy:
-                        matrix:
-                          repo:
-                            - docker
-                            - gcr
-                            - gar
-                            - ecr
-                            - acr
+                  - parallel:
+                      - step:
+                          type: Plugin
+                          name: Build and Push on Tag
+                          identifier: Docker_Build_and_Push1
+                          spec:
+                            connectorRef: Plugins_Docker_Hub_Connector
+                            image: plugins/docker
+                            settings:
+                              username: drone
+                              password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
+                              repo: plugins/<+matrix.repo>
+                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                              auto_tag: "true"
+                              auto_tag_suffix: windows-1809-amd64
+                          when:
+                            stageStatus: Success
+                            condition: <+codebase.build.type> == "tag"
+                          strategy:
+                            matrix:
+                              repo:
+                                - docker
+                                - gcr
+                                - gar
+                                - ecr
+                                - acr
+                      - step:
+                          type: Plugin
+                          name: RF Build and Push on Tag
+                          identifier: RF_Build_and_Push_on_Tag
+                          spec:
+                            connectorRef: Plugins_Docker_Hub_Connector
+                            image: plugins/docker
+                            settings:
+                              username: <+secrets.getValue("harnesssecureusername")>
+                              password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                              repo: harnesssecure/<+matrix.repo>
+                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                              auto_tag: "true"
+                              auto_tag_suffix: windows-1809-amd64
+                          when:
+                            stageStatus: Success
+                            condition: <+codebase.build.type> == "tag"
                   - step:
                       type: BuildAndPushDockerRegistry
                       name: Build and Push on Branch
