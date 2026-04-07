@@ -302,28 +302,59 @@ pipeline:
                           when:
                             stageStatus: Success
                             condition: <+codebase.build.type> == "tag"
-                  - step:
-                      type: BuildAndPushDockerRegistry
-                      name: Build and Push on Branch
-                      identifier: BuildAndPushDockerRegistry_2
-                      spec:
-                        connectorRef: Plugins_Docker_Hub_Connector
-                        repo: plugins/<+matrix.repo>
-                        tags:
-                          - windows-1809-amd64
-                        caching: false
-                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                      when:
-                        stageStatus: Success
-                        condition: <+codebase.build.type> == "branch"
-                      strategy:
-                        matrix:
-                          repo:
-                            - docker
-                            - gcr
-                            - gar
-                            - ecr
-                            - acr
+                          strategy:
+                            matrix:
+                              repo:
+                                - docker
+                                - gcr
+                                - gar
+                                - ecr
+                                - acr
+                  - parallel:
+                      - step:
+                          type: BuildAndPushDockerRegistry
+                          name: Build and Push on Branch
+                          identifier: BuildAndPushDockerRegistry_2
+                          spec:
+                            connectorRef: Plugins_Docker_Hub_Connector
+                            repo: plugins/<+matrix.repo>
+                            tags:
+                              - windows-1809-amd64
+                            caching: false
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                          when:
+                            stageStatus: Success
+                            condition: <+codebase.build.type> == "branch"
+                          strategy:
+                            matrix:
+                              repo:
+                                - docker
+                                - gcr
+                                - gar
+                                - ecr
+                                - acr
+                      - step:
+                          type: BuildAndPushDockerRegistry
+                          name: RF Build and Push on Branch
+                          identifier: rf_build_push_branch
+                          spec:
+                            connectorRef: Plugins_Docker_Hub_Connector
+                            repo: plugins/<+matrix.repo>
+                            tags:
+                              - windows-1809-amd64
+                            caching: false
+                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                          when:
+                            stageStatus: Success
+                            condition: <+codebase.build.type> == "branch"
+                          strategy:
+                            matrix:
+                              repo:
+                                - docker
+                                - gcr
+                                - gar
+                                - ecr
+                                - acr
             delegateSelectors:
               - windows-vm
         - stage:
