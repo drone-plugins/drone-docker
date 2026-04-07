@@ -259,102 +259,53 @@ pipeline:
                             - gar
                             - ecr
                             - acr
-                  - parallel:
-                      - step:
-                          type: Plugin
-                          name: Build and Push on Tag
-                          identifier: Docker_Build_and_Push1
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            image: plugins/docker
-                            settings:
-                              username: drone
-                              password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                              repo: plugins/<+matrix.repo>
-                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                              auto_tag: "true"
-                              auto_tag_suffix: windows-1809-amd64
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "tag"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                      - step:
-                          type: Plugin
-                          name: RF Build and Push on Tag
-                          identifier: RF_Build_and_Push_on_Tag
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            image: plugins/docker
-                            settings:
-                              username: <+secrets.getValue("harnesssecureusername")>
-                              password: <+secrets.getValue("dockerHarnessSecurePwd")>
-                              repo: harnesssecure/<+matrix.repo>
-                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                              auto_tag: "true"
-                              auto_tag_suffix: windows-1809-amd64
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "tag"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                  - parallel:
-                      - step:
-                          type: BuildAndPushDockerRegistry
-                          name: Build and Push on Branch
-                          identifier: BuildAndPushDockerRegistry_2
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            repo: plugins/<+matrix.repo>
-                            tags:
-                              - windows-1809-amd64
-                            caching: false
-                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "branch"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                      - step:
-                          type: BuildAndPushDockerRegistry
-                          name: RF Build and Push on Branch
-                          identifier: rf_build_push_branch
-                          spec:
-                            connectorRef: harnesssecure
-                            repo: harnesssecure/<+matrix.repo>
-                            tags:
-                              - windows-1809-amd64
-                            caching: false
-                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "branch"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
+                  - step:
+                      type: Plugin
+                      name: Build and Push on Tag
+                      identifier: Docker_Build_and_Push1
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: drone
+                          password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                          auto_tag: "true"
+                          auto_tag_suffix: windows-1809-amd64
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: Build and Push on Branch
+                      identifier: BuildAndPushDockerRegistry_2
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - windows-1809-amd64
+                        caching: false
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
             delegateSelectors:
               - windows-vm
         - stage:
@@ -398,102 +349,53 @@ pipeline:
                             - gar
                             - ecr
                             - acr
-                  - parallel:
-                      - step:
-                          type: Plugin
-                          name: Build and Push on Tag
-                          identifier: Docker_Build_and_Push1
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            image: plugins/docker
-                            settings:
-                              username: drone
-                              password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
-                              repo: plugins/<+matrix.repo>
-                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
-                              auto_tag: "true"
-                              auto_tag_suffix: windows-ltsc2022-amd64
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "tag"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                      - step:
-                          type: Plugin
-                          name: RF Build and Push on Tag
-                          identifier: RF_Build_and_Push_on_Tag
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            image: plugins/docker
-                            settings:
-                              username: <+secrets.getValue("harnesssecureusername")>
-                              password: <+secrets.getValue("dockerHarnessSecurePwd")>
-                              repo: harnesssecure/<+matrix.repo>
-                              dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
-                              auto_tag: "true"
-                              auto_tag_suffix: windows-ltsc2022-amd64
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "tag"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                  - parallel:
-                      - step:
-                          type: BuildAndPushDockerRegistry
-                          name: Build and Push on Branch
-                          identifier: BuildAndPushDockerRegistry_2
-                          spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            repo: plugins/<+matrix.repo>
-                            tags:
-                              - windows-ltsc2022-amd64
-                            caching: false
-                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "branch"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
-                      - step:
-                          type: BuildAndPushDockerRegistry
-                          name: RF Build and Push on Branch
-                          identifier: rf_build_push_branch
-                          spec:
-                            connectorRef: harnesssecure
-                            repo: harnesssecure/<+matrix.repo>
-                            tags:
-                              - windows-ltsc2022-amd64
-                            caching: false
-                            dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
-                          when:
-                            stageStatus: Success
-                            condition: <+codebase.build.type> == "branch"
-                          strategy:
-                            matrix:
-                              repo:
-                                - docker
-                                - gcr
-                                - gar
-                                - ecr
-                                - acr
+                  - step:
+                      type: Plugin
+                      name: Build and Push on Tag
+                      identifier: Docker_Build_and_Push1
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: drone
+                          password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
+                          repo: plugins/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                          auto_tag: "true"
+                          auto_tag_suffix: windows-ltsc2022-amd64
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: Build and Push on Branch
+                      identifier: BuildAndPushDockerRegistry_2
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - windows-ltsc2022-amd64
+                        caching: false
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
               buildIntelligence:
                 enabled: false
         - stage:
@@ -706,6 +608,184 @@ pipeline:
                 description: ""
                 required: false
                 value: "false"
+        - stage:
+            name: win-1809-amd64-rf
+            identifier: win1809amd64rf
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: true
+              infrastructure:
+                type: VM
+                spec:
+                  type: Pool
+                  spec:
+                    poolName: windows-2019
+                    os: Windows
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: Build Binary
+                      identifier: go_build
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
+                        shell: Sh
+                        command: |-
+                          # disable cgo
+                          export CGO_ENABLED=0
+
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push on Tag
+                      identifier: RF_Build_and_Push_on_Tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                          auto_tag: "true"
+                          auto_tag_suffix: windows-1809-amd64
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Build and Push on Branch
+                      identifier: rf_build_push_branch
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/<+matrix.repo>
+                        tags:
+                          - windows-1809-amd64
+                        caching: false
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.1809
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+            delegateSelectors:
+              - windows-vm
+        - stage:
+            name: win-ltsc2022-amd64-rf
+            identifier: winamd64rf
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: false
+                paths: []
+              platform:
+                os: Windows
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: Build Binary -ltsc2022
+                      identifier: build_amd64ltsc2022
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
+                        shell: Sh
+                        command: |-
+                          # disable cgo
+                          export CGO_ENABLED=0
+
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                        envVariables:
+                          CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push on Tag
+                      identifier: RF_Build_and_Push_on_Tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/<+matrix.repo>
+                          dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                          auto_tag: "true"
+                          auto_tag_suffix: windows-ltsc2022-amd64
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Build and Push on Branch
+                      identifier: rf_build_push_branch
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/<+matrix.repo>
+                        tags:
+                          - windows-ltsc2022-amd64
+                        caching: false
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2022
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+              buildIntelligence:
+                enabled: false
     - stage:
         name: Manifest and Release
         identifier: Manifest
