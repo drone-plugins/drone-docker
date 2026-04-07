@@ -338,8 +338,8 @@ pipeline:
                           name: RF Build and Push on Branch
                           identifier: rf_build_push_branch
                           spec:
-                            connectorRef: Plugins_Docker_Hub_Connector
-                            repo: plugins/<+matrix.repo>
+                            connectorRef: harnesssecure
+                            repo: harnesssecure/<+matrix.repo>
                             tags:
                               - windows-1809-amd64
                             caching: false
