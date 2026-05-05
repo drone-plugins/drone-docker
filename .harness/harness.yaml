@@ -674,12 +674,11 @@ pipeline:
                           auto_tag_suffix: windows-1809-amd64
                       when:
                         stageStatus: Success
-                        condition: <+codebase.build.type> == "tag"
+                        condition: <+codebase.build.type> == "branch"
                       strategy:
                         matrix:
                           repo:
                             - docker
-                            - gcr
                             - gar
                             - ecr
                             - acr
@@ -701,7 +700,6 @@ pipeline:
                         matrix:
                           repo:
                             - docker
-                            - gcr
                             - gar
                             - ecr
                             - acr
