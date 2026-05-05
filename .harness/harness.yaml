@@ -800,7 +800,6 @@ pipeline:
                         matrix:
                           repo:
                             - docker
-                            - gcr
                             - gar
                             - ecr
                             - acr
