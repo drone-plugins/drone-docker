@@ -142,6 +142,13 @@ func (p Plugin) Exec() error {
 	if maxRetries <= 0 {
 		maxRetries = 15 // default value
 	}
+	// If the daemon still isn't reachable after max retries, fail fast.
+	//
+	// Historically this code only printed an error and continued, which led to
+	// confusing follow-up failures like:
+	//   "Cannot connect to the Docker daemon at unix:///var/run/docker.sock"
+	//
+	// See: https://github.com/drone-plugins/drone-docker/issues/414
 	for i := 0; ; i++ {
 		cmd := commandInfo()
 		err := cmd.Run()
@@ -149,8 +156,7 @@ func (p Plugin) Exec() error {
 			break
 		}
 		if i == maxRetries {
-			fmt.Printf("Unable to reach Docker Daemon after %d attempts.\n", maxRetries)
-			break
+			return fmt.Errorf("unable to reach Docker Daemon after %d attempts", maxRetries)
 		}
 		time.Sleep(time.Second * 1)
 	}
