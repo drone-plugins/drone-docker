@@ -29,3 +29,9 @@ manifests:
       architecture: amd64
       os: windows
       version: ltsc2022
+  -
+    image: plugins/ecr:{{#if build.tag}}{{trimPrefix "v" build.tag}}-{{/if}}windows-ltsc2025-amd64
+    platform:
+      architecture: amd64
+      os: windows
+      version: ltsc2025
