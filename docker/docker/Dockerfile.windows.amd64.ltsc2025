@@ -1,0 +1,36 @@
+# escape=`
+FROM mcr.microsoft.com/windows/servercore:ltsc2025 as download
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Modernized for ltsc2025: fetch the standalone Docker CLI matching the daemon
+# generation used on Windows Server 2025 hosts (28.x). Replaces the 1809/ltsc2022
+# pattern of extracting docker.exe from DockerToolbox 19.03.1 via innoextract.
+ENV DOCKER_VERSION 28.4.0
+
+RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; `
+    Invoke-WebRequest -UseBasicParsing `
+      $('https://download.docker.com/win/static/stable/x86_64/docker-{0}.zip' -f $env:DOCKER_VERSION) `
+      -OutFile docker.zip ; `
+    Expand-Archive docker.zip -DestinationPath C:\ ; `
+    Remove-Item docker.zip
+
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2025
+USER ContainerAdministrator
+
+LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
+  org.label-schema.name="Drone Docker" `
+  org.label-schema.vendor="Drone.IO Community" `
+  org.label-schema.schema-version="1.0"
+
+RUN mkdir C:\bin
+
+# Install cosign for container image signing
+ADD https://github.com/sigstore/cosign/releases/download/v2.5.3/cosign-windows-amd64.exe C:/bin/cosign.exe
+
+# nanoserver:ltsc2025 ships netapi32.dll natively (unlike 1809/ltsc2022 where we
+# had to copy it in from servercore). Overwriting the ltsc2025 copy fails with
+# "Access is denied" because system32 files are locked, so we skip that COPY.
+COPY --from=download /docker/docker.exe C:/bin/docker.exe
+ADD release/windows/amd64/drone-docker.exe C:/bin/drone-docker.exe
+ENTRYPOINT [ "C:\\bin\\drone-docker.exe" ]
