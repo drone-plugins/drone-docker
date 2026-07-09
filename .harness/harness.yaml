@@ -861,6 +861,17 @@ pipeline:
                           dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2025
                           auto_tag: "true"
                           auto_tag_suffix: windows-ltsc2025-amd64
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
     - stage:
         name: Manifest and Release
         identifier: Manifest
