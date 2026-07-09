@@ -804,6 +804,49 @@ pipeline:
                             - acr
               buildIntelligence:
                 enabled: false
+        - stage:
+            name: win-ltsc-2025-amd64
+            identifier: winltsc2025amd64
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: false
+                override: false
+                paths: []
+              buildIntelligence:
+                enabled: false
+              infrastructure:
+                type: VM
+                spec:
+                  type: Pool
+                  spec:
+                    poolName: windows-2025
+                    os: Windows
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: Build Binary 2025
+                      identifier: Build_Binary_2025
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
+                        shell: Sh
+                        command: |-
+                          # disable cgo
+                          export CGO_ENABLED=0
+
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
     - stage:
         name: Manifest and Release
         identifier: Manifest
