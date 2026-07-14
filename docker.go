@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -131,6 +132,14 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
+	// Trust the Harness egress-proxy CA (if HARNESS_CA_PATH is set) BEFORE the
+	// daemon starts. The Docker daemon and its embedded BuildKit verify registry
+	// TLS against the host system trust store; when traffic goes through the
+	// TLS-intercepting egress proxy, the presented cert is signed by the Harness
+	// CA and must be trusted here or base-image pulls fail with an x509
+	// "unknown authority" error.
+	trustHarnessCA()
+
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -331,7 +340,7 @@ func (p Plugin) Exec() error {
 
 		if digest, err := getDigest(p.Build.TempTag); err == nil {
 			fmt.Printf("🔐 Found image digest: %s\n", digest)
-			
+
 			// Sign with digest reference
 			imageRef := fmt.Sprintf("%s@%s", p.Build.Repo, digest)
 			cosignCmd := createCosignCommand(imageRef, p.Cosign)
@@ -339,7 +348,7 @@ func (p Plugin) Exec() error {
 		} else {
 			fmt.Printf("⚠️  WARNING: Could not get image digest for cosign signing: %s\n", err)
 			fmt.Printf("   Falling back to tag-based signing\n")
-			
+
 			// Fall back to tag-based signing for each tag
 			for _, tag := range p.Build.Tags {
 				imageRef := fmt.Sprintf("%s:%s", p.Build.Repo, tag)
@@ -572,6 +581,35 @@ func getSecretCmdArg(kvp string, file bool) (string, error) {
 	}
 
 	return fmt.Sprintf("id=%s,env=%s", key, value), nil
+}
+
+// trustHarnessCA installs the Harness egress-proxy CA into the host trust store
+// so the Docker daemon / embedded BuildKit trust the TLS-intercepting proxy when
+// pulling base images. It is driven by HARNESS_CA_PATH (path to a PEM CA bundle)
+// and is a best-effort no-op when the var is unset, the file is missing, or the
+// platform isn't supported — build failures are surfaced later by docker itself.
+// The platform-specific installation is provided by installHarnessCA (see
+// ca_linux.go / ca_windows.go / ca_other.go); it is indirected through
+// installHarnessCAFn so tests can stub the actual system-trust write.
+var installHarnessCAFn = installHarnessCA
+
+func trustHarnessCA() {
+	caPath := os.Getenv("HARNESS_CA_PATH")
+	if caPath == "" {
+		return
+	}
+
+	caPEM, err := os.ReadFile(caPath)
+	if err != nil {
+		fmt.Printf("HARNESS_CA_PATH is set to %q but the CA could not be read: %s. Skipping CA trust.\n", caPath, err)
+		return
+	}
+	if len(bytes.TrimSpace(caPEM)) == 0 {
+		fmt.Printf("HARNESS_CA_PATH %q is empty. Skipping CA trust.\n", caPath)
+		return
+	}
+
+	installHarnessCAFn(caPEM)
 }
 
 // helper function to add proxy values from the environment
@@ -853,7 +891,7 @@ func isValidPEMKey(pemContent string) bool {
 // createCosignCommand creates a cosign sign command with the given image reference
 func createCosignCommand(imageRef string, cosign CosignConfig) *exec.Cmd {
 	args := []string{"sign", "--yes"}
-	
+
 	// Handle private key (content vs file path)
 	if strings.HasPrefix(cosign.PrivateKey, "-----BEGIN") {
 		args = append(args, "--key", "env://COSIGN_PRIVATE_KEY")
@@ -861,21 +899,21 @@ func createCosignCommand(imageRef string, cosign CosignConfig) *exec.Cmd {
 	} else {
 		args = append(args, "--key", cosign.PrivateKey)
 	}
-	
+
 	// Set password if provided
 	if cosign.Password != "" {
 		os.Setenv("COSIGN_PASSWORD", cosign.Password)
 	}
-	
+
 	// Add any extra parameters
 	if cosign.Params != "" {
 		extraArgs := strings.Fields(cosign.Params)
 		args = append(args, extraArgs...)
 	}
-	
+
 	// Add the image reference to sign
 	args = append(args, imageRef)
-	
+
 	return exec.Command(cosignExe, args...)
 }
 
