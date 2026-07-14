@@ -114,6 +114,54 @@ COOL BANANAS
 ```
 
 
+### Trusting a custom / egress-proxy CA (`HARNESS_CA_PATH`)
+
+When builds run behind a TLS-intercepting egress proxy (e.g. Harness egress
+control), the proxy re-signs upstream TLS with its own CA. The Docker daemon and
+its embedded BuildKit verify registry TLS against the **host system trust
+store**, so base-image pulls fail with
+`x509: certificate signed by unknown authority` unless that CA is trusted.
+
+Set the `HARNESS_CA_PATH` environment variable to a PEM CA (bundle) file and the
+plugin installs it into the host trust store **before starting the Docker
+daemon**:
+
+```yaml
+steps:
+- name: build and push
+  image: plugins/docker
+  pull: never
+  environment:
+    HARNESS_CA_PATH: /etc/harness-certs/ca.crt
+  settings:
+    repo: octocat/hello-world
+    tags: latest
+```
+
+Behavior:
+
+- **Linux** — installs into the distro anchor dir
+  (`/usr/local/share/ca-certificates` on Debian/Ubuntu/Alpine,
+  `/etc/pki/ca-trust/source/anchors` on RHEL/CentOS/Fedora) and runs
+  `update-ca-certificates` / `update-ca-trust`. It also appends the CA directly
+  to the consolidated bundle (`/etc/ssl/certs/ca-certificates.crt` or the RHEL
+  equivalent) so trust holds even on minimal images without a refresh tool.
+- **Windows** — imports the CA into the machine trust store via
+  `certutil -addstore -f Root`.
+- **macOS / other** — logged no-op (not currently supported).
+
+Notes:
+
+- It is **best-effort and idempotent**: when `HARNESS_CA_PATH` is unset, the file
+  is missing, or the file is empty, the plugin logs and continues. Re-running the
+  step will not duplicate the CA in the bundle.
+- The CA is trusted for the daemon's own registry TLS (base-image pulls, cache
+  endpoints). To make the CA available to `RUN` steps inside the build, also pass
+  it as needed via the Dockerfile / build args.
+- This is separate from the proxy build args
+  (`http_proxy`/`https_proxy`/`no_proxy`), which the plugin already injects from
+  the environment (including `HARNESS_`-prefixed variants).
+
 ### Running from the CLI
 
 ```console
