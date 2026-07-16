@@ -39,6 +39,10 @@ func loadConfig() Config {
 		}
 	}
 
+	// Must run before STS / oauth HTTPS: this binary does auth before spawning
+	// drone-docker, which is where TrustHarnessCA also runs for the daemon.
+	docker.TrustHarnessCA()
+
 	idToken := getenv("PLUGIN_OIDC_TOKEN_ID")
 	projectId := getenv("PLUGIN_PROJECT_NUMBER")
 	poolId := getenv("PLUGIN_POOL_ID")

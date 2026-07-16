@@ -132,14 +132,6 @@ type (
 
 // Exec executes the plugin step
 func (p Plugin) Exec() error {
-	// Trust the Harness egress-proxy CA (if HARNESS_CA_PATH is set) BEFORE the
-	// daemon starts. The Docker daemon and its embedded BuildKit verify registry
-	// TLS against the host system trust store; when traffic goes through the
-	// TLS-intercepting egress proxy, the presented cert is signed by the Harness
-	// CA and must be trusted here or base-image pulls fail with an x509
-	// "unknown authority" error.
-	trustHarnessCA()
-
 	// start the Docker daemon server
 	if !p.Daemon.Disabled {
 		p.startDaemon()
@@ -583,17 +575,23 @@ func getSecretCmdArg(kvp string, file bool) (string, error) {
 	return fmt.Sprintf("id=%s,env=%s", key, value), nil
 }
 
-// trustHarnessCA installs the Harness egress-proxy CA into the host trust store
-// so the Docker daemon / embedded BuildKit trust the TLS-intercepting proxy when
-// pulling base images. It is driven by HARNESS_CA_PATH (path to a PEM CA bundle)
-// and is a best-effort no-op when the var is unset, the file is missing, or the
-// platform isn't supported — build failures are surfaced later by docker itself.
+// TrustHarnessCA installs the Harness egress-proxy CA into the host trust store
+// so the Docker daemon / embedded BuildKit (and this process's Go TLS clients)
+// trust the TLS-intercepting proxy. It is driven by HARNESS_CA_PATH (path to a
+// PEM CA bundle) and is a best-effort no-op when the var is unset, the file is
+// missing, or the platform isn't supported — build failures are surfaced later
+// by docker itself.
+//
+// Call from each binary's main (after loading PLUGIN_ENV_FILE) before any HTTPS:
+// Go caches SystemCertPool on first use, and registry wrappers (gcr/gar/acr/ecr)
+// perform auth HTTPS before spawning drone-docker.
+//
 // The platform-specific installation is provided by installHarnessCA (see
 // ca_linux.go / ca_windows.go / ca_other.go); it is indirected through
 // installHarnessCAFn so tests can stub the actual system-trust write.
 var installHarnessCAFn = installHarnessCA
 
-func trustHarnessCA() {
+func TrustHarnessCA() {
 	caPath := os.Getenv("HARNESS_CA_PATH")
 	if caPath == "" {
 		return

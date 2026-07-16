@@ -123,8 +123,8 @@ store**, so base-image pulls fail with
 `x509: certificate signed by unknown authority` unless that CA is trusted.
 
 Set the `HARNESS_CA_PATH` environment variable to a PEM CA (bundle) file and the
-plugin installs it into the host trust store **before starting the Docker
-daemon**:
+plugin installs it into the host trust store **before any HTTPS** (registry
+wrapper auth such as GCP STS, and before starting the Docker daemon):
 
 ```yaml
 steps:
@@ -146,18 +146,22 @@ Behavior:
   `update-ca-certificates` / `update-ca-trust`. It also appends the CA directly
   to the consolidated bundle (`/etc/ssl/certs/ca-certificates.crt` or the RHEL
   equivalent) so trust holds even on minimal images without a refresh tool.
-- **Windows** — imports the CA into the machine trust store via
-  `certutil -addstore -f Root`.
+- **Windows** — imports the CA into `LocalMachine\Root` via the Windows
+  CryptoAPI (`crypt32.dll`). This works on Nano Server images that lack
+  `certutil` / PowerShell.
 - **macOS / other** — logged no-op (not currently supported).
 
 Notes:
 
+- Registry wrappers (`plugins/gcr`, `gar`, `acr`, `ecr`) call the same install
+  before their pre-docker HTTPS auth (e.g. `sts.googleapis.com` token exchange).
 - It is **best-effort and idempotent**: when `HARNESS_CA_PATH` is unset, the file
   is missing, or the file is empty, the plugin logs and continues. Re-running the
   step will not duplicate the CA in the bundle.
 - The CA is trusted for the daemon's own registry TLS (base-image pulls, cache
-  endpoints). To make the CA available to `RUN` steps inside the build, also pass
-  it as needed via the Dockerfile / build args.
+  endpoints) and for Go TLS clients in the plugin process. To make the CA
+  available to `RUN` steps inside the build, also pass it as needed via the
+  Dockerfile / build args.
 - This is separate from the proxy build args
   (`http_proxy`/`https_proxy`/`no_proxy`), which the plugin already injects from
   the environment (including `HARNESS_`-prefixed variants).

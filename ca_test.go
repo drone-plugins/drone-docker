@@ -31,7 +31,7 @@ func TestTrustHarnessCA_Unset(t *testing.T) {
 	os.Unsetenv("HARNESS_CA_PATH")
 	_, calls := withStubbedInstall(t)
 
-	trustHarnessCA()
+	TrustHarnessCA()
 
 	if *calls != 0 {
 		t.Fatalf("expected installer not to be called when HARNESS_CA_PATH is unset, got %d calls", *calls)
@@ -44,7 +44,7 @@ func TestTrustHarnessCA_MissingFile(t *testing.T) {
 	defer os.Unsetenv("HARNESS_CA_PATH")
 	_, calls := withStubbedInstall(t)
 
-	trustHarnessCA()
+	TrustHarnessCA()
 
 	if *calls != 0 {
 		t.Fatalf("expected installer not to be called when CA file is missing, got %d calls", *calls)
@@ -60,7 +60,7 @@ func TestTrustHarnessCA_EmptyFile(t *testing.T) {
 	defer os.Unsetenv("HARNESS_CA_PATH")
 	_, calls := withStubbedInstall(t)
 
-	trustHarnessCA()
+	TrustHarnessCA()
 
 	if *calls != 0 {
 		t.Fatalf("expected installer not to be called for whitespace-only CA, got %d calls", *calls)
@@ -76,7 +76,7 @@ func TestTrustHarnessCA_ValidFile(t *testing.T) {
 	defer os.Unsetenv("HARNESS_CA_PATH")
 	captured, calls := withStubbedInstall(t)
 
-	trustHarnessCA()
+	TrustHarnessCA()
 
 	if *calls != 1 {
 		t.Fatalf("expected installer to be called once for a valid CA, got %d calls", *calls)

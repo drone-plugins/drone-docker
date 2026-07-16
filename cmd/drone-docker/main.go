@@ -24,6 +24,10 @@ func main() {
 		godotenv.Load(env)
 	}
 
+	// Install egress CA before any TLS in this process (including the Docker
+	// daemon started from Plugin.Exec).
+	docker.TrustHarnessCA()
+
 	app := cli.NewApp()
 	app.Name = "docker plugin"
 	app.Usage = "docker plugin"
