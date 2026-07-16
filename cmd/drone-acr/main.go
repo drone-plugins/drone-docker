@@ -52,6 +52,10 @@ func main() {
 		godotenv.Load(env)
 	}
 
+	// Must run before Azure / ACR HTTPS auth: this binary does auth before
+	// spawning drone-docker, which is where TrustHarnessCA also runs for the daemon.
+	docker.TrustHarnessCA()
+
 	var (
 		repo     = getenv("PLUGIN_REPO")
 		registry = getenv("PLUGIN_REGISTRY")
