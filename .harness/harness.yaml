@@ -1,7 +1,7 @@
 pipeline:
   orgIdentifier: default
   tags: {}
-  properties:
+  properties: 
     ci:
       codebase:
         connectorRef: GitHub_Drone_Plugins_Org
