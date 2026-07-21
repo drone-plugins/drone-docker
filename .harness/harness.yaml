@@ -85,6 +85,19 @@ pipeline:
                             - heroku
                             - acr
                   - step:
+                      type: BuildAndPushDockerRegistry
+                      name: Push Docker Base
+                      identifier: push_docker_base_amd64
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        repo: plugins/docker
+                        tags:
+                          - linux-amd64
+                        caching: false
+                        dockerfile: docker/docker/Dockerfile.linux.amd64
+                      when:
+                        stageStatus: Success
+                  - step:
                       type: Plugin
                       name: Build and Push on Tag
                       identifier: Docker_Build_and_Push
@@ -127,7 +140,6 @@ pipeline:
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - gcr
                             - gar
                             - ecr
@@ -172,6 +184,19 @@ pipeline:
                             - heroku
                             - acr
                   - step:
+                      type: BuildAndPushDockerRegistry
+                      name: Push Docker Base
+                      identifier: push_docker_base_arm64
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        repo: plugins/docker
+                        tags:
+                          - linux-arm64
+                        caching: false
+                        dockerfile: docker/docker/Dockerfile.linux.arm64
+                      when:
+                        stageStatus: Success
+                  - step:
                       type: Plugin
                       name: Build and Push on Tag
                       identifier: Docker_Build_and_Push
@@ -214,7 +239,6 @@ pipeline:
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - gcr
                             - gar
                             - ecr
@@ -446,6 +470,43 @@ pipeline:
                             - ecr
                             - gar
                   - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Push Docker Base
+                      identifier: rf_push_docker_base
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/docker
+                        tags:
+                          - linux-amd64
+                        caching: false
+                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.rf
+                        envVariables:
+                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
+                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
+                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push Docker on Tag
+                      identifier: rf_docker_tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/docker
+                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.rf
+                          auto_tag: "true"
+                          auto_tag_suffix: linux-amd64
+                          base_image_username: <+secrets.getValue("harness0HARUsername")>
+                          base_image_password: <+secrets.getValue("harness0HARPAT")>
+                          base_image_registry: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                  - step:
                       type: Plugin
                       name: RF Build and Push on Tag
                       identifier: rf_docker_build_push_tag
@@ -459,16 +520,12 @@ pipeline:
                           dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
                           auto_tag: "true"
                           auto_tag_suffix: linux-amd64
-                          base_image_username: <+secrets.getValue("harness0HARUsername")>
-                          base_image_password: <+secrets.getValue("harness0HARPAT")>
-                          base_image_registry: harness0.harness.io/oci/docker_artifacts
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - acr
                             - ecr
                             - gar
@@ -483,17 +540,12 @@ pipeline:
                           - linux-amd64
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
-                        envVariables:
-                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
-                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
-                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - acr
                             - ecr
                             - gar
@@ -551,6 +603,43 @@ pipeline:
                             - ecr
                             - gar
                   - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF Push Docker Base
+                      identifier: rf_push_docker_base
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/docker
+                        tags:
+                          - linux-arm64
+                        caching: false
+                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.rf
+                        envVariables:
+                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
+                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
+                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                  - step:
+                      type: Plugin
+                      name: RF Build and Push Docker on Tag
+                      identifier: rf_docker_tag
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/docker
+                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.rf
+                          auto_tag: "true"
+                          auto_tag_suffix: linux-arm64
+                          base_image_username: <+secrets.getValue("harness0HARUsername")>
+                          base_image_password: <+secrets.getValue("harness0HARPAT")>
+                          base_image_registry: harness0.harness.io/oci/docker_artifacts
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                  - step:
                       type: Plugin
                       name: RF Build and Push on Tag
                       identifier: rf_docker_build_push_tag
@@ -564,16 +653,12 @@ pipeline:
                           dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
                           auto_tag: "true"
                           auto_tag_suffix: linux-arm64
-                          base_image_username: <+secrets.getValue("harness0HARUsername")>
-                          base_image_password: <+secrets.getValue("harness0HARPAT")>
-                          base_image_registry: harness0.harness.io/oci/docker_artifacts
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - acr
                             - ecr
                             - gar
@@ -588,17 +673,12 @@ pipeline:
                           - linux-arm64
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
-                        envVariables:
-                          PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
-                          PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
-                          PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
                       strategy:
                         matrix:
                           repo:
-                            - docker
                             - acr
                             - ecr
                             - gar
