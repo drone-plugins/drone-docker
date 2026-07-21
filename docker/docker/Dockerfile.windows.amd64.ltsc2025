@@ -26,7 +26,7 @@ LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
 RUN mkdir C:\bin
 
 # Install cosign for container image signing
-ADD https://github.com/sigstore/cosign/releases/download/v2.6.3/cosign-windows-amd64.exe C:/bin/cosign.exe
+ADD https://github.com/sigstore/cosign/releases/download/v2.5.3/cosign-windows-amd64.exe C:/bin/cosign.exe
 
 # nanoserver:ltsc2025 ships netapi32.dll natively (unlike 1809/ltsc2022 where we
 # had to copy it in from servercore). Overwriting the ltsc2025 copy fails with
