@@ -449,7 +449,7 @@ pipeline:
                         build:
                           type: branch
                           spec:
-                            branch: CI-23243
+                            branch: main
                         cloneDirectory: rf-plugins
                   - step:
                       type: Run
@@ -582,7 +582,7 @@ pipeline:
                         build:
                           type: branch
                           spec:
-                            branch: CI-23243
+                            branch: main
                         cloneDirectory: rf-plugins
                   - step:
                       type: Run
@@ -716,7 +716,7 @@ pipeline:
                         build:
                           type: branch
                           spec:
-                            branch: CI-23243
+                            branch: main
                   - step:
                       type: Run
                       name: Build Binary
@@ -813,7 +813,7 @@ pipeline:
                         build:
                           type: branch
                           spec:
-                            branch: CI-23243
+                            branch: main
                   - step:
                       type: Run
                       name: Build Binary -ltsc2022
