@@ -952,6 +952,129 @@ pipeline:
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "tag"
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: Build and push on Branch
+                      identifier: Build_and_push_on_Branch
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        repo: plugins/<+matrix.repo>
+                        tags:
+                          - windows-ltsc2025-amd64
+                        caching: false
+                        dockerfile: docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2025
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
+        - stage:
+            name: win-ltsc2025-amd64-rf
+            identifier: winltsc2025amd64rf
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: false
+                override: false
+                paths: []
+              buildIntelligence:
+                enabled: false
+              infrastructure:
+                type: VM
+                spec:
+                  type: Pool
+                  spec:
+                    poolName: windows-2025
+                    os: Windows
+              execution:
+                steps:
+                  - step:
+                      type: GitClone
+                      name: Clone RF repo
+                      identifier: Clone_RF_repo
+                      spec:
+                        connectorRef: RapidFortPlugins
+                        cloneDirectory: rf-plugins
+                        build:
+                          type: branch
+                          spec:
+                            branch: main
+                  - step:
+                      type: Run
+                      name: Build Binaries
+                      identifier: Build_Binaries
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: golang:1.23.0
+                        shell: Sh
+                        command: |-
+                          # disable cgo
+                          export CGO_ENABLED=0
+
+                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                        envVariables:
+                          CGO_ENABLED: "0"
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gcr
+                            - gar
+                            - ecr
+                            - acr
+                  - step:
+                      type: Plugin
+                      name: RF build and push on TAG
+                      identifier: RF_build_and_push_on_TAG
+                      spec:
+                        connectorRef: Plugins_Docker_Hub_Connector
+                        image: plugins/docker:windows-ltsc2025-amd64
+                        settings:
+                          username: <+secrets.getValue("harnesssecureusername")>
+                          password: <+secrets.getValue("dockerHarnessSecurePwd")>
+                          repo: harnesssecure/<+matrix.repo>
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2025.rf
+                          auto_tag: "true"
+                          auto_tag_suffix: windows-ltsc2025-amd64
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gar
+                            - ecr
+                            - acr
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "tag"
+                  - step:
+                      type: BuildAndPushDockerRegistry
+                      name: RF build and push on branch
+                      identifier: RF_build_and_push_on_branch
+                      spec:
+                        connectorRef: harnesssecure
+                        repo: harnesssecure/<+matrix.repo>
+                        tags:
+                          - windows-ltsc2025-amd64
+                        caching: false
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.windows.amd64.ltsc2025.rf
+                      strategy:
+                        matrix:
+                          repo:
+                            - docker
+                            - gar
+                            - ecr
+                            - acr
+                      when:
+                        stageStatus: Success
+                        condition: <+codebase.build.type> == "branch"
     - stage:
         name: Manifest and Release
         identifier: Manifest
