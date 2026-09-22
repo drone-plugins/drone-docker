@@ -274,7 +274,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                       strategy:
                         matrix:
                           repo:
@@ -362,7 +362,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
                       strategy:
@@ -729,7 +729,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                       strategy:
                         matrix:
                           repo:
@@ -826,7 +826,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
                       strategy:
@@ -918,7 +918,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                       strategy:
                         matrix:
                           repo:
@@ -1019,7 +1019,7 @@ pipeline:
                           # disable cgo
                           export CGO_ENABLED=0
 
-                          go build -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
                           CGO_ENABLED: "0"
                       strategy:
