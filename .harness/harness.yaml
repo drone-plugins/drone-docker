@@ -423,8 +423,8 @@ pipeline:
               buildIntelligence:
                 enabled: false
         - stage:
-            name: rf-linux-amd64
-            identifier: rf_linamd64
+            name: hhi-linux-amd64
+            identifier: hhi_linamd64
             description: ""
             type: CI
             spec:
@@ -442,15 +442,15 @@ pipeline:
                 steps:
                   - step:
                       type: GitClone
-                      name: Clone RF Dockerfiles
+                      name: Clone HHI Dockerfiles
                       identifier: clone_rf
                       spec:
                         connectorRef: RapidFortPlugins
+                        cloneDirectory: rf-plugins
                         build:
                           type: branch
                           spec:
                             branch: main
-                        cloneDirectory: rf-plugins
                   - step:
                       type: Run
                       name: Build Binary
@@ -471,7 +471,7 @@ pipeline:
                             - gar
                   - step:
                       type: BuildAndPushDockerRegistry
-                      name: RF Push Docker Base
+                      name: HHI Push Docker Base
                       identifier: rf_push_docker_base
                       spec:
                         connectorRef: harnesssecure
@@ -479,7 +479,7 @@ pipeline:
                         tags:
                           - linux-amd64
                         caching: false
-                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.rf
+                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.hhi
                         envVariables:
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
@@ -488,7 +488,7 @@ pipeline:
                         stageStatus: Success
                   - step:
                       type: Plugin
-                      name: RF Build and Push Docker on Tag
+                      name: HHI Build and Push Docker on Tag
                       identifier: rf_docker_tag
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
@@ -497,7 +497,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/docker
-                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.rf
+                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.hhi
                           auto_tag: "true"
                           auto_tag_suffix: linux-amd64
                           base_image_username: <+secrets.getValue("harness0HARUsername")>
@@ -508,7 +508,7 @@ pipeline:
                         condition: <+codebase.build.type> == "tag"
                   - step:
                       type: Plugin
-                      name: RF Build and Push on Tag
+                      name: HHI Build and Push on Tag
                       identifier: rf_docker_build_push_tag
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
@@ -517,7 +517,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
-                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.hhi
                           auto_tag: "true"
                           auto_tag_suffix: linux-amd64
                       when:
@@ -531,7 +531,7 @@ pipeline:
                             - gar
                   - step:
                       type: BuildAndPushDockerRegistry
-                      name: RF Build and Push on Branch
+                      name: HHI Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
                         connectorRef: harnesssecure
@@ -539,7 +539,7 @@ pipeline:
                         tags:
                           - linux-amd64
                         caching: false
-                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.rf
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.amd64.hhi
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
@@ -556,8 +556,8 @@ pipeline:
                 required: false
                 value: "false"
         - stage:
-            name: rf-linux-arm64
-            identifier: rf_linarm64
+            name: hhi-linux-arm64
+            identifier: hhi_linarm64
             description: ""
             type: CI
             spec:
@@ -575,15 +575,15 @@ pipeline:
                 steps:
                   - step:
                       type: GitClone
-                      name: Clone RF Dockerfiles
+                      name: Clone HHI Dockerfiles
                       identifier: clone_rf
                       spec:
                         connectorRef: RapidFortPlugins
+                        cloneDirectory: rf-plugins
                         build:
                           type: branch
                           spec:
                             branch: main
-                        cloneDirectory: rf-plugins
                   - step:
                       type: Run
                       name: Build Binary
@@ -604,7 +604,7 @@ pipeline:
                             - gar
                   - step:
                       type: BuildAndPushDockerRegistry
-                      name: RF Push Docker Base
+                      name: HHI Push Docker Base
                       identifier: rf_push_docker_base
                       spec:
                         connectorRef: harnesssecure
@@ -612,7 +612,7 @@ pipeline:
                         tags:
                           - linux-arm64
                         caching: false
-                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.rf
+                        dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.hhi
                         envVariables:
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
@@ -621,7 +621,7 @@ pipeline:
                         stageStatus: Success
                   - step:
                       type: Plugin
-                      name: RF Build and Push Docker on Tag
+                      name: HHI Build and Push Docker on Tag
                       identifier: rf_docker_tag
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
@@ -630,7 +630,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/docker
-                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.rf
+                          dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.hhi
                           auto_tag: "true"
                           auto_tag_suffix: linux-arm64
                           base_image_username: <+secrets.getValue("harness0HARUsername")>
@@ -641,7 +641,7 @@ pipeline:
                         condition: <+codebase.build.type> == "tag"
                   - step:
                       type: Plugin
-                      name: RF Build and Push on Tag
+                      name: HHI Build and Push on Tag
                       identifier: rf_docker_build_push_tag
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
@@ -650,7 +650,7 @@ pipeline:
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
-                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
+                          dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.hhi
                           auto_tag: "true"
                           auto_tag_suffix: linux-arm64
                       when:
@@ -664,7 +664,7 @@ pipeline:
                             - gar
                   - step:
                       type: BuildAndPushDockerRegistry
-                      name: RF Build and Push on Branch
+                      name: HHI Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
                         connectorRef: harnesssecure
@@ -672,7 +672,7 @@ pipeline:
                         tags:
                           - linux-arm64
                         caching: false
-                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.rf
+                        dockerfile: rf-plugins/drone-docker/docker/<+matrix.repo>/Dockerfile.linux.arm64.hhi
                       when:
                         stageStatus: Success
                         condition: <+codebase.build.type> == "branch"
