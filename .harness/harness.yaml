@@ -17,7 +17,7 @@ pipeline:
         spec:
           cloneCodebase: true
           caching:
-            enabled: false
+            enabled: true
             paths: []
           platform:
             os: Linux
@@ -45,6 +45,8 @@ pipeline:
                     image: golang:1.26.5
                     shell: Sh
                     command: go test -cover ./...
+          buildIntelligence:
+            enabled: true
     - parallel:
         - stage:
             name: linux-amd64
@@ -54,7 +56,7 @@ pipeline:
             spec:
               cloneCodebase: true
               caching:
-                enabled: false
+                enabled: true
                 paths: []
               platform:
                 os: Linux
@@ -145,6 +147,8 @@ pipeline:
                             - ecr
                             - heroku
                             - acr
+              buildIntelligence:
+                enabled: true
         - stage:
             name: linux-arm64
             identifier: linarm64
@@ -153,7 +157,7 @@ pipeline:
             spec:
               cloneCodebase: true
               caching:
-                enabled: false
+                enabled: true
                 paths: []
               platform:
                 os: Linux
@@ -244,6 +248,8 @@ pipeline:
                             - ecr
                             - heroku
                             - acr
+              buildIntelligence:
+                enabled: true
         - stage:
             name: win-1809-amd64
             identifier: win1809amd64
@@ -430,7 +436,7 @@ pipeline:
             spec:
               cloneCodebase: true
               caching:
-                enabled: false
+                enabled: true
                 paths: []
               platform:
                 os: Linux
@@ -549,6 +555,8 @@ pipeline:
                             - acr
                             - ecr
                             - gar
+              buildIntelligence:
+                enabled: true
             variables:
               - name: CI_ENABLE_BARE_METAL
                 type: String
