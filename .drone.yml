@@ -55,10 +55,11 @@ platform:
 
 steps:
   - name: go build
-    image: golang:1.26.10
+    image: golang:1.24.11
     environment:
       CGO_ENABLED: 0
     commands:
+      - . ./scripts/setup-go-windows.ps1
       - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
       - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
       - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
@@ -162,10 +163,11 @@ platform:
 
 steps:
   - name: go build
-    image: golang:1.26.10
+    image: golang:1.24.11
     environment:
       CGO_ENABLED: 0
     commands:
+      - . ./scripts/setup-go-windows.ps1
       - go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
       - go build -o release/windows/amd64/drone-ecr.exe ./cmd/drone-ecr
       - go build -o release/windows/amd64/drone-gcr.exe ./cmd/drone-gcr
