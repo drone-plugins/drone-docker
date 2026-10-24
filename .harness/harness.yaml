@@ -56,7 +56,7 @@ pipeline:
             variables:
               - name: PLUGIN_DRY_RUN
                 type: String
-                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
+                value: <+<+codebase.build.type> == "PR">
             spec:
               cloneCodebase: true
               caching:
@@ -163,7 +163,7 @@ pipeline:
             variables:
               - name: PLUGIN_DRY_RUN
                 type: String
-                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
+                value: <+<+codebase.build.type> == "PR">
             spec:
               cloneCodebase: true
               caching:
@@ -575,7 +575,7 @@ pipeline:
             variables:
               - name: PLUGIN_DRY_RUN
                 type: String
-                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
+                value: <+<+codebase.build.type> == "PR">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
@@ -711,7 +711,7 @@ pipeline:
             variables:
               - name: PLUGIN_DRY_RUN
                 type: String
-                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
+                value: <+<+codebase.build.type> == "PR">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
