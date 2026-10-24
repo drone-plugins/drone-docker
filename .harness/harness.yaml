@@ -53,6 +53,10 @@ pipeline:
             identifier: linamd64
             description: ""
             type: CI
+            variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
             spec:
               cloneCodebase: true
               caching:
@@ -156,6 +160,10 @@ pipeline:
             identifier: linarm64
             description: ""
             type: CI
+            variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
             spec:
               cloneCodebase: true
               caching:
@@ -565,6 +573,9 @@ pipeline:
               buildIntelligence:
                 enabled: true
             variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
@@ -698,6 +709,9 @@ pipeline:
                             - ecr
                             - gar
             variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+codebase.build.type != "branch" && codebase.build.type != "tag">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
