@@ -91,6 +91,8 @@ pipeline:
                       name: Push Docker Base
                       identifier: push_docker_base_amd64
                       spec:
+                        baseImageConnectorRefs:
+                          - HHI_Public_Images
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/docker
                         tags:
@@ -192,6 +194,8 @@ pipeline:
                       name: Push Docker Base
                       identifier: push_docker_base_arm64
                       spec:
+                        baseImageConnectorRefs:
+                          - HHI_Public_Images
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/docker
                         tags:
