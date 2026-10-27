@@ -1,6 +1,6 @@
 # escape=`
 # using 1809-KB5021237-amd64 as base image, 1809-KB5022286-amd64 does not work
-FROM mcr.microsoft.com/windows/servercore:1809-KB5021237 as download
+FROM mcr.microsoft.com/windows/servercore:1809-KB5021237@sha256:058c8482946efa0b44b57e5ecebd7857b4df37a1365acdde32736628747ad9e1 as download
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
@@ -14,7 +14,7 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     Invoke-WebRequest $('https://github.com/docker/toolbox/releases/download/v{0}/DockerToolbox-{0}.exe' -f $env:DOCKER_VERSION) -OutFile 'dockertoolbox.exe' -UseBasicParsing
 RUN /innoextract.exe dockertoolbox.exe
 
-FROM mcr.microsoft.com/windows/nanoserver:1809-KB5021237-amd64
+FROM mcr.microsoft.com/windows/nanoserver:1809-KB5021237-amd64@sha256:03e2a67ea588f6e15e96ac23109629ca081970063c0b97f98a62176ebd419867
 
 USER ContainerAdministrator
 

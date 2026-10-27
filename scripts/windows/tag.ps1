@@ -30,6 +30,10 @@ echo $env:GOARCH
 echo $env:VERSION
 
 # build the binary
+. (Join-Path $PSScriptRoot "../setup-go-windows.ps1")
+if ($env:REGISTRY -ne "docker") {
+    go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+}
 Write-Host "+ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}"
 go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}
 
@@ -42,8 +46,8 @@ echo ${env:IMAGE_MINOR}
 echo ${env:IMAGE_MAJOR}
 
 # build and tag the docker images
-Write-Host "+ docker build -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t ${env:IMAGE_PATCH} ."
-docker build -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t ${env:IMAGE_PATCH} .
+Write-Host "+ docker build --pull --no-cache -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t ${env:IMAGE_PATCH} ."
+docker build --pull --no-cache -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t ${env:IMAGE_PATCH} .
 Write-Host "+ docker tag ${env:IMAGE_PATCH} ${env:IMAGE_MAJOR}"
 docker tag ${env:IMAGE_PATCH} ${env:IMAGE_MAJOR}
 Write-Host "+ docker tag ${env:IMAGE_PATCH} ${env:IMAGE_MINOR}"

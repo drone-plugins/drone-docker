@@ -1,10 +1,11 @@
 # escape=`
-FROM plugins/docker:windows-ltsc2025-amd64
+FROM plugins/docker:windows-ltsc2025-amd64@sha256:17c101aa7f63b474ca85b9f91c2df1f037a97271694d75480b85f726561481de
 
 LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
   org.label-schema.name="Drone ACR" `
   org.label-schema.vendor="Drone.IO Community" `
   org.label-schema.schema-version="1.0"
 
+ADD release/windows/amd64/drone-docker.exe C:/bin/drone-docker.exe
 ADD release/windows/amd64/drone-acr.exe C:/bin/drone-acr.exe
 ENTRYPOINT [ "C:\\bin\\drone-acr.exe" ]
