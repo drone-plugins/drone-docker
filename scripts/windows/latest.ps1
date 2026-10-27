@@ -29,8 +29,8 @@ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:RE
 
 # build and publish the docker image
 docker login -u ${env:USERNAME} -p ${env:PASSWORD}
-Write-Host "+ docker build --pull --no-cache -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64 .";
-docker build --pull --no-cache -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64 .
+Write-Host "+ docker build -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64 .";
+docker build -f docker/${env:REGISTRY}/Dockerfile.windows.amd64.${env:VERSION} -t plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64 .
 Write-Host "+ docker push plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64"
 docker push plugins/${env:REGISTRY}:windows-${env:VERSION}-amd64
 

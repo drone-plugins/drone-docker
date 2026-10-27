@@ -1,5 +1,5 @@
 # escape=`
-FROM plugins/docker:windows-ltsc2025-amd64@sha256:17c101aa7f63b474ca85b9f91c2df1f037a97271694d75480b85f726561481de
+FROM plugins/docker:windows-ltsc2025-amd64
 
 LABEL maintainer="Drone.IO Community <drone-dev@googlegroups.com>" `
   org.label-schema.name="Drone GAR" `

@@ -1,5 +1,4 @@
-FROM plugins/docker:linux-arm64@sha256:c64ec34a82f9f81f2c56792649d6b441299bea75aa1425935bc63c63c62f29cc
-RUN apk add --no-cache 'ca-certificates>=20261020-r0'
-ADD release/linux/arm64/drone-docker /bin/
+FROM plugins/docker:linux-arm64
+
 ADD release/linux/arm64/drone-acr /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-acr"]

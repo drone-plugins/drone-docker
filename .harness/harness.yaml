@@ -95,10 +95,6 @@ pipeline:
                       name: Push Docker Base
                       identifier: push_docker_base_amd64
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/docker
                         tags:
@@ -115,8 +111,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                           repo: plugins/<+matrix.repo>
@@ -140,10 +134,6 @@ pipeline:
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_1
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/<+matrix.repo>
                         tags:
@@ -210,10 +200,6 @@ pipeline:
                       name: Push Docker Base
                       identifier: push_docker_base_arm64
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/docker
                         tags:
@@ -230,8 +216,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                           repo: plugins/<+matrix.repo>
@@ -255,10 +239,6 @@ pipeline:
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_1
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/<+matrix.repo>
                         tags:
@@ -302,7 +282,7 @@ pipeline:
                       identifier: go_build
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.23.0@sha256:acfb46be39840f8c2a6b9efdd673c6627011200c73bab4e6d18b8b9ab4641c46
+                        image: golang:1.23.0
                         envVariables:
                           GOTOOLCHAIN: go1.26.10
                         shell: Sh
@@ -327,8 +307,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                           repo: plugins/<+matrix.repo>
@@ -351,10 +329,6 @@ pipeline:
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_2
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/<+matrix.repo>
                         tags:
@@ -406,7 +380,6 @@ pipeline:
 
                           go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
-                          GOTOOLCHAIN: go1.26.10
                           CGO_ENABLED: "0"
                       strategy:
                         matrix:
@@ -424,8 +397,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                           repo: plugins/<+matrix.repo>
@@ -448,10 +419,6 @@ pipeline:
                       name: Build and Push on Branch
                       identifier: BuildAndPushDockerRegistry_2
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/<+matrix.repo>
                         tags:
@@ -530,9 +497,6 @@ pipeline:
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.hhi
                         envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
                           PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
@@ -546,8 +510,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/docker
@@ -568,8 +530,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
@@ -590,10 +550,6 @@ pipeline:
                       name: HHI Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: harnesssecure
                         repo: harnesssecure/<+matrix.repo>
                         tags:
@@ -679,9 +635,6 @@ pipeline:
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.hhi
                         envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
                           PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
@@ -695,8 +648,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/docker
@@ -717,8 +668,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
@@ -739,10 +688,6 @@ pipeline:
                       name: HHI Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: harnesssecure
                         repo: harnesssecure/<+matrix.repo>
                         tags:
@@ -802,7 +747,7 @@ pipeline:
                       identifier: go_build
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.23.0@sha256:acfb46be39840f8c2a6b9efdd673c6627011200c73bab4e6d18b8b9ab4641c46
+                        image: golang:1.23.0
                         envVariables:
                           GOTOOLCHAIN: go1.26.10
                         shell: Sh
@@ -827,8 +772,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
@@ -850,10 +793,6 @@ pipeline:
                       name: RF Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: harnesssecure
                         repo: harnesssecure/<+matrix.repo>
                         tags:
@@ -915,7 +854,6 @@ pipeline:
 
                           go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
-                          GOTOOLCHAIN: go1.26.10
                           CGO_ENABLED: "0"
                       strategy:
                         matrix:
@@ -933,8 +871,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
@@ -956,10 +892,6 @@ pipeline:
                       name: RF Build and Push on Branch
                       identifier: rf_build_push_branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: harnesssecure
                         repo: harnesssecure/<+matrix.repo>
                         tags:
@@ -1007,8 +939,6 @@ pipeline:
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
-                        envVariables:
-                          GOTOOLCHAIN: go1.26.10
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -1031,8 +961,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker:windows-ltsc2025-amd64
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: drone
                           password: <+secrets.getValue("Plugins_Docker_Hub_Pat")>
                           repo: plugins/<+matrix.repo>
@@ -1055,10 +983,6 @@ pipeline:
                       name: Build and push on Branch
                       identifier: Build_and_push_on_Branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: Plugins_Docker_Hub_Connector
                         repo: plugins/<+matrix.repo>
                         tags:
@@ -1123,7 +1047,6 @@ pipeline:
 
                           go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
                         envVariables:
-                          GOTOOLCHAIN: go1.26.10
                           CGO_ENABLED: "0"
                       strategy:
                         matrix:
@@ -1141,8 +1064,6 @@ pipeline:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: plugins/docker:windows-ltsc2025-amd64
                         settings:
-                          pull_image: true
-                          no_cache: true
                           username: <+secrets.getValue("harnesssecureusername")>
                           password: <+secrets.getValue("dockerHarnessSecurePwd")>
                           repo: harnesssecure/<+matrix.repo>
@@ -1164,10 +1085,6 @@ pipeline:
                       name: RF build and push on branch
                       identifier: RF_build_and_push_on_branch
                       spec:
-                        envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                         connectorRef: harnesssecure
                         repo: harnesssecure/<+matrix.repo>
                         tags:

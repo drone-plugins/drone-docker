@@ -1,5 +1,6 @@
-FROM arm64v8/docker:28.5.2-dind@sha256:eb21442d14d1154ec42cfc54944d6c88614b75f8803be3b436b082929442f2db
+FROM arm64v8/docker:28.5.2-dind
 RUN apk add --no-cache 'ca-certificates>=20261020-r0'
+
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
 # Install cosign for container image signing
