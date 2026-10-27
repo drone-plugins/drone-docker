@@ -497,9 +497,6 @@ pipeline:
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.amd64.hhi
                         envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
                           PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
@@ -638,9 +635,6 @@ pipeline:
                         caching: false
                         dockerfile: rf-plugins/drone-docker/docker/docker/Dockerfile.linux.arm64.hhi
                         envVariables:
-                          PLUGIN_NO_CACHE: "true"
-                          PLUGIN_PULL_IMAGE: "true"
-                          PLUGIN_ENABLE_CACHE: "false"
                           PLUGIN_BASE_IMAGE_USERNAME: <+secrets.getValue("harness0HARUsername")>
                           PLUGIN_BASE_IMAGE_PASSWORD: <+secrets.getValue("harness0HARPAT")>
                           PLUGIN_BASE_IMAGE_REGISTRY: harness0.harness.io/oci/docker_artifacts
