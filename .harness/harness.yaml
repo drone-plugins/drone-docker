@@ -472,8 +472,8 @@ pipeline:
                       name: Build Binary
                       identifier: build_binary
                       spec:
-                        connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
+                        connectorRef: HHI_Public_Images
+                        image: harness0.harness.io/oci/docker_artifacts/hhi/go:1.26.10@sha256:718fddf012b3a305e936ae9964e5a642036bcb7b4c6c0786e2f78f238d637db8
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -610,8 +610,8 @@ pipeline:
                       name: Build Binary
                       identifier: build_binary
                       spec:
-                        connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
+                        connectorRef: HHI_Public_Images
+                        image: harness0.harness.io/oci/docker_artifacts/hhi/go:1.26.10@sha256:718fddf012b3a305e936ae9964e5a642036bcb7b4c6c0786e2f78f238d637db8
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
