@@ -33,7 +33,7 @@ pipeline:
                   identifier: Run_1
                   spec:
                     connectorRef: Plugins_Docker_Hub_Connector
-                    image: golang:1.26.5
+                    image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                     shell: Sh
                     command: go vet ./...
               - step:
@@ -42,7 +42,7 @@ pipeline:
                   identifier: Run_2
                   spec:
                     connectorRef: Plugins_Docker_Hub_Connector
-                    image: golang:1.26.5
+                    image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                     shell: Sh
                     command: go test -cover ./...
           buildIntelligence:
@@ -53,6 +53,10 @@ pipeline:
             identifier: linamd64
             description: ""
             type: CI
+            variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+<+codebase.build.type> == "PR">
             spec:
               cloneCodebase: true
               caching:
@@ -72,7 +76,7 @@ pipeline:
                       identifier: Build_Push
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.5
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -154,6 +158,10 @@ pipeline:
             identifier: linarm64
             description: ""
             type: CI
+            variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+<+codebase.build.type> == "PR">
             spec:
               cloneCodebase: true
               caching:
@@ -173,7 +181,7 @@ pipeline:
                       identifier: buildpush
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.5
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -275,6 +283,8 @@ pipeline:
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: golang:1.23.0
+                        envVariables:
+                          GOTOOLCHAIN: go1.26.10
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -362,7 +372,7 @@ pipeline:
                       identifier: build_amd64ltsc2022
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.7
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -463,7 +473,7 @@ pipeline:
                       identifier: build_binary
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.5
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/amd64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -558,6 +568,9 @@ pipeline:
               buildIntelligence:
                 enabled: true
             variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+<+codebase.build.type> == "PR">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
@@ -598,7 +611,7 @@ pipeline:
                       identifier: build_binary
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.26.5
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: go build -a -tags netgo -o release/linux/arm64/drone-<+matrix.repo> ./cmd/drone-<+matrix.repo>
                         envVariables:
@@ -691,6 +704,9 @@ pipeline:
                             - ecr
                             - gar
             variables:
+              - name: PLUGIN_DRY_RUN
+                type: String
+                value: <+<+codebase.build.type> == "PR">
               - name: CI_ENABLE_BARE_METAL
                 type: String
                 description: ""
@@ -732,6 +748,8 @@ pipeline:
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: golang:1.23.0
+                        envVariables:
+                          GOTOOLCHAIN: go1.26.10
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -828,7 +846,7 @@ pipeline:
                       identifier: build_amd64ltsc2022
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.7
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -920,7 +938,7 @@ pipeline:
                       identifier: Build_Binary_2025
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.7
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: |-
                           # disable cgo
@@ -1021,7 +1039,7 @@ pipeline:
                       identifier: Build_Binaries
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
-                        image: golang:1.25.7
+                        image: golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9
                         shell: Sh
                         command: |-
                           # disable cgo
