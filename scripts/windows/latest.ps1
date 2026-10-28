@@ -20,6 +20,10 @@ echo $env:VERSION
 echo $env:REGISTRY
 
 # build the binary
+. (Join-Path $PSScriptRoot "../setup-go-windows.ps1")
+if ($env:REGISTRY -ne "docker") {
+    go build -o release/windows/amd64/drone-docker.exe ./cmd/drone-docker
+}
 Write-Host "+ go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}";
 go build -o release/windows/amd64/drone-${env:REGISTRY}.exe ./cmd/drone-${env:REGISTRY}
 
