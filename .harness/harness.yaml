@@ -283,14 +283,12 @@ pipeline:
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: golang:1.23.0
-                        envVariables:
-                          GOTOOLCHAIN: go1.26.10
-                        shell: Sh
+                        shell: Powershell
                         command: |-
-                          # disable cgo
-                          export CGO_ENABLED=0
-
-                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          $env:CGO_ENABLED = "0"
+                          . (Join-Path $PWD "scripts/setup-go-windows.ps1")
+                          & go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                       strategy:
                         matrix:
                           repo:
@@ -748,14 +746,12 @@ pipeline:
                       spec:
                         connectorRef: Plugins_Docker_Hub_Connector
                         image: golang:1.23.0
-                        envVariables:
-                          GOTOOLCHAIN: go1.26.10
-                        shell: Sh
+                        shell: Powershell
                         command: |-
-                          # disable cgo
-                          export CGO_ENABLED=0
-
-                          go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          $env:CGO_ENABLED = "0"
+                          . (Join-Path $PWD "scripts/setup-go-windows.ps1")
+                          & go build -buildvcs=false -o release/windows/amd64/drone-<+matrix.repo>.exe ./cmd/drone-<+matrix.repo>
+                          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                       strategy:
                         matrix:
                           repo:
