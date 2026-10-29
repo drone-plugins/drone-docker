@@ -1,15 +1,38 @@
-FROM golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9 AS cosign
+FROM golang:1.26.10@sha256:24a707af49702fa44f02785475d02fb752f6982d3e9c0afb7696e1f0204e7ce9 AS patched-tools
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        git \
+        libc6-dev \
+        libseccomp-dev \
+        make \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+COPY scripts/build-docker-28-patched-binaries.sh /usr/local/bin/
+RUN bash /usr/local/bin/build-docker-28-patched-binaries.sh
 RUN CGO_ENABLED=0 GOTOOLCHAIN=local GOBIN=/out go install -trimpath \
     -ldflags "-s -w -X sigs.k8s.io/release-utils/version.gitVersion=v2.6.5" \
     github.com/sigstore/cosign/v2/cmd/cosign@v2.6.5
 
-FROM arm64v8/docker:29.9.2-dind
+FROM arm64v8/docker:28.5.2-dind
 RUN apk add --no-cache 'ca-certificates>=20261020-r0'
 
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 
-# Install cosign for container image signing
-COPY --from=cosign /out/cosign /usr/local/bin/cosign
+# Keep Docker 28 behavior while replacing every bundled Go binary with a
+# source-identical build from the incident-patched Go toolchain.
+COPY --from=patched-tools \
+    /out/containerd \
+    /out/containerd-shim-runc-v2 \
+    /out/ctr \
+    /out/docker \
+    /out/docker-proxy \
+    /out/dockerd \
+    /out/runc \
+    /usr/local/bin/
+COPY --from=patched-tools /out/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
+COPY --from=patched-tools /out/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
+COPY --from=patched-tools /out/cosign /usr/local/bin/cosign
 
 ADD release/linux/arm64/drone-docker /bin/
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh", "/bin/drone-docker"]
